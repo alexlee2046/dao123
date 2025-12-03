@@ -1,0 +1,334 @@
+'use client'
+
+import React, { useState, useEffect, useRef } from 'react'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Loader2, Upload, Image as ImageIcon, FileVideo, Type, Trash2, Copy, Check, Plus, Sparkles } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { getAssets, saveAssetRecord, deleteAsset, type Asset } from "@/lib/actions/assets"
+import { toast } from "sonner"
+import Image from 'next/image'
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { useStudioStore } from "@/lib/store"
+
+export function AssetLibrary({ children }: { children: React.ReactNode }) {
+    const [isOpen, setIsOpen] = useState(false)
+    const [assets, setAssets] = useState<Asset[]>([])
+    const [loading, setLoading] = useState(false)
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    // Generation state
+    const [prompt, setPrompt] = useState('')
+    const [genModel, setGenModel] = useState('openai/dall-e-3')
+    const [genType, setGenType] = useState('image')
+    const [generating, setGenerating] = useState(false)
+    const { openRouterApiKey } = useStudioStore()
+
+    const handleGenerate = async () => {
+        if (!prompt) return
+        if (!openRouterApiKey) {
+            toast.error("Please configure OpenRouter API Key in settings first")
+            return
+        }
+
+        try {
+            setGenerating(true)
+            const response = await fetch('/api/generate-asset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt,
+                    model: genModel,
+                    type: genType,
+                    apiKey: openRouterApiKey
+                })
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Generation failed')
+            }
+
+            setAssets([data, ...assets])
+            toast.success("Asset generated successfully")
+            setPrompt('')
+        } catch (error: any) {
+            console.error(error)
+            toast.error(error.message)
+        } finally {
+            setGenerating(false)
+        }
+    }
+
+    useEffect(() => {
+        if (isOpen) {
+            loadAssets()
+        }
+    }, [isOpen])
+
+    const loadAssets = async () => {
+        try {
+            setLoading(true)
+            const data = await getAssets()
+            setAssets(data)
+        } catch (error) {
+            console.error(error)
+            toast.error("Failed to load assets")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        try {
+            setUploading(true)
+            const supabase = createClient()
+
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+            const filePath = `${fileName}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('assets')
+                .upload(filePath, file)
+
+            if (uploadError) throw uploadError
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('assets')
+                .getPublicUrl(filePath)
+
+            // Determine type
+            let type = 'other'
+            if (file.type.startsWith('image/')) type = 'image'
+            else if (file.type.startsWith('video/')) type = 'video'
+            else if (file.type.startsWith('font/') || fileExt === 'ttf' || fileExt === 'otf' || fileExt === 'woff' || fileExt === 'woff2') type = 'font'
+
+            const newAsset = await saveAssetRecord({
+                url: publicUrl,
+                name: file.name,
+                type,
+            })
+
+            setAssets([newAsset, ...assets])
+            toast.success("Asset uploaded successfully")
+        } catch (error: any) {
+            console.error(error)
+            toast.error("Upload failed: " + error.message)
+        } finally {
+            setUploading(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
+
+    const handleDelete = async (asset: Asset) => {
+        try {
+            // Extract path from URL for storage deletion
+            // URL format: .../storage/v1/object/public/assets/filename.ext
+            const path = asset.url.split('/').pop()
+            if (!path) return
+
+            await deleteAsset(asset.id, path)
+            setAssets(assets.filter(a => a.id !== asset.id))
+            toast.success("Asset deleted")
+        } catch (error: any) {
+            console.error(error)
+            toast.error("Delete failed: " + error.message)
+        }
+    }
+
+    const handleCopyUrl = (url: string) => {
+        navigator.clipboard.writeText(url)
+        toast.success("URL copied to clipboard")
+    }
+
+    const filteredAssets = (type: string) => {
+        if (type === 'all') return assets
+        return assets.filter(a => a.type === type)
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                {children}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px] h-[600px] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle>Asset Library</DialogTitle>
+                    <DialogDescription>
+                        Manage your images, videos, and fonts.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="flex items-center justify-between py-4">
+                    <Tabs defaultValue="all" className="w-full">
+                        <div className="flex items-center justify-between mb-4">
+                            <TabsList>
+                                <TabsTrigger value="all">All</TabsTrigger>
+                                <TabsTrigger value="image">Images</TabsTrigger>
+                                <TabsTrigger value="video">Videos</TabsTrigger>
+                                <TabsTrigger value="font">Fonts</TabsTrigger>
+                                <TabsTrigger value="generate" className="gap-2">
+                                    <Sparkles className="h-4 w-4 text-amber-500" />
+                                    Generate
+                                </TabsTrigger>
+                            </TabsList>
+                            <div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    onChange={handleUpload}
+                                    accept="image/*,video/*,.ttf,.otf,.woff,.woff2"
+                                />
+                                <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                                    {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                                    Upload
+                                </Button>
+                            </div>
+                        </div>
+
+                        <ScrollArea className="h-[400px] border rounded-md p-4">
+                            {loading ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                </div>
+                            ) : (
+                                <>
+                                    {['all', 'image', 'video', 'font'].map((tab) => (
+                                        <TabsContent key={tab} value={tab} className="mt-0">
+                                            {assets.length === 0 && tab === 'all' ? (
+                                                <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                                                    <ImageIcon className="h-12 w-12 mb-2 opacity-20" />
+                                                    <p>No assets found</p>
+                                                    <Button variant="link" onClick={() => fileInputRef.current?.click()}>Upload your first asset</Button>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                                                    {filteredAssets(tab).map((asset) => (
+                                                        <div key={asset.id} className="group relative border rounded-lg overflow-hidden bg-muted/30 aspect-square flex items-center justify-center">
+                                                            {asset.type === 'image' ? (
+                                                                <div className="relative w-full h-full">
+                                                                    <Image
+                                                                        src={asset.url}
+                                                                        alt={asset.name}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                    />
+                                                                </div>
+                                                            ) : asset.type === 'video' ? (
+                                                                <FileVideo className="h-10 w-10 text-muted-foreground" />
+                                                            ) : (
+                                                                <Type className="h-10 w-10 text-muted-foreground" />
+                                                            )}
+
+                                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                                                                <p className="text-xs text-white truncate w-full text-center px-1">{asset.name}</p>
+                                                                <div className="flex gap-2">
+                                                                    <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => handleCopyUrl(asset.url)} title="Copy URL">
+                                                                        <Copy className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDelete(asset)} title="Delete">
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </TabsContent>
+                                    ))}
+
+                                    <TabsContent value="generate" className="mt-0 h-full">
+                                        <div className="flex flex-col h-full gap-4">
+                                            <div className="space-y-4 p-1">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="prompt">Prompt</Label>
+                                                    <Textarea
+                                                        id="prompt"
+                                                        placeholder="Describe the image you want to generate..."
+                                                        value={prompt}
+                                                        onChange={(e) => setPrompt(e.target.value)}
+                                                        className="min-h-[100px]"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="genModel">Model</Label>
+                                                        <Select value={genModel} onValueChange={setGenModel}>
+                                                            <SelectTrigger id="genModel">
+                                                                <SelectValue placeholder="Select model" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="openai/dall-e-3">DALL-E 3</SelectItem>
+                                                                <SelectItem value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL</SelectItem>
+                                                                <SelectItem value="recraft-ai/recraft-v3">Recraft V3</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="genType">Type</Label>
+                                                        <Select value={genType} onValueChange={setGenType}>
+                                                            <SelectTrigger id="genType">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="image">Image</SelectItem>
+                                                                <SelectItem value="video" disabled>Video (Coming Soon)</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    className="w-full"
+                                                    onClick={handleGenerate}
+                                                    disabled={generating || !prompt}
+                                                >
+                                                    {generating ? (
+                                                        <>
+                                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                            Generating...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles className="h-4 w-4 mr-2" />
+                                                            Generate
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                </>
+                            )}
+                        </ScrollArea>
+                    </Tabs>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
