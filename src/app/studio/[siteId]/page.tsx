@@ -18,7 +18,7 @@ import { toast } from "sonner";
 export default function StudioPage() {
     const params = useParams();
     const siteId = params?.siteId as string;
-    const { setCurrentProject, setHtmlContent } = useStudioStore();
+    const { setCurrentProject, setHtmlContent, setPages } = useStudioStore();
 
     useEffect(() => {
         if (siteId && siteId !== 'new') {
@@ -34,8 +34,12 @@ export default function StudioPage() {
         try {
             const project = await getProject(id);
             setCurrentProject(project);
-            if (project.content && project.content.html) {
-                setHtmlContent(project.content.html);
+            if (project.content) {
+                if (project.content.pages && Array.isArray(project.content.pages) && project.content.pages.length > 0) {
+                    setPages(project.content.pages);
+                } else if (project.content.html) {
+                    setHtmlContent(project.content.html);
+                }
             }
         } catch (error) {
             console.error(error);

@@ -18,7 +18,7 @@ interface ProjectActionsProps {
 export function ProjectActions({ projectId, price, hasAccess, projectData }: ProjectActionsProps) {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
-    const { setHtmlContent, setCurrentProject } = useStudioStore()
+    const { setHtmlContent, setPages, setCurrentProject } = useStudioStore()
 
     const handlePurchase = async () => {
         try {
@@ -35,11 +35,16 @@ export function ProjectActions({ projectId, price, hasAccess, projectData }: Pro
 
     const handleClone = () => {
         // Load into studio
-        if (projectData.content?.html) {
+        if (projectData.content?.pages && projectData.content.pages.length > 0) {
+            setPages(projectData.content.pages)
+            setCurrentProject(null) // New project based on this one
+            toast.success("Project cloned to Studio!")
+            router.push('/studio/new')
+        } else if (projectData.content?.html) {
             setHtmlContent(projectData.content.html)
             setCurrentProject(null) // New project based on this one
             toast.success("Project cloned to Studio!")
-            router.push('/dashboard')
+            router.push('/studio/new')
         } else {
             toast.error("Project content is empty")
         }

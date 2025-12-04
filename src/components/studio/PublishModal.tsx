@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Check, Copy, Globe, Loader2 } from "lucide-react";
 
-export function PublishModal({ children }: { children: React.ReactNode }) {
+export function PublishModal({ children, pageCount = 1 }: { children: React.ReactNode, pageCount?: number }) {
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState<'config' | 'deploying' | 'success'>('config');
     const [subdomain, setSubdomain] = useState('my-awesome-site');
@@ -114,7 +114,7 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                             <Progress value={progress} className="w-full" />
                             <p className="text-sm text-center text-muted-foreground">
                                 {progress < 30 && "Optimizing assets..."}
-                                {progress >= 30 && progress < 70 && "Building static pages..."}
+                                {progress >= 30 && progress < 70 && `Building ${pageCount} static pages...`}
                                 {progress >= 70 && "Propagating to CDN..."}
                             </p>
                         </div>

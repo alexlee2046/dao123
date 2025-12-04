@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2 } from "lucide-react";
-import { useStudioStore } from "@/lib/store";
+import { useStudioStore, type Page } from "@/lib/store";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +14,7 @@ import { getModels, type Model } from "@/lib/actions/models";
 import { toast } from "sonner";
 
 export function ChatAssistant() {
-    const { assets, htmlContent, setHtmlContent, selectedModel, addAsset } = useStudioStore();
+    const { assets, htmlContent, setHtmlContent, setPages, selectedModel, addAsset } = useStudioStore();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [localInput, setLocalInput] = useState('');
     const [models, setModels] = useState<Model[]>([]);
@@ -32,9 +32,28 @@ export function ChatAssistant() {
             currentHtml: htmlContent,
         },
         onFinish: (message: Message) => {
-            const htmlContent = message.content;
-            if (htmlContent.includes('<!DOCTYPE') || htmlContent.includes('<html')) {
-                setHtmlContent(htmlContent);
+            const content = message.content;
+
+            // Check for multi-page format
+            if (content.includes('<!-- page:')) {
+                const pages: Page[] = [];
+                const pageRegex = /<!-- page: (.*?) -->([\s\S]*?)(?=<!-- page: |$)/g;
+                let match;
+                while ((match = pageRegex.exec(content)) !== null) {
+                    pages.push({
+                        path: match[1].trim(),
+                        content: match[2].trim()
+                    });
+                }
+                
+                if (pages.length > 0) {
+                    setPages(pages);
+                    return;
+                }
+            }
+
+            if (content.includes('<!DOCTYPE') || content.includes('<html')) {
+                setHtmlContent(content);
             }
         },
         onError: (error) => {
@@ -47,6 +66,10 @@ export function ChatAssistant() {
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && lastMessage.role === 'assistant') {
             const content = lastMessage.content;
+
+            // Skip live update for multi-page for now
+            if (content.includes('<!-- page:')) return;
+
             if (content.includes('<!DOCTYPE html>') || content.includes('<html')) {
                 const startIndex = content.indexOf('<!DOCTYPE') !== -1 ? content.indexOf('<!DOCTYPE') : content.indexOf('<html');
                 if (startIndex !== -1) {

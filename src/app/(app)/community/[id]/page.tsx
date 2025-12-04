@@ -16,6 +16,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
     const hasAccess = await checkAccess(id);
 
+    // Determine preview content
+    let previewContent = project.content?.html || '';
+    if (project.content?.pages && Array.isArray(project.content.pages) && project.content.pages.length > 0) {
+        // Try to find index.html or use the first page
+        const indexPage = project.content.pages.find((p: any) => p.path === 'index.html') || project.content.pages[0];
+        previewContent = indexPage.content;
+    }
+
     return (
         <div className="container mx-auto py-8 max-w-4xl">
             <div className="grid gap-8">
@@ -46,7 +54,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 {/* Content Preview */}
                 <div className="aspect-video bg-muted rounded-lg border flex items-center justify-center relative overflow-hidden">
                     <iframe
-                        srcDoc={project.content?.html}
+                        srcDoc={previewContent}
                         className="w-full h-full pointer-events-none scale-75 origin-top-left w-[133%] h-[133%]"
                         title="Preview"
                     />

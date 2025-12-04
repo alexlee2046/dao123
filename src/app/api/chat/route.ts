@@ -143,8 +143,14 @@ export async function POST(req: Request) {
 4. 如果用户提到了上传的素材，请在代码中使用这些素材的 URL
 5. 直接输出 HTML 代码，不要添加 markdown 代码块标记
 6. 确保代码可以直接在浏览器中运行
-7. 你正在构建一个单页应用（SPA）。所有导航链接必须使用锚点（例如 href="#contact"）并对应页面中的 section ID（例如 id="contact"）。不要生成指向其他 HTML 文件（如 contact.html）的链接，因为它们无法在预览环境中工作。
-8. 如果用户要求"联系我们"页面，请在当前页面底部添加一个 id="contact" 的部分。`;
+7. 支持多页面生成。如果你生成多个页面，请在每个页面代码前加上 "<!-- page: filename.html -->" 标记。
+   例如：
+   <!-- page: index.html -->
+   <!DOCTYPE html><html>...</html>
+   <!-- page: about.html -->
+   <!DOCTYPE html><html>...</html>
+8. 如果只生成一个页面，默认为 index.html，不需要加标记。
+9. 页面之间的链接请使用相对路径，例如 href="about.html"。不要使用 #hash 导航，除非是页面内跳转。`;
 
         if (currentHtml) {
             systemPrompt += `\n\n当前代码状态:\n\`\`\`html\n${currentHtml}\n\`\`\`\n\n用户想要修改上述代码。请基于用户的要求和当前代码，返回修改后的完整 HTML 代码。请保持原有代码结构，仅根据用户需求进行修改。`;
