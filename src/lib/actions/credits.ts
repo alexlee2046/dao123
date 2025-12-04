@@ -18,14 +18,22 @@ export async function getCredits() {
     return data?.credits || 0
 }
 
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
 export async function deductCredits(amount: number, description: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) throw new Error('User not authenticated')
 
+    // Use Admin Client for secure operations
+    const adminSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
     // Get current credits
-    const { data: profile } = await supabase
+    const { data: profile } = await adminSupabase
         .from('profiles')
         .select('credits')
         .eq('id', user.id)
@@ -36,7 +44,7 @@ export async function deductCredits(amount: number, description: string) {
     }
 
     // Deduct credits
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminSupabase
         .from('profiles')
         .update({ credits: profile.credits - amount })
         .eq('id', user.id)
@@ -44,7 +52,7 @@ export async function deductCredits(amount: number, description: string) {
     if (updateError) throw new Error(updateError.message)
 
     // Record transaction
-    await supabase.from('transactions').insert({
+    await adminSupabase.from('transactions').insert({
         user_id: user.id,
         amount: -amount,
         type: 'usage',

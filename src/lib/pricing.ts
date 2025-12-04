@@ -71,24 +71,42 @@ export const DEFAULT_COSTS = {
     video: 200,   // Default for unknown video models
 };
 
-export function calculateCost(type: 'chat' | 'image' | 'video', modelId: string): number {
+export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architect' | 'agent_designer' | 'agent_builder', modelId: string): number {
     // 1. Check specific model cost
     if (modelId in MODEL_COSTS) {
         return MODEL_COSTS[modelId];
     }
 
-    // 2. Heuristic based on model ID strings if not explicitly listed
+    // Agentic Workflow Pricing
+    if (type === 'agent_architect') {
+        // Architect uses high-reasoning models (Claude 3.5 Sonnet / GPT-4o)
+        // Fixed cost per plan generation
+        return modelId.includes('gpt-4o') ? 5 : 3;
+    }
+    if (type === 'agent_designer') {
+        // Designer uses high-reasoning models
+        // Fixed cost per design system
+        return modelId.includes('gpt-4o') ? 5 : 3;
+    }
+    if (type === 'agent_builder') {
+        // Builder uses faster models (Gemini Flash / DeepSeek)
+        // Cost per section
+        if (modelId.includes('gemini')) return 0.5; // Very cheap
+        if (modelId.includes('deepseek')) return 0.5;
+        if (modelId.includes('gpt-4o-mini')) return 0.5;
+        return 1; // Default
+    }
+
+    // Existing Chat Pricing
     if (type === 'chat') {
-        if (modelId.includes('gpt-4') || modelId.includes('claude-3') || modelId.includes('pro')) return 3;
-        if (modelId.includes('flash') || modelId.includes('mini') || modelId.includes('haiku')) return 1;
-        if (modelId.includes('deepseek')) return 1; // DeepSeek models are generally cheap
-        if (modelId.includes('free')) return 0;
+        if (modelId.includes('claude-3-5-sonnet')) return 3;
+        if (modelId.includes('gpt-4o')) return 5;
+        if (modelId.includes('gemini')) return 1;
+        return 2; // Default
     }
 
-    if (type === 'image') {
-        if (modelId.includes('pro') || modelId.includes('ultra') || modelId.includes('3')) return 8;
-    }
+    if (type === 'image') return 10;
+    if (type === 'video') return 50;
 
-    // 3. Fallback to defaults
-    return DEFAULT_COSTS[type];
+    return 0;
 }

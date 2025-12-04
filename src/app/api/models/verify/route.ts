@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       apiKey: finalApiKey,
       baseURL: 'https://openrouter.ai/api/v1',
       defaultHeaders: {
-        'HTTP-Referer': 'https://dao123.app',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.dao123.me',
         'X-Title': 'dao123',
       },
     });

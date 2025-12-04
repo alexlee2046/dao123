@@ -15,7 +15,7 @@ import { Copy, Check, Share2, Mail } from "lucide-react";
 
 export function ShareModal({ children }: { children: React.ReactNode }) {
     const [copied, setCopied] = useState(false);
-    const shareUrl = "https://my-awesome-site.dao123.app"; // Mock URL
+    const shareUrl = "https://my-awesome-site.dao123.me"; // Mock URL
 
     const handleCopy = () => {
         navigator.clipboard.writeText(shareUrl);

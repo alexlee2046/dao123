@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { useLocale, useTranslations } from 'next-intl'
 import { cn } from "@/lib/utils"
 import {
     LayoutDashboard,
@@ -19,25 +19,30 @@ import {
 import { Button } from "@/components/ui/button"
 import { getCredits } from "@/lib/actions/credits"
 import { createClient } from "@/lib/supabase/client"
-
-const sidebarItems = [
-    { icon: LayoutDashboard, label: "仪表盘", href: "/dashboard" },
-    { icon: Palette, label: "创作工坊", href: "/studio" },
-    { icon: ImageIcon, label: "AI 绘图", href: "/generate/image" },
-    { icon: Video, label: "AI 视频", href: "/generate/video" },
-    { icon: Globe, label: "灵感广场", href: "/community" },
-    { icon: Settings, label: "设置", href: "/settings" },
-]
-
-const adminItems = [
-    { icon: Cpu, label: "模型管理", href: "/admin" },
-]
+import { Link } from "@/components/link"
 
 export function AppSidebar({ className }: { className?: string }) {
+    const t = useTranslations('common')
+    const tNav = useTranslations('nav')
     const pathname = usePathname()
     const router = useRouter()
+    const locale = useLocale()
     const [credits, setCredits] = useState<number | null>(null)
     const [isAdmin, setIsAdmin] = useState(false)
+
+    // 定义侧边栏项目，使用翻译键
+    const sidebarItems = [
+        { icon: LayoutDashboard, label: t('dashboard'), href: "/dashboard" },
+        { icon: Palette, label: tNav('studio'), href: "/studio" },
+        { icon: ImageIcon, label: "AI Image", href: "/generate/image" },
+        { icon: Video, label: "AI Video", href: "/generate/video" },
+        { icon: Globe, label: t('community'), href: "/community" },
+        { icon: Settings, label: t('settings'), href: "/settings" },
+    ]
+
+    const adminItems = [
+        { icon: Cpu, label: tNav('models'), href: "/admin" },
+    ]
 
     useEffect(() => {
         loadCredits()
@@ -74,8 +79,14 @@ export function AppSidebar({ className }: { className?: string }) {
     const handleSignOut = async () => {
         const supabase = createClient()
         await supabase.auth.signOut()
-        router.push('/login')
+        router.push(`/${locale}/login`)
         router.refresh()
+    }
+
+    // 检查路径是否激活，需要考虑 locale 前缀
+    const isActive = (href: string) => {
+        const pathWithoutLocale = pathname.replace(`/${locale}`, '')
+        return pathWithoutLocale === href || pathWithoutLocale.startsWith(href)
     }
 
     return (
@@ -91,7 +102,7 @@ export function AppSidebar({ className }: { className?: string }) {
                 {sidebarItems.map((item) => (
                     <Link key={item.href} href={item.href}>
                         <Button
-                            variant={pathname === item.href || pathname.startsWith(item.href) ? "secondary" : "ghost"}
+                            variant={isActive(item.href) ? "secondary" : "ghost"}
                             className="w-full justify-start"
                         >
                             <item.icon className="mr-2 h-4 w-4" />
@@ -109,7 +120,7 @@ export function AppSidebar({ className }: { className?: string }) {
                             {adminItems.map((item) => (
                                 <Link key={item.href} href={item.href}>
                                     <Button
-                                        variant={pathname === item.href || pathname.startsWith(item.href) ? "secondary" : "ghost"}
+                                        variant={isActive(item.href) ? "secondary" : "ghost"}
                                         className="w-full justify-start"
                                     >
                                         <item.icon className="mr-2 h-4 w-4" />
@@ -126,7 +137,7 @@ export function AppSidebar({ className }: { className?: string }) {
                 <div className="bg-muted/50 rounded-lg p-4 mb-4">
                     <div className="flex items-center gap-2 mb-2">
                         <CreditCard className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Credits</span>
+                        <span className="text-sm font-medium">{t('credits')}</span>
                     </div>
                     <div className="text-2xl font-bold">
                         <span className="text-primary">{credits !== null ? credits : '--'}</span>
@@ -138,7 +149,7 @@ export function AppSidebar({ className }: { className?: string }) {
                     onClick={handleSignOut}
                 >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+                    {t('logout')}
                 </Button>
             </div>
         </div>

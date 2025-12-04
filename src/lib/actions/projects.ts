@@ -33,6 +33,7 @@ export async function createProject(name: string, description?: string) {
             description,
             user_id: user.id,
             content: {}, // Initial empty content
+            content_json: {}, // Initial empty builder content
             is_public: false
         })
         .select()
@@ -69,18 +70,35 @@ export async function getProject(id: string) {
     return data
 }
 
-export async function updateProject(id: string, content: any) {
+export async function updateProject(id: string, data: any) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) throw new Error('未授权')
 
+    const updatePayload: any = {
+        updated_at: new Date().toISOString()
+    }
+
+    // Legacy content (html, pages) goes into 'content' column
+    if (data.html !== undefined || data.pages !== undefined) {
+        // We need to be careful not to overwrite existing content if only one is passed, 
+        // but currently they are passed together. 
+        // For safety, let's assume they are passed as the 'content' object structure.
+        updatePayload.content = {
+            html: data.html,
+            pages: data.pages
+        }
+    }
+
+    // New builder data goes into 'content_json' column
+    if (data.content_json !== undefined) {
+        updatePayload.content_json = data.content_json
+    }
+
     const { error } = await supabase
         .from('projects')
-        .update({
-            content,
-            updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', id)
         .eq('user_id', user.id)
 

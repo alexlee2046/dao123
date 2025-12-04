@@ -8,7 +8,7 @@ export interface Asset {
     url: string
     name: string
     type: string
-    created_at: string
+    created_at?: string
 }
 
 export async function getAssets() {

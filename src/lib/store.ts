@@ -5,7 +5,8 @@ interface Asset {
   id: string;
   url: string;
   name: string;
-  type: 'image' | 'video' | 'font';
+  type: string;
+  created_at?: string;
 }
 
 interface Message {
@@ -24,7 +25,7 @@ interface StudioState {
   htmlContent: string; // Current page content
   pages: Page[]; // All pages
   currentPage: string; // Current page path
-  
+
   setHtmlContent: (content: string) => void;
   setPages: (pages: Page[]) => void;
   setCurrentPage: (path: string) => void;
@@ -36,6 +37,8 @@ interface StudioState {
   // User assets
   assets: Asset[];
   addAsset: (asset: Asset) => void;
+  setAssets: (assets: Asset[]) => void;
+  removeAsset: (id: string) => void;
 
   // UI State
   isMobileView: boolean;
@@ -59,8 +62,25 @@ interface StudioState {
     name: string;
     description?: string;
     is_public: boolean;
+    preview_image?: string;
   } | null;
-  setCurrentProject: (project: { id: string; name: string; description?: string; is_public: boolean } | null) => void;
+  setCurrentProject: (project: { id: string; name: string; description?: string; is_public: boolean; preview_image?: string } | null) => void;
+
+  // Screenshot
+  captureScreenshot: () => Promise<string | null>;
+  setCaptureScreenshotHandler: (handler: () => Promise<string | null>) => void;
+
+  // Builder Mode
+  isBuilderMode: boolean;
+  toggleBuilderMode: () => void;
+  builderData: string | null; // JSON string for Craft.js
+  setBuilderData: (data: string | null) => void;
+
+  // Agent Models
+  architectModel: string;
+  builderModel: string;
+  setArchitectModel: (model: string) => void;
+  setBuilderModel: (model: string) => void;
 }
 
 export const useStudioStore = create<StudioState>((set) => {
@@ -85,12 +105,12 @@ export const useStudioStore = create<StudioState>((set) => {
     currentPage: 'index.html',
 
     setHtmlContent: (content) => set((state) => {
-      const newPages = state.pages.map(p => 
+      const newPages = state.pages.map(p =>
         p.path === state.currentPage ? { ...p, content } : p
       );
       // If current page is not in pages (edge case), add it
       if (!newPages.find(p => p.path === state.currentPage)) {
-          newPages.push({ path: state.currentPage, content });
+        newPages.push({ path: state.currentPage, content });
       }
 
       return {
@@ -102,26 +122,26 @@ export const useStudioStore = create<StudioState>((set) => {
     }),
 
     setPages: (pages) => set((state) => {
-        const indexPage = pages.find(p => p.path === 'index.html') || pages[0];
-        const newCurrentPage = indexPage ? indexPage.path : 'index.html';
-        const newHtmlContent = indexPage ? indexPage.content : '';
-        
-        return {
-            pages,
-            currentPage: newCurrentPage,
-            htmlContent: newHtmlContent,
-            past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
-            future: []
-        };
+      const indexPage = pages.find(p => p.path === 'index.html') || pages[0];
+      const newCurrentPage = indexPage ? indexPage.path : 'index.html';
+      const newHtmlContent = indexPage ? indexPage.content : '';
+
+      return {
+        pages,
+        currentPage: newCurrentPage,
+        htmlContent: newHtmlContent,
+        past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
+        future: []
+      };
     }),
 
     setCurrentPage: (path) => set((state) => {
-        const page = state.pages.find(p => p.path === path);
-        if (!page) return state;
-        return {
-            currentPage: path,
-            htmlContent: page.content
-        };
+      const page = state.pages.find(p => p.path === path);
+      if (!page) return state;
+      return {
+        currentPage: path,
+        htmlContent: page.content
+      };
     }),
 
     messages: [
@@ -134,7 +154,9 @@ export const useStudioStore = create<StudioState>((set) => {
     addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
 
     assets: [],
-    addAsset: (asset) => set((state) => ({ assets: [...state.assets, asset] })),
+    addAsset: (asset: Asset) => set((state) => ({ assets: [asset, ...state.assets] })),
+    setAssets: (assets: Asset[]) => set({ assets }),
+    removeAsset: (id: string) => set((state) => ({ assets: state.assets.filter(a => a.id !== id) })),
 
     isMobileView: false,
     toggleViewMode: () => set((state) => ({ isMobileView: !state.isMobileView })),
@@ -180,5 +202,20 @@ export const useStudioStore = create<StudioState>((set) => {
     // Project
     currentProject: null,
     setCurrentProject: (project) => set({ currentProject: project }),
+
+    captureScreenshot: async () => null,
+    setCaptureScreenshotHandler: (handler) => set({ captureScreenshot: handler }),
+
+    // Builder Mode
+    isBuilderMode: false,
+    toggleBuilderMode: () => set((state) => ({ isBuilderMode: !state.isBuilderMode })),
+    builderData: null,
+    setBuilderData: (data) => set({ builderData: data }),
+
+    // Agent Models
+    architectModel: 'anthropic/claude-3.5-sonnet',
+    builderModel: 'google/gemini-2.0-flash-exp:free', // Default to efficient model
+    setArchitectModel: (model) => set({ architectModel: model }),
+    setBuilderModel: (model) => set({ builderModel: model }),
   };
 });

@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { streamText } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { createClient } from '@/lib/supabase/server';
 import { calculateCost } from '@/lib/pricing';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
@@ -125,11 +125,12 @@ export async function POST(req: Request) {
         }
 
         console.log('[Chat API] Initializing OpenRouter client...');
-        const openai = new OpenAI({
+
+        const openRouter = createOpenAI({
             apiKey: apiKey,
             baseURL: 'https://openrouter.ai/api/v1',
-            defaultHeaders: {
-                'HTTP-Referer': 'https://dao123.app',
+            headers: {
+                'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.dao123.me',
                 'X-Title': 'dao123',
             }
         });
@@ -173,18 +174,14 @@ export async function POST(req: Request) {
         console.log('[Chat API] Calling OpenRouter API with model:', model || 'anthropic/claude-3.5-sonnet');
         console.log('[Chat API] Message count:', messages.length);
 
-        const response = await openai.chat.completions.create({
-            model: model || 'anthropic/claude-3.5-sonnet',
-            stream: true,
-            messages: [
-                { role: 'system', content: systemPrompt },
-                ...messages
-            ],
+        const result = await streamText({
+            model: openRouter(model || 'anthropic/claude-3.5-sonnet'),
+            system: systemPrompt,
+            messages,
         });
 
         console.log('[Chat API] OpenRouter API call successful, streaming response...');
-        const stream = OpenAIStream(response);
-        return new StreamingTextResponse(stream);
+        return result.toTextStreamResponse();
 
     } catch (error: unknown) {
         console.error('=== AI API Error Details ===');

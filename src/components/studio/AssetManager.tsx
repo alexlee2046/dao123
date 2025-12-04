@@ -2,15 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { Upload, Image as ImageIcon, X, Loader2, Trash2, Copy, FileVideo, Type } from "lucide-react";
+import { Upload, Image as ImageIcon, X, Loader2, Trash2, Copy, FileVideo, Type, Plus } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { getAssets, saveAssetRecord, deleteAsset, type Asset } from "@/lib/actions/assets";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Image from 'next/image';
+import { cn } from "@/lib/utils";
 
 export function AssetManager() {
-    const [assets, setAssets] = useState<Asset[]>([]);
+    const { assets, setAssets, addAsset, removeAsset } = useStudioStore();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,7 +67,10 @@ export function AssetManager() {
                 type,
             });
 
-            setAssets([newAsset, ...assets]);
+            addAsset({
+                ...newAsset,
+                type: newAsset.type as "image" | "video" | "font"
+            });
             toast.success("素材上传成功");
         } catch (error: any) {
             console.error(error);
@@ -83,7 +87,7 @@ export function AssetManager() {
             if (!path) return;
 
             await deleteAsset(asset.id, path);
-            setAssets(assets.filter(a => a.id !== asset.id));
+            removeAsset(asset.id);
             toast.success("素材已删除");
         } catch (error: any) {
             console.error(error);
@@ -98,14 +102,21 @@ export function AssetManager() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-background border-l">
-            <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex flex-col h-full bg-background/50 backdrop-blur-xl border-l border-border/50">
+            <div className="p-4 border-b border-border/50 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-10">
                 <div>
-                    <h3 className="font-semibold mb-1">素材</h3>
-                    <p className="text-xs text-muted-foreground">拖拽到聊天</p>
+                    <h3 className="font-semibold text-sm">素材库</h3>
+                    <p className="text-[10px] text-muted-foreground">拖拽素材到画布或对话</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 px-2 text-xs gap-1 shadow-sm hover:bg-primary hover:text-primary-foreground transition-all"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                >
+                    {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                    上传
                 </Button>
                 <input
                     type="file"
@@ -116,22 +127,25 @@ export function AssetManager() {
                 />
             </div>
 
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-3">
                 {loading ? (
-                    <div className="flex justify-center p-4">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span className="text-xs">加载中...</span>
                     </div>
                 ) : assets.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                        <ImageIcon className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                        <p className="text-sm">暂无素材</p>
+                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground/50">
+                        <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center border border-dashed border-border">
+                            <ImageIcon className="h-8 w-8" />
+                        </div>
+                        <p className="text-xs">暂无素材，点击上方按钮上传</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                         {assets.map((asset) => (
                             <Card
                                 key={asset.id}
-                                className="overflow-hidden group relative aspect-square cursor-grab active:cursor-grabbing"
+                                className="group relative aspect-square cursor-grab active:cursor-grabbing overflow-hidden border-0 shadow-sm ring-1 ring-border/50 hover:ring-primary/50 hover:shadow-md transition-all bg-muted/30"
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, asset)}
                             >
@@ -141,28 +155,37 @@ export function AssetManager() {
                                             src={asset.url}
                                             alt={asset.name}
                                             fill
-                                            className="object-cover"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                            sizes="(max-width: 768px) 50vw, 33vw"
                                         />
                                     </div>
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-muted">
-                                        {asset.type === 'video' ? <FileVideo className="h-8 w-8 text-muted-foreground" /> : <Type className="h-8 w-8 text-muted-foreground" />}
+                                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-muted/50 p-2">
+                                        {asset.type === 'video' ? (
+                                            <FileVideo className="h-8 w-8 text-muted-foreground/70" />
+                                        ) : (
+                                            <Type className="h-8 w-8 text-muted-foreground/70" />
+                                        )}
+                                        <span className="text-[10px] text-muted-foreground truncate max-w-full px-2">{asset.name}</span>
                                     </div>
                                 )}
 
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                                     <Button
                                         size="icon"
                                         variant="destructive"
-                                        className="h-8 w-8"
+                                        className="h-7 w-7 rounded-full shadow-lg scale-90 hover:scale-100 transition-transform"
                                         onClick={() => handleDelete(asset)}
+                                        title="删除"
                                     >
-                                        <Trash2 className="h-4 w-4" />
+                                        <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
                                 </div>
-                                <div className="absolute bottom-0 left-0 right-0 bg-black/40 p-1">
-                                    <p className="text-[10px] text-white truncate text-center">{asset.name}</p>
-                                </div>
+                                {asset.type === 'image' && (
+                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <p className="text-[10px] text-white truncate text-center font-medium">{asset.name}</p>
+                                    </div>
+                                )}
                             </Card>
                         ))}
                     </div>

@@ -1,10 +1,27 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import createMiddleware from 'next-intl/middleware'
+import { locales, defaultLocale } from './i18n'
+
+// 创建 next-intl 中间件
+const intlMiddleware = createMiddleware({
+    locales,
+    defaultLocale,
+    localePrefix: 'always' // 总是在 URL 中显示语言前缀，对 SEO 友好
+})
 
 export async function middleware(request: NextRequest) {
     // Skip middleware for API routes - let them handle auth themselves
     if (request.nextUrl.pathname.startsWith('/api/')) {
         return NextResponse.next()
+    }
+
+    // 处理 i18n 路由
+    const intlResponse = intlMiddleware(request)
+
+    // 如果 intl 中间件返回了重定向，直接返回
+    if (intlResponse.status === 307 || intlResponse.status === 308) {
+        return intlResponse
     }
 
     let response = NextResponse.next({
@@ -42,19 +59,25 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
+    // 提取 locale 前缀后的路径
+    const pathnameWithoutLocale = request.nextUrl.pathname.replace(/^\/(en|zh)/, '')
+
     // Protected routes pattern
     const protectedPaths = ['/studio', '/dashboard', '/admin', '/generate', '/settings', '/community']
-    const isProtected = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
+    const isProtected = protectedPaths.some(path => pathnameWithoutLocale.startsWith(path))
 
     // Auth routes (login/signup)
-    const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
+    const isAuthRoute = pathnameWithoutLocale.startsWith('/login') || pathnameWithoutLocale.startsWith('/signup')
+
+    // 获取当前语言
+    const locale = request.nextUrl.pathname.split('/')[1] || defaultLocale
 
     if (isProtected && !user) {
-        return NextResponse.redirect(new URL('/login', request.url))
+        return NextResponse.redirect(new URL(`/${locale}/login`, request.url))
     }
 
     if (isAuthRoute && user) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+        return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url))
     }
 
     return response
