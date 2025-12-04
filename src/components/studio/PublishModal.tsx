@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Check, Copy, Globe, Loader2, AlertCircle, ExternalLink, Sparkles, Save } from "lucide-react";
+import { Check, Copy, Globe, Loader2, AlertCircle, ExternalLink, Sparkles, Save, Lock, Trash2, RefreshCw } from "lucide-react";
 import { createClient } from '@/lib/supabase/client';
 import {
     validateSubdomain,
@@ -27,6 +27,7 @@ import {
     getVercelDeployUrl,
 } from '@/lib/subdomain';
 import { useStudioStore } from "@/lib/store";
+import { toast } from "sonner";
 
 export function PublishModal({ children, pageCount = 1 }: { children: React.ReactNode, pageCount?: number }) {
     const t = useTranslations('publish');
@@ -42,13 +43,14 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
     const projectId = currentProject?.id || (isParamIdValid ? paramId : null);
 
     const [isOpen, setIsOpen] = useState(false);
-    const [step, setStep] = useState<'choose' | 'config' | 'deploying' | 'success'>('choose');
+    const [step, setStep] = useState<'choose' | 'config' | 'deploying' | 'success' | 'manage'>('choose');
     const [subdomain, setSubdomain] = useState('');
     const [subdomainError, setSubdomainError] = useState('');
     const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
     const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [deployedUrl, setDeployedUrl] = useState('');
+    const [deploymentStatus, setDeploymentStatus] = useState<string>('draft');
 
     // 加载已有的子域名配置
     useEffect(() => {
@@ -68,11 +70,16 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
             .single();
 
         if (data) {
+            if (data.deployment_status) {
+                setDeploymentStatus(data.deployment_status);
+            }
+
             if (data.subdomain) {
                 setSubdomain(data.subdomain);
                 setIsAvailable(true);
                 if (data.deployment_status === 'deployed') {
                     setDeployedUrl(getSubdomainUrl(data.subdomain));
+                    setStep('manage');
                 }
             } else if (data.name) {
                 // 自动建议子域名
@@ -111,6 +118,12 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
     }, [subdomain]);
 
     const checkAvailability = async (normalizedSubdomain: string) => {
+        // If checking the same subdomain that is already assigned to this project, it's available
+        if (deploymentStatus === 'deployed' && normalizedSubdomain === subdomain) {
+            setIsAvailable(true);
+            return;
+        }
+
         setIsCheckingAvailability(true);
 
         try {
@@ -145,7 +158,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                 .from('projects')
                 .update({
                     subdomain: normalized,
-                    deployment_status: 'draft',
+                    deployment_status: 'deployed', // Directly set to deployed for simulation
                 })
                 .eq('id', projectId);
 
@@ -153,6 +166,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
 
             setStep('success');
             setDeployedUrl(getSubdomainUrl(normalized));
+            setDeploymentStatus('deployed');
         } catch (error) {
             console.error('Error saving subdomain:', error);
             alert(t('saveFailed'));
@@ -161,10 +175,10 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
         }
     };
 
-    const handleVercelDeploy = async () => {
-        // 部署到 Vercel
-        if (!subdomain || !isAvailable || !projectId) {
-            setStep('config');
+    const handleUnpublish = async () => {
+        if (!projectId) return;
+
+        if (!confirm(t('unpublishConfirmDesc'))) {
             return;
         }
 
@@ -172,60 +186,48 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
 
         try {
             const supabase = createClient();
-            const normalized = normalizeSubdomain(subdomain);
 
-            // 保存子域名和部署状态
+            // Update status to draft
             const { error } = await supabase
                 .from('projects')
                 .update({
-                    subdomain: normalized,
-                    deployment_status: 'deploying',
+                    deployment_status: 'draft',
                 })
                 .eq('id', projectId);
 
             if (error) throw error;
 
-            // 记录部署历史
-            await supabase.from('deployment_history').insert({
-                project_id: projectId,
-                subdomain: normalized,
-                status: 'pending',
-            });
-
-            // 获取环境变量
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-            // 生成 Vercel 部署 URL
-            const templateRepo = 'YOUR_GITHUB_USERNAME/dao123-viewer-template'; // TODO: 替换为实际的模板仓库
-            const vercelUrl = getVercelDeployUrl({
-                templateRepo,
-                subdomain: normalized,
-                projectId,
-            });
-
-            // 打开 Vercel 部署页面
-            window.open(vercelUrl, '_blank', 'noopener,noreferrer');
-
-            // 显示部署指南
-            setStep('deploying');
-
+            toast.success(t('unpublishedSuccess'));
+            setDeploymentStatus('draft');
+            setStep('choose');
+            setDeployedUrl('');
         } catch (error) {
-            console.error('Error initiating deployment:', error);
-            alert(t('startDeployFailed'));
+            console.error('Error unpublishing:', error);
+            toast.error(t('saveFailed'));
         } finally {
             setIsSaving(false);
         }
     };
 
+    const handleVercelDeploy = async () => {
+        // 部署到 Vercel
+        // DISABLED FOR NOW
+        return;
+    };
+
     const handleCopy = () => {
         navigator.clipboard.writeText(deployedUrl);
+        toast.success(t('linkCopied') || "Link copied");
     };
 
     const handleReset = () => {
-        setStep('choose');
+        if (deploymentStatus === 'deployed') {
+            setStep('manage');
+        } else {
+            setStep('choose');
+        }
         setSubdomainError('');
-        setIsAvailable(null);
+        // Don't reset isAvailable if we have a valid subdomain
     };
 
     return (
@@ -261,6 +263,75 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                     </>
                 ) : (
                     <>
+                        {step === 'manage' && (
+                            <>
+                                <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                        <Globe className="h-5 w-5 text-primary" />
+                                        {t('manageTitle')}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {t('manageDesc')}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 space-y-6">
+                                    <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                                                <span className="text-sm font-medium text-green-900 dark:text-green-100">
+                                                    {t('statusDeployed')}
+                                                </span>
+                                            </div>
+                                            <Button variant="ghost" size="sm" asChild className="h-6 text-xs">
+                                                <a href={deployedUrl} target="_blank" rel="noopener noreferrer">
+                                                    <ExternalLink className="mr-1 h-3 w-3" />
+                                                    {t('visitSite')}
+                                                </a>
+                                            </Button>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <code className="flex-1 text-sm bg-white dark:bg-black/50 px-3 py-2 rounded border truncate">
+                                                {deployedUrl}
+                                            </code>
+                                            <Button size="icon" variant="ghost" onClick={handleCopy}>
+                                                <Copy className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-start"
+                                            onClick={() => setStep('choose')}
+                                        >
+                                            <RefreshCw className="mr-2 h-4 w-4" />
+                                            {t('update')}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+                                            onClick={handleUnpublish}
+                                            disabled={isSaving}
+                                        >
+                                            {isSaving ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                            )}
+                                            {t('unpublish')}
+                                        </Button>
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button variant="outline" onClick={() => setIsOpen(false)}>
+                                        {t('close')}
+                                    </Button>
+                                </DialogFooter>
+                            </>
+                        )}
+
                         {step === 'choose' && (
                             <>
                                 <DialogHeader>
@@ -339,30 +410,32 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                             </div>
                                         </div>
 
-                                        <Button
-                                            variant="outline"
-                                            onClick={handleVercelDeploy}
-                                            className="w-full"
-                                            disabled={!isAvailable || !!subdomainError || !subdomain || isSaving}
-                                        >
-                                            {isSaving ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <svg className="mr-2 h-4 w-4" viewBox="0 0 1155 1000" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M577.344 0L1154.69 1000H0L577.344 0Z" />
-                                                </svg>
-                                            )}
-                                            {t('deployToVercel')}
-                                        </Button>
+                                        <div className="relative group">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full opacity-60 cursor-not-allowed"
+                                                disabled={true}
+                                            >
+                                                <Lock className="mr-2 h-4 w-4" />
+                                                {t('vercelProOnly')}
+                                            </Button>
+                                        </div>
 
-                                        <Alert>
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertDescription className="text-xs">
-                                                {t('vercelDesc')}
+                                        <Alert className="bg-muted/50 border-muted">
+                                            <Sparkles className="h-4 w-4 text-primary" />
+                                            <AlertDescription className="text-xs text-muted-foreground">
+                                                {t('vercelProDesc')}
                                             </AlertDescription>
                                         </Alert>
                                     </div>
                                 </div>
+                                {deploymentStatus === 'deployed' && (
+                                    <DialogFooter>
+                                        <Button variant="ghost" onClick={() => setStep('manage')}>
+                                            {t('back')}
+                                        </Button>
+                                    </DialogFooter>
+                                )}
                             </>
                         )}
 
