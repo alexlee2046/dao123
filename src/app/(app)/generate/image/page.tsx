@@ -17,10 +17,11 @@ import { toast } from "sonner"
 import { Loader2, Download, Copy, Sparkles, Image as ImageIcon } from "lucide-react"
 import Image from "next/image"
 import { useStudioStore } from "@/lib/store"
+import { AI_CONFIG } from "@/lib/ai-config"
 
 export default function ImageGenerationPage() {
     const [prompt, setPrompt] = useState('')
-    const [model, setModel] = useState('openai/dall-e-3')
+    const [model, setModel] = useState(AI_CONFIG.images.defaultModel)
     const [generating, setGenerating] = useState(false)
     const [generatedImage, setGeneratedImage] = useState<Asset | null>(null)
     const { openRouterApiKey } = useStudioStore()
@@ -85,11 +86,11 @@ export default function ImageGenerationPage() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="openai/dall-e-3">DALL-E 3</SelectItem>
-                                        <SelectItem value="openai/gpt-image-1">GPT Image 1</SelectItem>
-                                        <SelectItem value="stabilityai/stable-diffusion-xl-beta-v2-2-2">Stable Diffusion XL</SelectItem>
-                                        <SelectItem value="google/gemini-3-pro-image-preview">Gemini 3 Pro (Nano Banana Pro)</SelectItem>
-                                        <SelectItem value="black-forest-labs/flux-1.1-pro">Flux 1.1 Pro</SelectItem>
+                                        {AI_CONFIG.images.models.map((m) => (
+                                            <SelectItem key={m.id} value={m.id}>
+                                                {m.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -124,7 +125,7 @@ export default function ImageGenerationPage() {
                             </Button>
 
                             <p className="text-xs text-muted-foreground text-center">
-                                Cost: {model.includes('gemini-3-pro') ? '20' : model.includes('flux') ? '15' : '10'} Credits
+                                Cost: {AI_CONFIG.images.models.find(m => m.id === model)?.cost || 10} Credits
                             </p>
                         </CardContent>
                     </Card>

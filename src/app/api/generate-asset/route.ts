@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
 import { createClient } from '@/lib/supabase/server';
-import { deductCredits } from '@/lib/actions/credits';
+import { deductCredits, getCredits } from '@/lib/actions/credits';
+import { getImageModelConfig } from '@/lib/ai-config';
 
 export async function POST(req: Request) {
     try {
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: '不支持的生成类型：仅支持 image' }, { status: 400 });
         }
 
-        // 1. Get User and Check Credits
+        // 1. Get User
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -22,54 +23,49 @@ export async function POST(req: Request) {
         let apiKey = process.env.OPENROUTER_API_KEY;
 
         // Try to fetch from DB
-        const { data: dbKey } = await supabase.rpc('get_system_config', { config_key: 'OPENROUTER_API_KEY' });
-        if (dbKey) {
-            apiKey = dbKey;
+        try {
+            const { data: dbSetting } = await supabase
+                .from('system_settings')
+                .select('value')
+                .eq('key', 'OPENROUTER_API_KEY')
+                .single();
+            
+            if (dbSetting?.value) {
+                apiKey = dbSetting.value;
+            }
+        } catch (e) {
+            console.warn('Failed to fetch API key from DB, falling back to env:', e);
         }
 
         if (userApiKey) {
             // If user provides key, we use it.
-            // But we might still want to deduct credits if they are using our platform features?
-            // For now, let's prioritize User Key if provided (maybe for testing), otherwise Platform Key.
             apiKey = userApiKey;
         }
 
-        if (!apiKey) { // Changed from !apiKey && !userApiKey because apiKey now holds the final key
+        if (!apiKey) {
             return NextResponse.json({ error: 'Server configuration error: Missing API Key' }, { status: 500 });
         }
 
+        // 3. Validate Model & Cost
+        const modelConfig = getImageModelConfig(model);
+        const selectedModel = modelConfig.id;
+        const cost = modelConfig.cost;
 
-        // 3. Validate Model
-        const allowedModels = [
-            'openai/dall-e-3',
-            'openai/gpt-image-1',
-            'stabilityai/stable-diffusion-xl-beta-v2-2-2',
-            'black-forest-labs/flux-1.1-pro',
-            'google/gemini-3-pro-image-preview',
-        ];
+        // 4. Check Credits (Read-only check to fail fast)
+        // Only check if not using own key? Usually we deduct credits for platform usage.
+        // If user provides key, maybe we shouldn't deduct credits?
+        // For now, let's assume we always deduct credits as per original logic,
+        // unless the original logic implied something else.
+        // The original logic DEDUCTED credits regardless of key source, so we keep it.
 
-        let selectedModel = model;
-        if (!selectedModel || !allowedModels.includes(selectedModel)) {
-            selectedModel = 'openai/dall-e-3'; // Default fallback
+        const currentCredits = await getCredits();
+        if (currentCredits < cost) {
+             return NextResponse.json({ error: '积分不足' }, { status: 402 });
         }
-
-        // 4. Calculate Cost
-        let cost = 10; // Base cost
-        if (selectedModel.includes('flux') || selectedModel.includes('gemini')) {
-            cost = 15; // Premium models
-        }
-
-        // 5. Deduct Credits
-        await deductCredits(cost, `Generated ${type} with ${selectedModel}`);
-
-
 
         let imageBase64 = '';
 
-        // OpenRouter Image Generation (Standardized Interface)
-        // Most OpenRouter image models support the OpenAI-compatible images.generate endpoint
-        // OpenRouter Image Generation via Chat Completions API
-        // OpenRouter uses a unified API where image generation models are accessed via /chat/completions
+        // 5. Generate Image
         try {
             console.log(`Generating image with model: ${selectedModel}`);
 
@@ -107,17 +103,20 @@ export async function POST(req: Request) {
             }
 
             // Extract image URL from content
+            let imageUrl = '';
+
             // 1. Check for Markdown image syntax: ![alt](url)
-            const markdownMatch = content.match(/!\[.*?\]\((.*?)\)/);
+            const markdownMatch = content.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
 
             // 2. Check for raw URL (http...)
-            const urlMatch = content.match(/https?:\/\/[^\s)]+/);
+            const urlMatch = content.match(/(https?:\/\/[^\s)]+)/);
 
-            let imageUrl = '';
             if (markdownMatch && markdownMatch[1]) {
                 imageUrl = markdownMatch[1];
-            } else if (urlMatch && urlMatch[0]) {
-                imageUrl = urlMatch[0];
+            } else if (urlMatch && urlMatch[1]) {
+                imageUrl = urlMatch[1];
+            } else if (content.trim().startsWith('http')) {
+                imageUrl = content.trim();
             } else {
                 console.error('Could not parse image URL from content:', content);
                 throw new Error("Failed to parse image URL from response");
@@ -132,9 +131,10 @@ export async function POST(req: Request) {
 
         } catch (genError: any) {
             console.error('Generation Error:', genError);
-            throw new Error(`Generation failed: ${genError.message}`);
+            return NextResponse.json({ error: `Generation failed: ${genError.message}` }, { status: 500 });
         }
 
+        // 6. Upload to Storage
         const buffer = Buffer.from(imageBase64, 'base64');
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
 
@@ -146,7 +146,9 @@ export async function POST(req: Request) {
                 upsert: false
             });
 
-        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+        if (uploadError) {
+             return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
+        }
 
         // Get Public URL
         const { data: { publicUrl } } = supabase
@@ -154,7 +156,17 @@ export async function POST(req: Request) {
             .from('assets')
             .getPublicUrl(fileName);
 
-        // Save Asset Record
+        // 7. Deduct Credits (FINAL STEP)
+        try {
+            await deductCredits(cost, `Generated ${type} with ${selectedModel}`);
+        } catch (creditError) {
+            // CRITICAL: If deduction fails here, we have already given the user the image.
+            // We should probably log this significantly.
+            console.error('CRITICAL: Credit deduction failed AFTER generation:', creditError);
+            // We still return success because the user got their image, but we might want to flag the account.
+        }
+
+        // 8. Save Asset Record
         const { data: assetRecord, error: dbError } = await supabase
             .from('assets')
             .insert({
@@ -166,7 +178,9 @@ export async function POST(req: Request) {
             .select()
             .single();
 
-        if (dbError) throw new Error(dbError.message);
+        if (dbError) {
+            return NextResponse.json({ error: dbError.message }, { status: 500 });
+        }
 
         return NextResponse.json(assetRecord);
 
