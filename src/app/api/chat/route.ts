@@ -142,7 +142,9 @@ export async function POST(req: Request) {
 3. 使用现代化的设计风格，色彩丰富，布局美观
 4. 如果用户提到了上传的素材，请在代码中使用这些素材的 URL
 5. 直接输出 HTML 代码，不要添加 markdown 代码块标记
-6. 确保代码可以直接在浏览器中运行`;
+6. 确保代码可以直接在浏览器中运行
+7. 你正在构建一个单页应用（SPA）。所有导航链接必须使用锚点（例如 href="#contact"）并对应页面中的 section ID（例如 id="contact"）。不要生成指向其他 HTML 文件（如 contact.html）的链接，因为它们无法在预览环境中工作。
+8. 如果用户要求"联系我们"页面，请在当前页面底部添加一个 id="contact" 的部分。`;
 
         if (currentHtml) {
             systemPrompt += `\n\n当前代码状态:\n\`\`\`html\n${currentHtml}\n\`\`\`\n\n用户想要修改上述代码。请基于用户的要求和当前代码，返回修改后的完整 HTML 代码。请保持原有代码结构，仅根据用户需求进行修改。`;

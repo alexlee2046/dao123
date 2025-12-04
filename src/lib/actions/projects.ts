@@ -88,3 +88,23 @@ export async function updateProject(id: string, content: any) {
     revalidatePath('/dashboard')
     revalidatePath(`/studio/${id}`)
 }
+
+export async function updateProjectMetadata(id: string, data: { name?: string; description?: string; preview_image?: string }) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const { error } = await supabase
+        .from('projects')
+        .update({
+            ...data,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+    if (error) throw new Error(error.message)
+    revalidatePath('/dashboard')
+    revalidatePath(`/studio/${id}`)
+}

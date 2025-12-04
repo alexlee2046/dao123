@@ -29,7 +29,7 @@ const sidebarItems = [
 ]
 
 const adminItems = [
-    { icon: Cpu, label: "Model Management", href: "/admin/models" },
+    { icon: Cpu, label: "Model Management", href: "/admin" },
 ]
 
 export function AppSidebar() {

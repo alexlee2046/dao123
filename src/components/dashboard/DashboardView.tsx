@@ -3,9 +3,16 @@
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit, Eye, Sparkles, Clock, ArrowRight } from "lucide-react";
+import { Plus, Edit, Eye, Sparkles, Clock, ArrowRight, Settings, Image as ImageIcon, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from "framer-motion";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { updateProjectMetadata } from "@/lib/actions/projects";
+import { useRouter } from 'next/navigation';
+import { toast } from "sonner";
 
 interface Project {
     id: string;
@@ -13,6 +20,7 @@ interface Project {
     description?: string;
     updated_at: string;
     content: any;
+    preview_image?: string;
 }
 
 interface DashboardViewProps {
@@ -87,43 +95,129 @@ export function DashboardView({ projects }: DashboardViewProps) {
                 {/* Project Cards */}
                 {projects.map((project) => (
                     <motion.div key={project.id} variants={item}>
-                        <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group">
-                            <div className="aspect-video bg-muted relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 z-10">
-                                    <Button size="sm" variant="secondary" className="w-full" asChild>
-                                        <Link href={`/studio/${project.id}`}>
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            继续编辑
-                                        </Link>
-                                    </Button>
-                                </div>
-                                {/* Placeholder for preview */}
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 bg-muted/50">
-                                    <Code2 className="h-12 w-12" />
-                                </div>
-                            </div>
-
-                            <CardHeader className="pb-2">
-                                <CardTitle className="truncate text-lg">{project.name}</CardTitle>
-                                <CardDescription className="line-clamp-2 min-h-[2.5em]">
-                                    {project.description || "暂无描述"}
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardFooter className="pt-0 mt-auto text-xs text-muted-foreground flex items-center justify-between border-t border-border/30 p-4 bg-muted/20">
-                                <div className="flex items-center">
-                                    <Clock className="mr-1 h-3 w-3" />
-                                    {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
-                                </div>
-                                <Link href={`/studio/${project.id}`} className="hover:text-primary transition-colors flex items-center">
-                                    预览 <ArrowRight className="ml-1 h-3 w-3" />
-                                </Link>
-                            </CardFooter>
-                        </Card>
+                        <ProjectCard project={project} />
                     </motion.div>
                 ))}
             </motion.div>
         </div>
+    );
+}
+
+function ProjectCard({ project }: { project: Project }) {
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [name, setName] = useState(project.name);
+    const [previewImage, setPreviewImage] = useState(project.preview_image || '');
+    const router = useRouter();
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            await updateProjectMetadata(project.id, {
+                name,
+                preview_image: previewImage
+            });
+            toast.success("项目已更新");
+            setIsSettingsOpen(false);
+            router.refresh();
+        } catch (error) {
+            toast.error("更新失败");
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group relative">
+            <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-md bg-background/80 backdrop-blur-sm hover:bg-background">
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>项目设置</DialogTitle>
+                            <DialogDescription>
+                                修改项目名称和预览图
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleUpdate} className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">项目名称</Label>
+                                <Input
+                                    id="name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="输入项目名称"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="preview">预览图链接</Label>
+                                <Input
+                                    id="preview"
+                                    value={previewImage}
+                                    onChange={(e) => setPreviewImage(e.target.value)}
+                                    placeholder="https://..."
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    输入图片的 URL 地址作为项目封面
+                                </p>
+                            </div>
+                            <DialogFooter>
+                                <Button type="submit" disabled={isLoading}>
+                                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    保存更改
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
+            <div className="aspect-video bg-muted relative overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
+                {project.preview_image ? (
+                    <img
+                        src={project.preview_image}
+                        alt={project.name}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 bg-muted/50">
+                        <Code2 className="h-12 w-12" />
+                    </div>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 z-10">
+                    <Button size="sm" variant="secondary" className="w-full font-medium shadow-lg" asChild>
+                        <Link href={`/studio/${project.id}`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            继续编辑
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+
+            <CardHeader className="pb-2">
+                <CardTitle className="truncate text-lg">{project.name}</CardTitle>
+                <CardDescription className="line-clamp-2 min-h-[2.5em]">
+                    {project.description || "暂无描述"}
+                </CardDescription>
+            </CardHeader>
+
+            <CardFooter className="pt-0 mt-auto text-xs text-muted-foreground flex items-center justify-between border-t border-border/30 p-4 bg-muted/20">
+                <div className="flex items-center">
+                    <Clock className="mr-1 h-3 w-3" />
+                    {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
+                </div>
+                <Link href={`/studio/${project.id}`} className="hover:text-primary transition-colors flex items-center">
+                    预览 <ArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+            </CardFooter>
+        </Card>
     );
 }
 

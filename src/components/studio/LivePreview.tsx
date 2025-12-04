@@ -10,7 +10,56 @@ export function LivePreview() {
 
     useEffect(() => {
         if (iframeRef.current) {
-            iframeRef.current.srcdoc = htmlContent;
+            const script = `
+                <script>
+                    document.addEventListener('click', (e) => {
+                        const link = e.target.closest('a');
+                        if (!link) return;
+
+                        const href = link.getAttribute('href');
+                        const target = link.getAttribute('target');
+                        
+                        // Allow external links and hash links
+                        if (target === '_blank') return;
+                        if (!href) return;
+                        if (href.startsWith('http')) return; // External links usually have target=_blank but just in case
+                        if (href.startsWith('#')) return; // Allow normal anchor navigation
+                        
+                        e.preventDefault();
+                        
+                        // Smart Navigation: Try to find a section that matches the path
+                        // e.g. /contact -> id="contact"
+                        const slug = href.replace(/^\\//, '').replace(/\\.html$/, '');
+                        const targetElement = document.getElementById(slug) || document.querySelector(\`[name="\${slug}"]\`);
+
+                        if (targetElement) {
+                            console.log('Smart navigation to section:', slug);
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                            return;
+                        }
+                        
+                        console.log('Preview navigation prevented:', href);
+                        
+                        // Visual feedback for blocked navigation
+                        const toast = document.createElement('div');
+                        toast.textContent = \`Navigation to '\${href}' prevented. Page not found in preview.\`;
+                        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 6px; z-index: 9999; font-family: system-ui; font-size: 12px; pointer-events: none; animation: fadeIn 0.3s;';
+                        document.body.appendChild(toast);
+                        setTimeout(() => {
+                            toast.style.opacity = '0';
+                            toast.style.transition = 'opacity 0.5s';
+                            setTimeout(() => toast.remove(), 500);
+                        }, 2000);
+                    }, true);
+                </script>
+            `;
+
+            const contentToInject = htmlContent || '';
+            if (contentToInject.includes('</body>')) {
+                iframeRef.current.srcdoc = contentToInject.replace('</body>', `${script}</body>`);
+            } else {
+                iframeRef.current.srcdoc = contentToInject + script;
+            }
         }
     }, [htmlContent]);
 
