@@ -9,7 +9,7 @@ export async function POST(req: Request) {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: '未授权' }, { status: 401 });
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -19,8 +19,8 @@ export async function POST(req: Request) {
                     price_data: {
                         currency: 'usd',
                         product_data: {
-                            name: `${credits} Credits`,
-                            description: 'Credits for AI generation',
+                            name: `${credits} 积分`,
+                            description: '用于 AI 生成的积分',
                         },
                         unit_amount: Math.round(price * 100),
                     },

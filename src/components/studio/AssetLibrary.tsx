@@ -42,7 +42,7 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
             setAssets(data)
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load assets")
+            toast.error("加载素材失败")
         } finally {
             setLoading(false)
         }
@@ -83,10 +83,10 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
             })
 
             setAssets([newAsset, ...assets])
-            toast.success("Asset uploaded successfully")
+            toast.success("素材上传成功")
         } catch (error: any) {
             console.error(error)
-            toast.error("Upload failed: " + error.message)
+            toast.error("上传失败: " + error.message)
         } finally {
             setUploading(false)
             if (fileInputRef.current) fileInputRef.current.value = ''
@@ -102,16 +102,16 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
 
             await deleteAsset(asset.id, path)
             setAssets(assets.filter(a => a.id !== asset.id))
-            toast.success("Asset deleted")
+            toast.success("素材已删除")
         } catch (error: any) {
             console.error(error)
-            toast.error("Delete failed: " + error.message)
+            toast.error("删除失败: " + error.message)
         }
     }
 
     const handleCopyUrl = (url: string) => {
         navigator.clipboard.writeText(url)
-        toast.success("URL copied to clipboard")
+        toast.success("URL 已复制到剪贴板")
     }
 
     const filteredAssets = (type: string) => {
@@ -126,9 +126,9 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[800px] h-[600px] flex flex-col">
                 <DialogHeader>
-                    <DialogTitle>Asset Library</DialogTitle>
+                    <DialogTitle>素材库</DialogTitle>
                     <DialogDescription>
-                        Manage your images, videos, and fonts.
+                        管理您的图片、视频和字体。
                     </DialogDescription>
                 </DialogHeader>
 
@@ -136,10 +136,10 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                     <Tabs defaultValue="all" className="w-full">
                         <div className="flex items-center justify-between mb-4">
                             <TabsList>
-                                <TabsTrigger value="all">All</TabsTrigger>
-                                <TabsTrigger value="image">Images</TabsTrigger>
-                                <TabsTrigger value="video">Videos</TabsTrigger>
-                                <TabsTrigger value="font">Fonts</TabsTrigger>
+                                <TabsTrigger value="all">全部</TabsTrigger>
+                                <TabsTrigger value="image">图片</TabsTrigger>
+                                <TabsTrigger value="video">视频</TabsTrigger>
+                                <TabsTrigger value="font">字体</TabsTrigger>
                             </TabsList>
                             <div>
                                 <input
@@ -151,7 +151,7 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                                 />
                                 <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                                     {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-                                    Upload
+                                    上传
                                 </Button>
                             </div>
                         </div>
@@ -168,8 +168,8 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                                             {assets.length === 0 && tab === 'all' ? (
                                                 <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
                                                     <ImageIcon className="h-12 w-12 mb-2 opacity-20" />
-                                                    <p>No assets found</p>
-                                                    <Button variant="link" onClick={() => fileInputRef.current?.click()}>Upload your first asset</Button>
+                                                    <p>未找到素材</p>
+                                                    <Button variant="link" onClick={() => fileInputRef.current?.click()}>上传您的第一个素材</Button>
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
@@ -193,10 +193,10 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                                                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
                                                                 <p className="text-xs text-white truncate w-full text-center px-1">{asset.name}</p>
                                                                 <div className="flex gap-2">
-                                                                    <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => handleCopyUrl(asset.url)} title="Copy URL">
+                                                                    <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => handleCopyUrl(asset.url)} title="复制链接">
                                                                         <Copy className="h-4 w-4" />
                                                                     </Button>
-                                                                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDelete(asset)} title="Delete">
+                                                                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDelete(asset)} title="删除">
                                                                         <Trash2 className="h-4 w-4" />
                                                                     </Button>
                                                                 </div>

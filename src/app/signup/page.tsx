@@ -33,9 +33,9 @@ export default function SignupPage() {
 
             if (error) throw error
 
-            toast.success('Account created! Please check your email to verify.')
+            toast.success('账户创建成功！请检查邮件进行验证。')
             // Optional: Redirect to login or show verification message
-            router.push('/login?message=Check your email to continue')
+            router.push('/login?message=请检查您的邮箱以继续')
         } catch (error: any) {
             toast.error(error.message)
         } finally {
@@ -47,15 +47,15 @@ export default function SignupPage() {
         <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+                    <CardTitle className="text-2xl font-bold">创建账户</CardTitle>
                     <CardDescription>
-                        Enter your email below to create your account
+                        输入邮箱以创建您的账户
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSignup}>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">邮箱</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -66,7 +66,7 @@ export default function SignupPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">密码</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -79,12 +79,12 @@ export default function SignupPage() {
                     <CardFooter className="flex flex-col gap-4">
                         <Button className="w-full" type="submit" disabled={loading}>
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Sign Up
+                            注册
                         </Button>
                         <div className="text-sm text-center text-muted-foreground">
-                            Already have an account?{' '}
+                            已有账户？{' '}
                             <Link href="/login" className="text-primary hover:underline">
-                                Sign in
+                                立即登录
                             </Link>
                         </div>
                     </CardFooter>

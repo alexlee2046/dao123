@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
             const data = await getUsers()
             setUsers(data || [])
         } catch (error) {
-            toast.error("Failed to load users")
+            toast.error("加载用户失败")
         } finally {
             setLoading(false)
         }
@@ -40,7 +40,7 @@ export default function AdminUsersPage() {
     const handleUpdateCredits = async (userId: string) => {
         try {
             await updateUserCredits(userId, editCredits)
-            toast.success("Credits updated")
+            toast.success("积分已更新")
             setEditingId(null)
             loadUsers()
         } catch (error: any) {
@@ -51,19 +51,19 @@ export default function AdminUsersPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">User Management</h2>
-                <p className="text-muted-foreground">View users and manage their credits.</p>
+                <h2 className="text-3xl font-bold tracking-tight">用户管理</h2>
+                <p className="text-muted-foreground">查看用户并管理其积分。</p>
             </div>
 
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Credits</TableHead>
-                            <TableHead>Joined</TableHead>
-                            <TableHead>Actions</TableHead>
+                            <TableHead>邮箱</TableHead>
+                            <TableHead>角色</TableHead>
+                            <TableHead>积分</TableHead>
+                            <TableHead>加入时间</TableHead>
+                            <TableHead>操作</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
                                                 <Save className="h-4 w-4" />
                                             </Button>
                                             <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                                                Cancel
+                                                取消
                                             </Button>
                                         </div>
                                     ) : (
@@ -103,7 +103,7 @@ export default function AdminUsersPage() {
                                                     setEditCredits(user.credits)
                                                 }}
                                             >
-                                                Edit
+                                                编辑
                                             </Button>
                                         </div>
                                     )}

@@ -24,7 +24,7 @@ export function ShareModal({ children }: { children: React.ReactNode }) {
     };
 
     const handleEmailShare = () => {
-        window.location.href = `mailto:?subject=Check out my website&body=I built this with dao123: ${shareUrl}`;
+        window.location.href = `mailto:?subject=查看我的网站&body=我用 dao123 构建了这个网站: ${shareUrl}`;
     };
 
     return (

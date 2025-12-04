@@ -20,19 +20,19 @@ import { getCredits } from "@/lib/actions/credits"
 import { createClient } from "@/lib/supabase/client"
 
 const sidebarItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-    { icon: Palette, label: "Studio", href: "/studio" },
-    { icon: ImageIcon, label: "AI Images", href: "/generate/image" },
-    { icon: Video, label: "AI Video", href: "/generate/video" },
-    { icon: Globe, label: "Community", href: "/community" },
-    { icon: Settings, label: "Settings", href: "/settings" },
+    { icon: LayoutDashboard, label: "仪表盘", href: "/dashboard" },
+    { icon: Palette, label: "创作工坊", href: "/studio" },
+    { icon: ImageIcon, label: "AI 绘图", href: "/generate/image" },
+    { icon: Video, label: "AI 视频", href: "/generate/video" },
+    { icon: Globe, label: "灵感广场", href: "/community" },
+    { icon: Settings, label: "设置", href: "/settings" },
 ]
 
 const adminItems = [
-    { icon: Cpu, label: "Model Management", href: "/admin" },
+    { icon: Cpu, label: "模型管理", href: "/admin" },
 ]
 
-export function AppSidebar() {
+export function AppSidebar({ className }: { className?: string }) {
     const pathname = usePathname()
     const router = useRouter()
     const [credits, setCredits] = useState<number | null>(null)
@@ -78,12 +78,12 @@ export function AppSidebar() {
     }
 
     return (
-        <div className="w-64 bg-card border-r flex flex-col h-full">
-            <div className="p-6 border-b flex items-center gap-2">
-                <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
+        <div className={cn("w-64 bg-card border-r flex flex-col h-full", className)}>
+            <div className="p-6 border-b flex items-center gap-3">
+                <div className="h-8 w-8 bg-gradient-to-br from-primary to-violet-600 rounded-lg flex items-center justify-center text-primary-foreground font-bold shadow-md">
                     D
                 </div>
-                <span className="font-bold text-xl">Dao123</span>
+                <span className="font-bold text-xl tracking-tight">Dao123</span>
             </div>
 
             <nav className="flex-1 p-4 space-y-2">

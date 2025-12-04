@@ -26,7 +26,7 @@ export function AssetManager() {
             setAssets(data);
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load assets");
+            toast.error("加载素材失败");
         } finally {
             setLoading(false);
         }
@@ -67,10 +67,10 @@ export function AssetManager() {
             });
 
             setAssets([newAsset, ...assets]);
-            toast.success("Asset uploaded successfully");
+            toast.success("素材上传成功");
         } catch (error: any) {
             console.error(error);
-            toast.error("Upload failed: " + error.message);
+            toast.error("上传失败: " + error.message);
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -84,10 +84,10 @@ export function AssetManager() {
 
             await deleteAsset(asset.id, path);
             setAssets(assets.filter(a => a.id !== asset.id));
-            toast.success("Asset deleted");
+            toast.success("素材已删除");
         } catch (error: any) {
             console.error(error);
-            toast.error("Delete failed: " + error.message);
+            toast.error("删除失败: " + error.message);
         }
     };
 
@@ -101,8 +101,8 @@ export function AssetManager() {
         <div className="flex flex-col h-full bg-background border-l">
             <div className="p-4 border-b flex items-center justify-between">
                 <div>
-                    <h3 className="font-semibold mb-1">Assets</h3>
-                    <p className="text-xs text-muted-foreground">Drag to chat</p>
+                    <h3 className="font-semibold mb-1">素材</h3>
+                    <p className="text-xs text-muted-foreground">拖拽到聊天</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                     {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
@@ -124,7 +124,7 @@ export function AssetManager() {
                 ) : assets.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                         <ImageIcon className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                        <p className="text-sm">No assets yet</p>
+                        <p className="text-sm">暂无素材</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-2">

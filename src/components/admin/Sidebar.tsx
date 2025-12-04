@@ -7,12 +7,12 @@ import { LayoutDashboard, Users, Settings, FileText, Database, LogOut, Image } f
 import { Button } from "@/components/ui/button"
 
 const sidebarItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
-    { icon: Users, label: "Users", href: "/admin/users" },
-    { icon: FileText, label: "Projects", href: "/admin/projects" },
-    { icon: Database, label: "Models", href: "/admin/models" },
-    { icon: Image, label: "Assets", href: "/admin/assets" },
-    { icon: Settings, label: "Settings", href: "/admin/settings" },
+    { icon: LayoutDashboard, label: "仪表盘", href: "/admin" },
+    { icon: Users, label: "用户管理", href: "/admin/users" },
+    { icon: FileText, label: "项目管理", href: "/admin/projects" },
+    { icon: Database, label: "模型管理", href: "/admin/models" },
+    { icon: Image, label: "素材管理", href: "/admin/assets" },
+    { icon: Settings, label: "系统设置", href: "/admin/settings" },
 ]
 
 export function Sidebar() {

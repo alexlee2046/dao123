@@ -43,16 +43,16 @@ export default function AdminSettingsPage() {
     }
 
     const defaultKeys = [
-        { key: 'OPENROUTER_API_KEY', label: 'OpenRouter API Key', description: 'Global API Key for AI generation' },
-        { key: 'STRIPE_SECRET_KEY', label: 'Stripe Secret Key', description: 'Secret key for Stripe payments' },
-        { key: 'STRIPE_WEBHOOK_SECRET', label: 'Stripe Webhook Secret', description: 'Secret for verifying Stripe webhooks' },
+        { key: 'OPENROUTER_API_KEY', label: 'OpenRouter API Key', description: 'AI 生成的全局 API Key' },
+        { key: 'STRIPE_SECRET_KEY', label: 'Stripe Secret Key', description: 'Stripe 支付密钥' },
+        { key: 'STRIPE_WEBHOOK_SECRET', label: 'Stripe Webhook Secret', description: 'Stripe Webhook 验证密钥' },
     ]
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">System Settings</h2>
-                <p className="text-muted-foreground">Manage global configuration and API keys.</p>
+                <h2 className="text-3xl font-bold tracking-tight">系统设置</h2>
+                <p className="text-muted-foreground">管理全局配置和 API 密钥。</p>
             </div>
 
             <div className="grid gap-6">
@@ -69,7 +69,7 @@ export default function AdminSettingsPage() {
                                     <Input
                                         type="password"
                                         defaultValue={setting?.value || ''}
-                                        placeholder={`Enter ${item.label}`}
+                                        placeholder={`请输入 ${item.label}`}
                                         onChange={(e) => {
                                             // Optional: local state update if needed, but we save on button click
                                         }}
@@ -83,7 +83,7 @@ export default function AdminSettingsPage() {
                                         disabled={saving === item.key}
                                     >
                                         {saving === item.key && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        Save
+                                        保存
                                     </Button>
                                 </div>
                             </CardContent>

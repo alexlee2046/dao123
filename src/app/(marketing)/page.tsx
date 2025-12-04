@@ -265,8 +265,8 @@ export default function LandingPage() {
                                 <div key={i} className="group relative aspect-video rounded-2xl overflow-hidden bg-muted">
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                                         <div className="text-white">
-                                            <h4 className="font-bold text-lg">Project {i}</h4>
-                                            <p className="text-sm text-white/80">Created by User</p>
+                                            <h4 className="font-bold text-lg">项目 {i}</h4>
+                                            <p className="text-sm text-white/80">由用户创建</p>
                                         </div>
                                     </div>
                                     {/* Placeholder visual */}
@@ -348,7 +348,7 @@ export default function LandingPage() {
                     </div>
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-border/40">
                         <p className="text-sm text-muted-foreground">
-                            © 2025 dao123 Inc. All rights reserved.
+                            © 2025 dao123 Inc. 保留所有权利。
                         </p>
                         <div className="flex gap-4">
                             <Button variant="ghost" size="icon" className="rounded-full">

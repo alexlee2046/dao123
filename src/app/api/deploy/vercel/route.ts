@@ -5,7 +5,7 @@ export async function POST(req: Request) {
         const { html, projectName } = await req.json();
 
         if (!html) {
-            return NextResponse.json({ error: 'HTML content is required' }, { status: 400 });
+            return NextResponse.json({ error: 'HTML 内容不能为空' }, { status: 400 });
         }
 
         // Vercel Deploy Hook or API integration

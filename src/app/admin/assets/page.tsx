@@ -30,19 +30,19 @@ export default function AdminAssetsPage() {
             const data = await getAllAssets()
             setAssets(data || [])
         } catch (error) {
-            toast.error("Failed to load assets")
+            toast.error("加载素材失败")
         } finally {
             setLoading(false)
         }
     }
 
     const handleDelete = async (id: string, url: string) => {
-        if (!confirm("Are you sure you want to delete this asset? This cannot be undone.")) return
+        if (!confirm("确定要删除这个素材吗？此操作不可撤销。")) return
 
         try {
             setDeletingId(id)
             await adminDeleteAsset(id, url)
-            toast.success("Asset deleted")
+            toast.success("素材已删除")
             loadAssets()
         } catch (error: any) {
             toast.error(error.message)
@@ -54,20 +54,20 @@ export default function AdminAssetsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">Asset Management</h2>
-                <p className="text-muted-foreground">View and moderate user uploads.</p>
+                <h2 className="text-3xl font-bold tracking-tight">素材管理</h2>
+                <p className="text-muted-foreground">查看和管理用户上传。</p>
             </div>
 
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Preview</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>User</TableHead>
-                            <TableHead>Created</TableHead>
-                            <TableHead>Actions</TableHead>
+                            <TableHead>预览</TableHead>
+                            <TableHead>名称</TableHead>
+                            <TableHead>类型</TableHead>
+                            <TableHead>用户</TableHead>
+                            <TableHead>创建时间</TableHead>
+                            <TableHead>操作</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

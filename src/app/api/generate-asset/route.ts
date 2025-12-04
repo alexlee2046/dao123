@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: '未授权' }, { status: 401 });
         }
 
         // 2. Get Platform API Key from DB
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         }
 
         if (!apiKey) {
-            return NextResponse.json({ error: 'Server configuration error: Missing API Key' }, { status: 500 });
+            return NextResponse.json({ error: '服务器配置错误：缺少 API Key' }, { status: 500 });
         }
 
         // 3. Validate Model & Cost

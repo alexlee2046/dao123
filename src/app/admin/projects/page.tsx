@@ -33,20 +33,20 @@ export default async function AdminProjectsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">Projects</h2>
-                <p className="text-muted-foreground">View all user projects.</p>
+                <h2 className="text-3xl font-bold tracking-tight">项目管理</h2>
+                <p className="text-muted-foreground">查看所有用户项目。</p>
             </div>
 
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>User</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Price</TableHead>
-                            <TableHead>Last Updated</TableHead>
-                            <TableHead>Actions</TableHead>
+                            <TableHead>名称</TableHead>
+                            <TableHead>用户</TableHead>
+                            <TableHead>状态</TableHead>
+                            <TableHead>价格</TableHead>
+                            <TableHead>最后更新</TableHead>
+                            <TableHead>操作</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -56,19 +56,19 @@ export default async function AdminProjectsPage() {
                                 <TableCell>{project.user?.email}</TableCell>
                                 <TableCell>
                                     {project.is_public ? (
-                                        <Badge variant="default">Public</Badge>
+                                        <Badge variant="default">公开</Badge>
                                     ) : (
-                                        <Badge variant="secondary">Private</Badge>
+                                        <Badge variant="secondary">私有</Badge>
                                     )}
                                 </TableCell>
-                                <TableCell>{project.price > 0 ? `${project.price} Credits` : 'Free'}</TableCell>
+                                <TableCell>{project.price > 0 ? `${project.price} 积分` : '免费'}</TableCell>
                                 <TableCell>
                                     {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
                                 </TableCell>
                                 <TableCell>
                                     <Button asChild size="sm" variant="outline">
                                         <Link href={`/community/${project.id}`} target="_blank">
-                                            View
+                                            查看
                                         </Link>
                                     </Button>
                                 </TableCell>

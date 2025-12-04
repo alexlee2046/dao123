@@ -152,12 +152,12 @@ export function ChatAssistant() {
             });
 
             // Append URL to input
-            setLocalInput(prev => prev + (prev ? '\n' : '') + `[Asset: ${file.name}](${publicUrl})`);
-            toast.success("File uploaded and added to chat");
+            setLocalInput(prev => prev + (prev ? '\n' : '') + `[附件: ${file.name}](${publicUrl})`);
+            toast.success("文件已上传并添加到聊天");
 
         } catch (error: any) {
             console.error(error);
-            toast.error("Upload failed: " + error.message);
+            toast.error("上传失败: " + error.message);
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -194,7 +194,7 @@ export function ChatAssistant() {
                     <Atom className="h-6 w-6 text-primary animate-spin-slow" />
                 </div>
                 <div>
-                    <h3 className="font-semibold text-foreground">Dao Assistant</h3>
+                    <h3 className="font-semibold text-foreground">Dao 助手</h3>
                     <p className="text-xs text-muted-foreground">道生一 · 一生二</p>
                 </div>
             </div>
@@ -364,9 +364,9 @@ export function ChatAssistant() {
                             ) : (
                                 <>
                                     <option value="openai/gpt-5">GPT-5</option>
-                                    <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash Exp (Free)</option>
-                                    <option value="deepseek/deepseek-v3.2-exp">DeepSeek V3.2 (Free)</option>
-                                    <option value="qwen/qwen3-coder:free">Qwen3 Coder (Free)</option>
+                                    <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash Exp (免费)</option>
+                                    <option value="deepseek/deepseek-v3.2-exp">DeepSeek V3.2 (免费)</option>
+                                    <option value="qwen/qwen3-coder:free">Qwen3 Coder (免费)</option>
                                 </>
                             )}
                         </select>

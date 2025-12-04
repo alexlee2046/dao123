@@ -24,7 +24,7 @@ export async function createProject(name: string, description?: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Unauthorized')
+    if (!user) throw new Error('未授权')
 
     const { data, error } = await supabase
         .from('projects')
@@ -48,7 +48,7 @@ export async function getProject(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Unauthorized')
+    if (!user) throw new Error('未授权')
 
     const { data, error } = await supabase
         .from('projects')
@@ -63,7 +63,7 @@ export async function getProject(id: string) {
         // Check if it's a public project or purchased? 
         // For "Studio" editing, usually only owner can edit.
         // If we support "remixing", that's a different flow (cloning).
-        throw new Error('Forbidden')
+        throw new Error('禁止访问')
     }
 
     return data
@@ -73,7 +73,7 @@ export async function updateProject(id: string, content: any) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Unauthorized')
+    if (!user) throw new Error('未授权')
 
     const { error } = await supabase
         .from('projects')
@@ -93,7 +93,7 @@ export async function updateProjectMetadata(id: string, data: { name?: string; d
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Unauthorized')
+    if (!user) throw new Error('未授权')
 
     const { error } = await supabase
         .from('projects')

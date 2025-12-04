@@ -37,7 +37,7 @@ export async function saveAssetRecord(asset: { url: string; name: string; type: 
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        throw new Error('User not authenticated')
+        throw new Error('用户未登录')
     }
 
     const { data, error } = await supabase
@@ -64,7 +64,7 @@ export async function deleteAsset(id: string, path: string) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        throw new Error('User not authenticated')
+        throw new Error('用户未登录')
     }
 
     // 1. Delete from Storage

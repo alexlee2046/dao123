@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
         if (!user) {
             return new Response(
-                JSON.stringify({ error: 'Unauthorized' }),
+                JSON.stringify({ error: '未授权' }),
                 { status: 401, headers: { 'Content-Type': 'application/json' } }
             );
         }

@@ -93,11 +93,11 @@ export function CommunityView({ projects }: CommunityViewProps) {
 
                                 {project.price > 0 ? (
                                     <Badge className="absolute top-3 right-3 bg-amber-500/90 hover:bg-amber-600 backdrop-blur-sm shadow-sm">
-                                        {project.price} Credits
+                                        {project.price} 积分
                                     </Badge>
                                 ) : (
                                     <Badge className="absolute top-3 right-3 bg-emerald-500/90 hover:bg-emerald-600 backdrop-blur-sm shadow-sm">
-                                        Free
+                                        免费
                                     </Badge>
                                 )}
                             </div>
@@ -108,13 +108,13 @@ export function CommunityView({ projects }: CommunityViewProps) {
                                     <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
                                         <User className="h-3 w-3 text-primary" />
                                     </div>
-                                    <span>{project.user?.email?.split('@')[0] || 'Anonymous'}</span>
+                                    <span>{project.user?.email?.split('@')[0] || '匿名用户'}</span>
                                 </div>
                             </CardHeader>
 
                             <CardContent className="flex-1">
                                 <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                                    {project.description || "No description provided."}
+                                    {project.description || "暂无描述。"}
                                 </p>
                             </CardContent>
 

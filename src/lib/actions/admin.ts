@@ -9,7 +9,7 @@ async function requireAdmin() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Unauthorized')
+    if (!user) throw new Error('未授权')
 
     const { data: profile } = await supabase
         .from('profiles')
@@ -18,7 +18,7 @@ async function requireAdmin() {
         .single()
 
     if (profile?.role !== 'admin') {
-        throw new Error('Forbidden: Admin access required')
+        throw new Error('禁止访问：需要管理员权限')
     }
 
     return supabase

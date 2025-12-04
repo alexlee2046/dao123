@@ -40,7 +40,7 @@ export function LivePreview() {
                 if (targetPage) {
                     setCurrentPage(targetPage.path);
                 } else {
-                    toast.error(`Page not found: ${href}`);
+                    toast.error(`页面未找到: ${href}`);
                 }
             }
         };
@@ -91,7 +91,7 @@ export function LivePreview() {
                     {pages.length > 1 && (
                         <Select value={currentPage} onValueChange={setCurrentPage}>
                             <SelectTrigger className="h-7 w-[180px] text-xs bg-background/50">
-                                <SelectValue placeholder="Select page" />
+                                <SelectValue placeholder="选择页面" />
                             </SelectTrigger>
                             <SelectContent>
                                 {pages.map((page) => (

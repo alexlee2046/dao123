@@ -44,7 +44,7 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
             setNewComment('')
             setRating(0)
             loadComments()
-            toast.success("Comment added")
+            toast.success("评论已添加")
         } catch (error: any) {
             toast.error(error.message)
         } finally {
@@ -55,7 +55,7 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
     return (
         <div className="space-y-6">
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Leave a Review</h3>
+                <h3 className="text-lg font-semibold">发表评价</h3>
                 <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -68,17 +68,17 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
                     ))}
                 </div>
                 <Textarea
-                    placeholder="Share your thoughts..."
+                    placeholder="分享您的想法..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                 />
                 <Button onClick={handleSubmit} disabled={submitting || !newComment.trim()}>
-                    Post Review
+                    发布评价
                 </Button>
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Comments ({comments.length})</h3>
+                <h3 className="text-lg font-semibold">评论 ({comments.length})</h3>
                 {comments.map((comment) => (
                     <div key={comment.id} className="flex gap-4 p-4 border rounded-lg">
                         <Avatar>

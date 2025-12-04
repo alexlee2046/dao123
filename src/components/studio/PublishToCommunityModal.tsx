@@ -28,14 +28,14 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
 
     const handlePublish = async () => {
         if (!currentProject?.id) {
-            toast.error("Please save your project first")
+            toast.error("请先保存您的项目")
             return
         }
 
         try {
             setLoading(true)
             await publishProject(currentProject.id, isFree ? 0 : price)
-            toast.success("Project published to community!")
+            toast.success("项目已发布到社区！")
             setIsOpen(false)
         } catch (error: any) {
             toast.error(error.message)
@@ -51,14 +51,14 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Share to Community</DialogTitle>
+                    <DialogTitle>分享到社区</DialogTitle>
                     <DialogDescription>
-                        Share your project with the community. You can set a price in credits.
+                        与社区分享您的项目。您可以设置积分价格。
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="flex items-center justify-between space-x-2">
-                        <Label htmlFor="free-mode">Free Project</Label>
+                        <Label htmlFor="free-mode">免费项目</Label>
                         <Switch
                             id="free-mode"
                             checked={isFree}
@@ -68,7 +68,7 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
 
                     {!isFree && (
                         <div className="grid gap-2">
-                            <Label htmlFor="price">Price (Credits)</Label>
+                            <Label htmlFor="price">价格 (积分)</Label>
                             <div className="relative">
                                 <Coins className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -81,7 +81,7 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
                                 />
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                You will receive 80% of the revenue.
+                                您将获得 80% 的收益。
                             </p>
                         </div>
                     )}
@@ -89,7 +89,7 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
                 <DialogFooter>
                     <Button onClick={handlePublish} disabled={loading}>
                         {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        Publish
+                        发布
                     </Button>
                 </DialogFooter>
             </DialogContent>

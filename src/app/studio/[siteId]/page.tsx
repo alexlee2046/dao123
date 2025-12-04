@@ -43,7 +43,7 @@ export default function StudioPage() {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load project");
+            toast.error("加载项目失败");
         }
     };
 

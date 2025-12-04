@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: '未授权' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     if (!finalApiKey) {
       return new Response(
-        JSON.stringify({ error: 'System API Key not configured' }),
+        JSON.stringify({ error: '系统 API Key 未配置' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }

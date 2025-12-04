@@ -30,7 +30,7 @@ export default function LoginPage() {
 
             if (error) throw error
 
-            toast.success('Logged in successfully')
+            toast.success('登录成功')
             router.push('/dashboard')
             router.refresh()
         } catch (error: any) {
@@ -44,15 +44,15 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+                    <CardTitle className="text-2xl font-bold">欢迎回来</CardTitle>
                     <CardDescription>
-                        Enter your email to sign in to your account
+                        输入邮箱登录您的账户
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleLogin}>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">邮箱</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -63,7 +63,7 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">密码</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -76,12 +76,12 @@ export default function LoginPage() {
                     <CardFooter className="flex flex-col gap-4">
                         <Button className="w-full" type="submit" disabled={loading}>
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Sign In
+                            登录
                         </Button>
                         <div className="text-sm text-center text-muted-foreground">
-                            Don&apos;t have an account?{' '}
+                            还没有账户？{' '}
                             <Link href="/signup" className="text-primary hover:underline">
-                                Sign up
+                                立即注册
                             </Link>
                         </div>
                     </CardFooter>

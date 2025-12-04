@@ -72,8 +72,8 @@ export const useStudioStore = create<StudioState>((set) => {
       </head>
       <body class="bg-gray-100 flex items-center justify-center h-screen">
         <div class="text-center">
-          <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Your New Site</h1>
-          <p class="text-gray-600">Ask the AI to change this!</p>
+          <h1 class="text-4xl font-bold text-gray-800 mb-4">欢迎来到您的新网站</h1>
+          <p class="text-gray-600">请告诉 AI 您想要修改什么！</p>
         </div>
       </body>
     </html>
