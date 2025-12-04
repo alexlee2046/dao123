@@ -8,7 +8,7 @@ export const runtime = 'edge';
 
 export async function POST(req: Request) {
     try {
-        const { messages, model, currentHtml } = await req.json();
+        const { messages, model, currentHtml, mode = 'direct' } = await req.json();
 
         // 1. Authenticate User
         const supabase = await createClient();
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         // 2. Calculate Cost
         // If modifying existing code (large context), we might want to adjust cost logic here in the future.
         const cost = calculateCost('chat', model || 'anthropic/claude-3.5-sonnet');
-        console.log(`[Chat API] User: ${user.id}, Model: ${model}, Cost: ${cost}`);
+        console.log(`[Chat API] User: ${user.id}, Model: ${model}, Cost: ${cost}, Mode: ${mode}`);
 
         // 3. Check and Deduct Credits (using Admin Client for security)
         const adminSupabase = createSupabaseClient(
@@ -134,13 +134,26 @@ export async function POST(req: Request) {
             }
         });
 
-        let systemPrompt = `你是一个专业的网页设计助手。你的任务是根据用户的需求生成完整的 HTML 代码。
+        let systemPrompt = '';
+
+        if (mode === 'guide') {
+            systemPrompt = `你是一个专业的网站需求分析师。你的目标是通过对话引导用户明确他们的网站需求，并最终总结出一份详细的需求文档。
+
+规则：
+1. 像人一样自然地与用户交谈，不要一次性问太多问题。
+2. 引导用户思考网站的目标、受众、风格、功能板块等。
+3. 当你认为已经收集到足够的信息时，或者用户要求总结时，请输出一份"需求总结"。
+4. "需求总结"必须包含：网站类型、目标用户、视觉风格、主要页面/板块、特殊功能需求。
+5. 在对话过程中，**绝对不要**生成 HTML 代码。你的任务只是分析和总结。
+6. 最后询问用户是否确认这个方案。如果确认，告诉用户你可以开始构建了。`;
+        } else {
+            systemPrompt = `你是一个专业的网页设计师。你的任务是根据用户的需求设计并构建精美的网站。
 
 规则：
 1. 必须生成完整的 HTML 文档，包含 <!DOCTYPE html>, <html>, <head>, <body> 标签
 2. 在 <head> 中必须包含 <script src="https://cdn.tailwindcss.com"></script>
-3. 使用现代化的设计风格，色彩丰富，布局美观
-4. 如果用户提到了上传的素材，请在代码中使用这些素材的 URL
+3. 使用现代化的设计风格，色彩丰富，布局美观，注重用户体验
+4. 如果用户提到了上传的素材，请在设计中合理使用这些素材
 5. 直接输出 HTML 代码，不要添加 markdown 代码块标记
 6. 确保代码可以直接在浏览器中运行
 7. 支持多页面生成。如果你生成多个页面，请在每个页面代码前加上 "<!-- page: filename.html -->" 标记。
@@ -151,6 +164,7 @@ export async function POST(req: Request) {
    <!DOCTYPE html><html>...</html>
 8. 如果只生成一个页面，默认为 index.html，不需要加标记。
 9. 页面之间的链接请使用相对路径，例如 href="about.html"。不要使用 #hash 导航，除非是页面内跳转。`;
+        }
 
         if (currentHtml) {
             systemPrompt += `\n\n当前代码状态:\n\`\`\`html\n${currentHtml}\n\`\`\`\n\n用户想要修改上述代码。请基于用户的要求和当前代码，返回修改后的完整 HTML 代码。请保持原有代码结构，仅根据用户需求进行修改。`;

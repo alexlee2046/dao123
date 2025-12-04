@@ -5,19 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2 } from "lucide-react";
+import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2, MessageSquare, Layout } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useStudioStore, type Page } from "@/lib/store";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 import { getModels, type Model } from "@/lib/actions/models";
 import { toast } from "sonner";
+import { GuideModal } from "./GuideModal";
 
 export function ChatAssistant() {
     const { assets, htmlContent, setHtmlContent, setPages, selectedModel, addAsset } = useStudioStore();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [localInput, setLocalInput] = useState('');
     const [models, setModels] = useState<Model[]>([]);
+    const [mode, setMode] = useState<'guide' | 'direct'>('direct');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
@@ -30,6 +39,7 @@ export function ChatAssistant() {
         body: {
             model: selectedModel,
             currentHtml: htmlContent,
+            mode,
         },
         onFinish: (message: Message) => {
             const content = message.content;
@@ -45,7 +55,7 @@ export function ChatAssistant() {
                         content: match[2].trim()
                     });
                 }
-                
+
                 if (pages.length > 0) {
                     setPages(pages);
                     return;
@@ -86,11 +96,12 @@ export function ChatAssistant() {
         }
     }, [messages]);
 
-    const handleSend = async () => {
-        if (!localInput.trim()) return;
+    const handleSend = async (contentOverride?: string) => {
+        const contentToSend = typeof contentOverride === 'string' ? contentOverride : localInput;
+        if (!contentToSend.trim()) return;
 
 
-        let messageContent = localInput;
+        let messageContent = contentToSend;
         if (assets.length > 0) {
             const assetInfo = assets.map((asset, idx) =>
                 `素材${idx + 1}: ${asset.name} (${asset.url})`
@@ -189,13 +200,38 @@ export function ChatAssistant() {
     return (
         <div className="flex flex-col h-full bg-background/50 backdrop-blur-xl border-l border-border/50 shadow-2xl">
             {/* Header */}
-            <div className="p-4 border-b border-border/50 bg-background/50 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
-                    <Atom className="h-6 w-6 text-primary animate-spin-slow" />
+            <div className="p-4 border-b border-border/50 bg-background/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+                        <Atom className="h-6 w-6 text-primary animate-spin-slow" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-foreground">Dao 助手</h3>
+                        <p className="text-xs text-muted-foreground">道生一 · 一生二</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 className="font-semibold text-foreground">Dao 助手</h3>
-                    <p className="text-xs text-muted-foreground">道生一 · 一生二</p>
+
+                <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-border/50">
+                    <button
+                        onClick={() => setMode('guide')}
+                        className={cn(
+                            "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-2",
+                            mode === 'guide' ? "bg-background text-primary shadow-sm ring-1 ring-border/50" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        )}
+                    >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        需求沟通
+                    </button>
+                    <button
+                        onClick={() => setMode('direct')}
+                        className={cn(
+                            "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-2",
+                            mode === 'direct' ? "bg-background text-primary shadow-sm ring-1 ring-border/50" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        )}
+                    >
+                        <Layout className="h-3.5 w-3.5" />
+                        生成网站
+                    </button>
                 </div>
             </div>
 
@@ -332,7 +368,7 @@ export function ChatAssistant() {
                                     "h-8 w-8 transition-all duration-300 rounded-lg",
                                     localInput.trim() ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25" : "bg-muted text-muted-foreground"
                                 )}
-                                onClick={handleSend}
+                                onClick={() => handleSend()}
                                 disabled={isLoading || !localInput.trim()}
                             >
                                 <Send className="h-4 w-4" />
@@ -340,37 +376,41 @@ export function ChatAssistant() {
                         </div>
                     </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground px-1">
-                    <div className="flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                        <span>
+                <div className="mt-3 flex items-center justify-between gap-2 px-1">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap min-w-0 shrink">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                        <span className="truncate">
                             {assets.length > 0
                                 ? `已启用 ${assets.length} 个设计素材`
                                 : '支持多模态输入'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <select
-                            className="bg-transparent border-none text-xs text-muted-foreground focus:ring-0 cursor-pointer hover:text-foreground transition-colors"
+                    <div className="flex items-center gap-2 shrink-0">
+                        <GuideModal onComplete={(prompt) => handleSend(prompt)} />
+                        <Select
                             value={selectedModel}
-                            onChange={(e) => useStudioStore.getState().setSelectedModel(e.target.value)}
+                            onValueChange={(value) => useStudioStore.getState().setSelectedModel(value)}
                         >
-                            {models.length > 0 ? (
-                                models.map((model) => (
-                                    <option key={model.id} value={model.id}>
-                                        {model.name}
-                                    </option>
-                                ))
-                            ) : (
-                                <>
-                                    <option value="openai/gpt-5">GPT-5</option>
-                                    <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash Exp (免费)</option>
-                                    <option value="deepseek/deepseek-v3.2-exp">DeepSeek V3.2 (免费)</option>
-                                    <option value="qwen/qwen3-coder:free">Qwen3 Coder (免费)</option>
-                                </>
-                            )}
-                        </select>
-                        <div className="opacity-50">Enter 发送</div>
+                            <SelectTrigger className="h-7 text-xs border-none bg-transparent focus:ring-0 px-2 shadow-none text-muted-foreground hover:text-foreground transition-colors gap-1 w-auto min-w-[140px] justify-end">
+                                <SelectValue placeholder="选择模型" />
+                            </SelectTrigger>
+                            <SelectContent align="end" className="w-[240px]">
+                                {models.length > 0 ? (
+                                    models.map((model) => (
+                                        <SelectItem key={model.id} value={model.id} className="text-xs">
+                                            {model.name}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <>
+                                        <SelectItem value="openai/gpt-5" className="text-xs">GPT-5</SelectItem>
+                                        <SelectItem value="google/gemini-2.0-flash-exp:free" className="text-xs">Gemini 2.0 Flash Exp (免费)</SelectItem>
+                                        <SelectItem value="deepseek/deepseek-v3.2-exp" className="text-xs">DeepSeek V3.2 (免费)</SelectItem>
+                                        <SelectItem value="qwen/qwen3-coder:free" className="text-xs">Qwen3 Coder (免费)</SelectItem>
+                                    </>
+                                )}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
             </div>
