@@ -24,7 +24,7 @@ interface GuideModalProps {
 }
 
 export function GuideModal({ onComplete }: GuideModalProps) {
-    const t = useTranslations('guide');
+    const t = useTranslations('studio.guide');
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(1);
 
@@ -78,7 +78,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
     ], [t]);
 
     const TONES = ["professional", "friendly", "humorous", "luxury", "direct", "passionate"];
-    
+
     const SECTIONS = [
         "hero", "about", "features", "products",
         "testimonials", "partners", "team", "faq",
@@ -101,8 +101,8 @@ export function GuideModal({ onComplete }: GuideModalProps) {
         const styleLabel = STYLES.find(s => s.id === data.style)?.label || 'Auto';
         const colorLabel = COLOR_THEMES.find(c => c.id === data.colorTheme)?.label || 'Default';
         const toneLabel = TONES.includes(data.tone) ? t(`tones.${data.tone}`) : data.tone;
-        const sectionsLabels = data.sections.length > 0 
-            ? data.sections.map(s => SECTIONS.includes(s) ? t(`sections.${s}`) : s).join(', ') 
+        const sectionsLabels = data.sections.length > 0
+            ? data.sections.map(s => SECTIONS.includes(s) ? t(`sections.${s}`) : s).join(', ')
             : 'Auto Plan';
 
         const prompt = `${t('prompt.intro')}

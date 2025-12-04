@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { locales } from '@/i18n';
 import {
     Select,
@@ -16,13 +16,26 @@ export function LanguageSwitcher() {
     const locale = useLocale();
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
 
     const handleLocaleChange = (newLocale: string) => {
-        // 获取当前路径，去除语言前缀
-        const pathWithoutLocale = pathname.replace(/^\/(en|zh)/, '');
-        // 构建新的 URL
-        const newPath = `/${newLocale}${pathWithoutLocale}`;
+        // Build new path
+        let newPath = pathname;
+        const localePattern = /^\/(en|zh)(\/|$)/;
+
+        if (localePattern.test(pathname)) {
+            newPath = pathname.replace(localePattern, `/${newLocale}$2`);
+        } else {
+            newPath = `/${newLocale}${pathname}`;
+        }
+
+        // Preserve search params
+        if (searchParams.size > 0) {
+            newPath += `?${searchParams.toString()}`;
+        }
+
         router.push(newPath);
+        router.refresh();
     };
 
     const languageNames: Record<string, string> = {

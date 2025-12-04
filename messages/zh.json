@@ -108,22 +108,22 @@
             "tagline": "道生一 · AI 驱动万物",
             "title": "道生一",
             "subtitle": "一生万物",
-            "description": "从一个简单的想法开始，AI 助您衍生出无限可能。\n构建网站、生成应用、创造价值，一切始于此。",
+            "description": "从一个简单的想法开始，AI 助您衍生出无限可能。{br}构建网站、生成应用、创造价值，一切始于此。",
             "cta": "立即开始创造",
             "explore": "探索社区作品"
         },
         "philosophy": {
             "step1": {
                 "title": "道生一",
-                "desc": "您的一个灵感 (Idea)。\n只需一句描述，AI 核心即刻启动。"
+                "desc": "您的一个灵感 (Idea)。{br}只需一句描述，AI 核心即刻启动。"
             },
             "step2": {
                 "title": "一生二",
-                "desc": "人机协作 (Interaction)。\n您与 AI 的每一次对话，都在完善细节。"
+                "desc": "人机协作 (Interaction)。{br}您与 AI 的每一次对话，都在完善细节。"
             },
             "step3": {
                 "title": "二生三",
-                "desc": "无限生成 (Generation)。\n网站、应用、代码，即刻呈现，生生不息。",
+                "desc": "无限生成 (Generation)。{br}网站、应用、代码，即刻呈现，生生不息。",
                 "titleMain": "三生万物"
             }
         },
@@ -520,7 +520,21 @@
         "earningsNote": "您将获得 80% 的收益。",
         "publishBtn": "发布",
         "saveFirst": "请先保存您的项目",
-        "publishedToCommunity": "项目已发布到社区！"
+        "publishedToCommunity": "项目已发布到社区！",
+        "manageTitle": "管理发布",
+        "manageDesc": "管理您的网站发布状态",
+        "status": "当前状态",
+        "statusDraft": "未发布",
+        "statusDeployed": "已发布",
+        "lastDeployed": "上次发布",
+        "update": "更新发布",
+        "unpublish": "取消发布",
+        "unpublishConfirmTitle": "确认取消发布？",
+        "unpublishConfirmDesc": "取消发布后，您的网站将无法通过该域名访问。",
+        "unpublishing": "正在取消发布...",
+        "unpublishedSuccess": "已取消发布",
+        "vercelProOnly": "Vercel 部署 (Pro)",
+        "vercelProDesc": "升级到 Pro 版以使用自定义域名和 Vercel 部署"
     },
     "generate": {
         "image": {

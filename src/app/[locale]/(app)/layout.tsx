@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { AppSidebar } from "@/components/dashboard/AppSidebar"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
@@ -40,7 +41,9 @@ export default async function DashboardLayout({
                     <div className="ml-4 font-bold text-lg md:ml-0">Dao123</div>
 
                     <div className="ml-auto">
-                        <LanguageSwitcher />
+                        <Suspense fallback={<div className="w-[140px]" />}>
+                            <LanguageSwitcher />
+                        </Suspense>
                     </div>
                 </header>
 

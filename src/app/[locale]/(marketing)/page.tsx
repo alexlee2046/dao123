@@ -4,7 +4,7 @@ import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
 import { Sparkles, Zap, Palette, Code2, ArrowRight, CheckCircle2, Infinity as InfinityIcon, Layers, Share2 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from 'react';
+import { useRef, Suspense } from 'react';
 
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -41,7 +41,9 @@ export default function LandingPage() {
                     <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:block" href="#pricing">
                         {t('nav.pricing')}
                     </Link>
-                    <LanguageSwitcher />
+                    <Suspense fallback={<div className="w-[140px]" />}>
+                        <LanguageSwitcher />
+                    </Suspense>
                     <Button asChild variant="default" size="sm" className="rounded-full px-6">
                         <Link href="/dashboard">
                             {t('nav.loginSignup')}

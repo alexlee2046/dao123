@@ -124,22 +124,22 @@
             "tagline": "Dao Begets One · AI Drives All",
             "title": "Dao Begets One",
             "subtitle": "One Begets All",
-            "description": "Start with a simple idea, AI helps you derive infinite possibilities.\nBuild websites, generate apps, create value, it all starts here.",
+            "description": "Start with a simple idea, AI helps you derive infinite possibilities.{br}Build websites, generate apps, create value, it all starts here.",
             "cta": "Start Creating Now",
             "explore": "Explore Community"
         },
         "philosophy": {
             "step1": {
                 "title": "Dao Begets One",
-                "desc": "Your single idea.\nWith just one description, the AI core starts immediately."
+                "desc": "Your single idea.{br}With just one description, the AI core starts immediately."
             },
             "step2": {
                 "title": "One Begets Two",
-                "desc": "Human-AI Interaction.\nEvery conversation with AI refines the details."
+                "desc": "Human-AI Interaction.{br}Every conversation with AI refines the details."
             },
             "step3": {
                 "title": "Two Begets Three",
-                "desc": "Infinite Generation.\nWebsites, apps, code, presented instantly, endlessly.",
+                "desc": "Infinite Generation.{br}Websites, apps, code, presented instantly, endlessly.",
                 "titleMain": "Three Begets All"
             }
         },
@@ -520,7 +520,21 @@
         "earningsNote": "You will receive 80% of the earnings.",
         "publishBtn": "Publish",
         "saveFirst": "Please save your project first",
-        "publishedToCommunity": "Project published to community!"
+        "publishedToCommunity": "Project published to community!",
+        "manageTitle": "Manage Publishing",
+        "manageDesc": "Manage your website publication status",
+        "status": "Current Status",
+        "statusDraft": "Draft",
+        "statusDeployed": "Published",
+        "lastDeployed": "Last Deployed",
+        "update": "Update Deployment",
+        "unpublish": "Unpublish",
+        "unpublishConfirmTitle": "Confirm Unpublish?",
+        "unpublishConfirmDesc": "After unpublishing, your website will no longer be accessible via this domain.",
+        "unpublishing": "Unpublishing...",
+        "unpublishedSuccess": "Unpublished successfully",
+        "vercelProOnly": "Deploy to Vercel (Pro)",
+        "vercelProDesc": "Upgrade to Pro to use custom domains and Vercel deployment"
     },
     "generate": {
         "image": {

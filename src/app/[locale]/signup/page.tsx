@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -96,7 +96,9 @@ export default function SignupPage() {
             {/* Right Side - Signup Form */}
             <div className="flex items-center justify-center p-8 bg-background relative">
                 <div className="absolute top-4 right-4 lg:top-8 lg:right-8 flex items-center gap-4">
-                    <LanguageSwitcher />
+                    <Suspense fallback={<div className="w-[140px]" />}>
+                        <LanguageSwitcher />
+                    </Suspense>
                     <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                         {t('haveAccountLogin')}
                     </Link>
