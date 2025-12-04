@@ -1,13 +1,15 @@
 import React from 'react';
 import { useEditor } from '@craftjs/core';
+import { useTranslations } from 'next-intl';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
+import { CodeEditor } from '@/components/ui/code-editor';
 
 export const SettingsPanel = () => {
+    const t = useTranslations('builder');
     const { actions, selected, isEnabled } = useEditor((state, query) => {
         const [currentNodeId] = state.events.selected;
         let selected: any;
@@ -33,7 +35,7 @@ export const SettingsPanel = () => {
     if (!selected) {
         return (
             <div className="p-4 text-center text-muted-foreground text-sm">
-                点击画布中的组件进行编辑
+                {t('selectToEdit')}
             </div>
         );
     }
@@ -41,7 +43,7 @@ export const SettingsPanel = () => {
     return (
         <div className="p-4 space-y-6">
             <div className="flex items-center justify-between border-b pb-2">
-                <h3 className="font-medium">{selected.name} 设置</h3>
+                <h3 className="font-medium">{selected.name}{t('settingsSuffix')}</h3>
                 {selected.isDeletable ? (
                     <Button
                         variant="ghost"
@@ -59,7 +61,7 @@ export const SettingsPanel = () => {
             <div className="space-y-4">
                 {selected.text !== undefined && (
                     <div className="space-y-2">
-                        <Label>文本内容</Label>
+                        <Label>{t('textContent')}</Label>
                         <Input
                             value={selected.text}
                             onChange={(e) => actions.setProp(selected.id, (prop: any) => (prop.text = e.target.value))}
@@ -69,7 +71,7 @@ export const SettingsPanel = () => {
 
                 {selected.src !== undefined && (
                     <div className="space-y-2">
-                        <Label>图片链接</Label>
+                        <Label>{t('imageLink')}</Label>
                         <Input
                             value={selected.src}
                             onChange={(e) => actions.setProp(selected.id, (prop: any) => (prop.src = e.target.value))}
@@ -79,7 +81,7 @@ export const SettingsPanel = () => {
 
                 {selected.href !== undefined && (
                     <div className="space-y-2">
-                        <Label>链接地址</Label>
+                        <Label>{t('linkAddress')}</Label>
                         <Input
                             value={selected.href}
                             onChange={(e) => actions.setProp(selected.id, (prop: any) => (prop.href = e.target.value))}
@@ -89,7 +91,7 @@ export const SettingsPanel = () => {
 
                 {selected.variant !== undefined && (
                     <div className="space-y-2">
-                        <Label>样式变体</Label>
+                        <Label>{t('styleVariant')}</Label>
                         <Select
                             value={selected.variant}
                             onValueChange={(value) => actions.setProp(selected.id, (prop: any) => (prop.variant = value))}
@@ -98,12 +100,12 @@ export const SettingsPanel = () => {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="default">Default</SelectItem>
-                                <SelectItem value="secondary">Secondary</SelectItem>
-                                <SelectItem value="outline">Outline</SelectItem>
-                                <SelectItem value="ghost">Ghost</SelectItem>
-                                <SelectItem value="destructive">Destructive</SelectItem>
-                                <SelectItem value="link">Link</SelectItem>
+                                <SelectItem value="default">{t('variants.default')}</SelectItem>
+                                <SelectItem value="secondary">{t('variants.secondary')}</SelectItem>
+                                <SelectItem value="outline">{t('variants.outline')}</SelectItem>
+                                <SelectItem value="ghost">{t('variants.ghost')}</SelectItem>
+                                <SelectItem value="destructive">{t('variants.destructive')}</SelectItem>
+                                <SelectItem value="link">{t('variants.link')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -111,7 +113,7 @@ export const SettingsPanel = () => {
 
                 {selected.tag !== undefined && (
                     <div className="space-y-2">
-                        <Label>HTML 标签</Label>
+                        <Label>{t('htmlTag')}</Label>
                         <Select
                             value={selected.tag}
                             onValueChange={(value) => actions.setProp(selected.id, (prop: any) => (prop.tag = value))}
@@ -120,11 +122,11 @@ export const SettingsPanel = () => {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="h1">H1</SelectItem>
-                                <SelectItem value="h2">H2</SelectItem>
-                                <SelectItem value="h3">H3</SelectItem>
-                                <SelectItem value="p">Paragraph</SelectItem>
-                                <SelectItem value="span">Span</SelectItem>
+                                <SelectItem value="h1">{t('tags.h1')}</SelectItem>
+                                <SelectItem value="h2">{t('tags.h2')}</SelectItem>
+                                <SelectItem value="h3">{t('tags.h3')}</SelectItem>
+                                <SelectItem value="p">{t('tags.p')}</SelectItem>
+                                <SelectItem value="span">{t('tags.span')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -132,22 +134,25 @@ export const SettingsPanel = () => {
 
                 {selected.code !== undefined && (
                     <div className="space-y-2">
-                        <Label>HTML 代码</Label>
-                        <Textarea
-                            className="font-mono text-xs h-32"
+                        <Label>{t('htmlCode')}</Label>
+                        <CodeEditor
                             value={selected.code}
-                            onChange={(e) => actions.setProp(selected.id, (prop: any) => (prop.code = e.target.value))}
+                            onChange={(value) => actions.setProp(selected.id, (prop: any) => (prop.code = value || ''))}
+                            language="html"
+                            height="200px"
+                            minimap={false}
                         />
                     </div>
                 )}
 
                 <div className="space-y-2">
-                    <Label>Tailwind Classes</Label>
-                    <Textarea
-                        className="font-mono text-xs h-20"
+                    <Label>{t('tailwindClasses')}</Label>
+                    <CodeEditor
                         value={selected.className || ''}
-                        onChange={(e) => actions.setProp(selected.id, (prop: any) => (prop.className = e.target.value))}
-                        placeholder="e.g. bg-blue-500 p-4"
+                        onChange={(value) => actions.setProp(selected.id, (prop: any) => (prop.className = value || ''))}
+                        language="plaintext"
+                        height="100px"
+                        minimap={false}
                     />
                 </div>
             </div>

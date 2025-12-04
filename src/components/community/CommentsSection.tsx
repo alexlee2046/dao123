@@ -8,6 +8,7 @@ import { addComment, getComments, addRating } from "@/lib/actions/community"
 import { toast } from "sonner"
 import { Star, User } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
+import { useTranslations } from 'next-intl'
 
 interface CommentsSectionProps {
     projectId: string
@@ -18,6 +19,7 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
     const [newComment, setNewComment] = useState('')
     const [rating, setRating] = useState(0)
     const [submitting, setSubmitting] = useState(false)
+    const t = useTranslations('community')
 
     useEffect(() => {
         loadComments()
@@ -44,7 +46,7 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
             setNewComment('')
             setRating(0)
             loadComments()
-            toast.success("评论已添加")
+            toast.success(t('commentAdded'))
         } catch (error: any) {
             toast.error(error.message)
         } finally {
@@ -55,7 +57,7 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
     return (
         <div className="space-y-6">
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold">发表评价</h3>
+                <h3 className="text-lg font-semibold">{t('addReview')}</h3>
                 <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -68,17 +70,17 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
                     ))}
                 </div>
                 <Textarea
-                    placeholder="分享您的想法..."
+                    placeholder={t('shareYourThoughts')}
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                 />
                 <Button onClick={handleSubmit} disabled={submitting || !newComment.trim()}>
-                    发布评价
+                    {t('postReview')}
                 </Button>
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold">评论 ({comments.length})</h3>
+                <h3 className="text-lg font-semibold">{t('comments', { count: comments.length })}</h3>
                 {comments.map((comment) => (
                     <div key={comment.id} className="flex gap-4 p-4 border rounded-lg">
                         <Avatar>
@@ -86,7 +88,7 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
                         </Avatar>
                         <div className="flex-1">
                             <div className="flex justify-between items-start">
-                                <p className="font-medium text-sm">User</p>
+                                <p className="font-medium text-sm">{t('user')}</p>
                                 <span className="text-xs text-muted-foreground">
                                     {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                                 </span>

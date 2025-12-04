@@ -1,12 +1,16 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
 import { Sparkles, Zap, Palette, Code2, ArrowRight, CheckCircle2, Infinity as InfinityIcon, Layers, Share2 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from 'react';
 
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/language-switcher';
+
 export default function LandingPage() {
+    const t = useTranslations('marketing');
     const targetRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
         target: targetRef,
@@ -29,17 +33,18 @@ export default function LandingPage() {
                 </Link>
                 <nav className="ml-auto flex gap-6 sm:gap-8 items-center">
                     <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:block" href="#philosophy">
-                        理念
+                        {t('nav.philosophy')}
                     </Link>
                     <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:block" href="#features">
-                        功能
+                        {t('nav.features')}
                     </Link>
                     <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:block" href="#pricing">
-                        价格
+                        {t('nav.pricing')}
                     </Link>
+                    <LanguageSwitcher />
                     <Button asChild variant="default" size="sm" className="rounded-full px-6">
                         <Link href="/dashboard">
-                            登录 / 注册
+                            {t('nav.loginSignup')}
                         </Link>
                     </Button>
                 </nav>
@@ -78,7 +83,7 @@ export default function LandingPage() {
                                 className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm mb-4"
                             >
                                 <Sparkles className="mr-2 h-3.5 w-3.5" />
-                                道生一 · AI 驱动万物
+                                {t('hero.tagline')}
                             </motion.div>
 
                             <motion.h1
@@ -87,8 +92,8 @@ export default function LandingPage() {
                                 transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                                 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/50"
                             >
-                                道生一<br />
-                                <span className="text-primary">一生万物</span>
+                                {t('hero.title')}<br />
+                                <span className="text-primary">{t('hero.subtitle')}</span>
                             </motion.h1>
 
                             <motion.p
@@ -97,9 +102,9 @@ export default function LandingPage() {
                                 transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
                                 className="mx-auto max-w-[700px] text-muted-foreground md:text-xl leading-relaxed"
                             >
-                                从一个简单的想法开始，AI 助您衍生出无限可能。
-                                <br className="hidden md:block" />
-                                构建网站、生成应用、创造价值，一切始于此。
+                                {t.rich('hero.description', {
+                                    br: () => <br className="hidden md:block" />
+                                })}
                             </motion.p>
 
                             <motion.div
@@ -110,12 +115,12 @@ export default function LandingPage() {
                             >
                                 <Button asChild size="lg" className="rounded-full px-8 text-lg h-14 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all hover:scale-105">
                                     <Link href="/dashboard">
-                                        立即开始创造 <ArrowRight className="ml-2 h-4 w-4" />
+                                        {t('hero.cta')} <ArrowRight className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
                                 <Button asChild variant="outline" size="lg" className="rounded-full px-8 text-lg h-14 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all">
                                     <Link href="/community">
-                                        探索社区作品
+                                        {t('hero.explore')}
                                     </Link>
                                 </Button>
                             </motion.div>
@@ -143,11 +148,11 @@ export default function LandingPage() {
                                         <Zap className="h-8 w-8" />
                                     </div>
                                 </div>
-                                <h3 className="text-2xl font-bold mb-3">道生一</h3>
+                                <h3 className="text-2xl font-bold mb-3">{t('philosophy.step1.title')}</h3>
                                 <p className="text-muted-foreground max-w-xs">
-                                    您的一个灵感 (Idea)。
-                                    <br />
-                                    只需一句描述，AI 核心即刻启动。
+                                    {t.rich('philosophy.step1.desc', {
+                                        br: () => <br />
+                                    })}
                                 </p>
                             </motion.div>
 
@@ -164,11 +169,11 @@ export default function LandingPage() {
                                         <Layers className="h-8 w-8" />
                                     </div>
                                 </div>
-                                <h3 className="text-2xl font-bold mb-3">一生二</h3>
+                                <h3 className="text-2xl font-bold mb-3">{t('philosophy.step2.title')}</h3>
                                 <p className="text-muted-foreground max-w-xs">
-                                    人机协作 (Interaction)。
-                                    <br />
-                                    您与 AI 的每一次对话，都在完善细节。
+                                    {t.rich('philosophy.step2.desc', {
+                                        br: () => <br />
+                                    })}
                                 </p>
                             </motion.div>
 
@@ -185,11 +190,11 @@ export default function LandingPage() {
                                         <InfinityIcon className="h-8 w-8" />
                                     </div>
                                 </div>
-                                <h3 className="text-2xl font-bold mb-3">三生万物</h3>
+                                <h3 className="text-2xl font-bold mb-3">{t('philosophy.step3.titleMain')}</h3>
                                 <p className="text-muted-foreground max-w-xs">
-                                    无限生成 (Generation)。
-                                    <br />
-                                    网站、应用、代码，即刻呈现，生生不息。
+                                    {t.rich('philosophy.step3.desc', {
+                                        br: () => <br />
+                                    })}
                                 </p>
                             </motion.div>
                         </div>
@@ -200,9 +205,9 @@ export default function LandingPage() {
                 <section id="features" className="w-full py-24">
                     <div className="container px-4 md:px-6 mx-auto">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">为什么选择 dao123？</h2>
+                            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">{t('whyChoose')}</h2>
                             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                                我们结合了最先进的 AI 模型和现代化的开发框架，为您提供极致的建站体验。
+                                {t('whyChooseDesc')}
                             </p>
                         </div>
                         <div className="grid gap-8 md:grid-cols-3">
@@ -213,9 +218,9 @@ export default function LandingPage() {
                                 <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6">
                                     <Zap className="h-6 w-6" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3">极速生成</h3>
+                                <h3 className="text-xl font-bold mb-3">{t('features.speed.title')}</h3>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    几秒钟内生成完整的落地页、个人博客或企业官网。无需等待，即刻预览。
+                                    {t('features.speed.desc')}
                                 </p>
                             </motion.div>
                             <motion.div
@@ -225,9 +230,9 @@ export default function LandingPage() {
                                 <div className="h-12 w-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-6">
                                     <Palette className="h-6 w-6" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3">精美设计</h3>
+                                <h3 className="text-xl font-bold mb-3">{t('features.design.title')}</h3>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    自动应用现代化的设计规范，确保您的网站在任何设备上都完美呈现。
+                                    {t('features.design.desc')}
                                 </p>
                             </motion.div>
                             <motion.div
@@ -237,9 +242,9 @@ export default function LandingPage() {
                                 <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6">
                                     <Code2 className="h-6 w-6" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3">代码导出</h3>
+                                <h3 className="text-xl font-bold mb-3">{t('features.code.title')}</h3>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    生成的代码完全属于您。支持导出 React/Tailwind 代码，随意二次开发。
+                                    {t('features.code.desc')}
                                 </p>
                             </motion.div>
                         </div>
@@ -251,13 +256,13 @@ export default function LandingPage() {
                     <div className="container px-4 md:px-6 mx-auto">
                         <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                             <div>
-                                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">社区精选</h2>
+                                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">{t('community.title')}</h2>
                                 <p className="text-muted-foreground text-lg max-w-xl">
-                                    看看其他人使用 dao123 创造了什么。
+                                    {t('community.desc')}
                                 </p>
                             </div>
                             <Button variant="outline" className="rounded-full">
-                                查看更多 <ArrowRight className="ml-2 h-4 w-4" />
+                                {t('community.viewMore')} <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
 
@@ -267,8 +272,8 @@ export default function LandingPage() {
                                 <div key={i} className="group relative aspect-video rounded-2xl overflow-hidden bg-muted">
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                                         <div className="text-white">
-                                            <h4 className="font-bold text-lg">项目 {i}</h4>
-                                            <p className="text-sm text-white/80">由用户创建</p>
+                                            <h4 className="font-bold text-lg">{t('community.project', { i })}</h4>
+                                            <p className="text-sm text-white/80">{t('community.byUser')}</p>
                                         </div>
                                     </div>
                                     {/* Placeholder visual */}
@@ -289,25 +294,25 @@ export default function LandingPage() {
                             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent"></div>
 
                             <h2 className="text-4xl font-bold tracking-tight sm:text-5xl mb-6 relative z-10">
-                                准备好开始了吗？
+                                {t('cta.ready')}
                             </h2>
                             <p className="text-muted-foreground text-xl max-w-2xl mx-auto mb-10 relative z-10">
-                                加入数千名创作者的行列，使用 AI 释放您的创造力。
+                                {t('cta.join')}
                             </p>
 
                             <Button asChild size="lg" className="rounded-full px-10 text-lg h-16 shadow-xl shadow-primary/20 relative z-10 hover:scale-105 transition-transform">
-                                <Link href="/dashboard">免费试用</Link>
+                                <Link href="/dashboard">{t('cta.freeTrial')}</Link>
                             </Button>
 
                             <div className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-muted-foreground relative z-10">
                                 <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4 text-primary" /> 无需信用卡
+                                    <CheckCircle2 className="h-4 w-4 text-primary" /> {t('cta.noCreditCard')}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4 text-primary" /> 免费导出代码
+                                    <CheckCircle2 className="h-4 w-4 text-primary" /> {t('cta.freeExport')}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4 text-primary" /> 7x24小时支持
+                                    <CheckCircle2 className="h-4 w-4 text-primary" /> {t('cta.support')}
                                 </div>
                             </div>
                         </div>
@@ -325,32 +330,30 @@ export default function LandingPage() {
                                 </div>
                                 <span className="font-bold text-xl tracking-tight">dao123</span>
                             </Link>
-                            <p className="text-muted-foreground max-w-xs">
-                                道生一，一生二，二生三，三生万物。
-                                <br />
-                                用 AI 重新定义网站构建。
+                            <p className="text-muted-foreground max-w-xs whitespace-pre-line">
+                                {t('footer.slogan')}
                             </p>
                         </div>
                         <div>
-                            <h4 className="font-bold mb-4">产品</h4>
+                            <h4 className="font-bold mb-4">{t('footer.product')}</h4>
                             <ul className="space-y-2 text-sm text-muted-foreground">
-                                <li><Link href="#" className="hover:text-foreground">功能特性</Link></li>
-                                <li><Link href="#" className="hover:text-foreground">价格方案</Link></li>
-                                <li><Link href="#" className="hover:text-foreground">更新日志</Link></li>
+                                <li><Link href="#" className="hover:text-foreground">{t('footer.features')}</Link></li>
+                                <li><Link href="#" className="hover:text-foreground">{t('footer.pricing')}</Link></li>
+                                <li><Link href="#" className="hover:text-foreground">{t('footer.changelog')}</Link></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-bold mb-4">公司</h4>
+                            <h4 className="font-bold mb-4">{t('footer.company')}</h4>
                             <ul className="space-y-2 text-sm text-muted-foreground">
-                                <li><Link href="#" className="hover:text-foreground">关于我们</Link></li>
-                                <li><Link href="#" className="hover:text-foreground">隐私政策</Link></li>
-                                <li><Link href="#" className="hover:text-foreground">服务条款</Link></li>
+                                <li><Link href="#" className="hover:text-foreground">{t('footer.about')}</Link></li>
+                                <li><Link href="/privacy" className="hover:text-foreground">{t('footer.privacy')}</Link></li>
+                                <li><Link href="/terms" className="hover:text-foreground">{t('footer.terms')}</Link></li>
                             </ul>
                         </div>
                     </div>
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-border/40">
                         <p className="text-sm text-muted-foreground">
-                            © 2025 dao123 Inc. 保留所有权利。
+                            {t('footer.copyright')}
                         </p>
                         <div className="flex gap-4">
                             <Button variant="ghost" size="icon" className="rounded-full">

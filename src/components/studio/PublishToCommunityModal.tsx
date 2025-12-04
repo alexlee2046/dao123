@@ -18,8 +18,10 @@ import { Globe, Coins, Loader2 } from "lucide-react"
 import { publishProject } from "@/lib/actions/community"
 import { useStudioStore } from "@/lib/store"
 import { toast } from "sonner"
+import { useTranslations } from 'next-intl'
 
 export function PublishToCommunityModal({ children }: { children: React.ReactNode }) {
+    const t = useTranslations('publish')
     const [isOpen, setIsOpen] = useState(false)
     const [price, setPrice] = useState(0)
     const [isFree, setIsFree] = useState(true)
@@ -28,14 +30,14 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
 
     const handlePublish = async () => {
         if (!currentProject?.id) {
-            toast.error("请先保存您的项目")
+            toast.error(t('saveFirst'))
             return
         }
 
         try {
             setLoading(true)
             await publishProject(currentProject.id, isFree ? 0 : price)
-            toast.success("项目已发布到社区！")
+            toast.success(t('publishedToCommunity'))
             setIsOpen(false)
         } catch (error: any) {
             toast.error(error.message)
@@ -51,14 +53,14 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>分享到社区</DialogTitle>
+                    <DialogTitle>{t('communityTitle')}</DialogTitle>
                     <DialogDescription>
-                        与社区分享您的项目。您可以设置积分价格。
+                        {t('communityDesc')}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="flex items-center justify-between space-x-2">
-                        <Label htmlFor="free-mode">免费项目</Label>
+                        <Label htmlFor="free-mode">{t('freeProject')}</Label>
                         <Switch
                             id="free-mode"
                             checked={isFree}
@@ -68,7 +70,7 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
 
                     {!isFree && (
                         <div className="grid gap-2">
-                            <Label htmlFor="price">价格 (积分)</Label>
+                            <Label htmlFor="price">{t('price')}</Label>
                             <div className="relative">
                                 <Coins className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -81,7 +83,7 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
                                 />
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                您将获得 80% 的收益。
+                                {t('earningsNote')}
                             </p>
                         </div>
                     )}
@@ -89,7 +91,7 @@ export function PublishToCommunityModal({ children }: { children: React.ReactNod
                 <DialogFooter>
                     <Button onClick={handlePublish} disabled={loading}>
                         {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        发布
+                        {t('publishBtn')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

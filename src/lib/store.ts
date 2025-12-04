@@ -78,8 +78,10 @@ interface StudioState {
 
   // Agent Models
   architectModel: string;
+  designerModel: string;
   builderModel: string;
   setArchitectModel: (model: string) => void;
+  setDesignerModel: (model: string) => void;
   setBuilderModel: (model: string) => void;
 }
 
@@ -214,8 +216,10 @@ export const useStudioStore = create<StudioState>((set) => {
 
     // Agent Models
     architectModel: 'anthropic/claude-3.5-sonnet',
+    designerModel: 'anthropic/claude-3.5-sonnet',
     builderModel: 'google/gemini-2.0-flash-exp:free', // Default to efficient model
     setArchitectModel: (model) => set({ architectModel: model }),
+    setDesignerModel: (model) => set({ designerModel: model }),
     setBuilderModel: (model) => set({ builderModel: model }),
   };
 });

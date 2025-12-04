@@ -9,8 +9,11 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Image from 'next/image';
 import { cn } from "@/lib/utils";
+import { useTranslations } from 'next-intl';
 
 export function AssetManager() {
+    const t = useTranslations('studio');
+    const tCommon = useTranslations('common');
     const { assets, setAssets, addAsset, removeAsset } = useStudioStore();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -27,7 +30,7 @@ export function AssetManager() {
             setAssets(data);
         } catch (error) {
             console.error(error);
-            toast.error("加载素材失败");
+            toast.error(t('assetsManager.loadFailed'));
         } finally {
             setLoading(false);
         }
@@ -71,10 +74,10 @@ export function AssetManager() {
                 ...newAsset,
                 type: newAsset.type as "image" | "video" | "font"
             });
-            toast.success("素材上传成功");
+            toast.success(t('assetsManager.uploadSuccess'));
         } catch (error: any) {
             console.error(error);
-            toast.error("上传失败: " + error.message);
+            toast.error(t('assetsManager.uploadFailed') + error.message);
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -88,10 +91,10 @@ export function AssetManager() {
 
             await deleteAsset(asset.id, path);
             removeAsset(asset.id);
-            toast.success("素材已删除");
+            toast.success(t('assetsManager.deleteSuccess'));
         } catch (error: any) {
             console.error(error);
-            toast.error("删除失败: " + error.message);
+            toast.error(t('assetsManager.deleteFailed') + error.message);
         }
     };
 
@@ -105,8 +108,8 @@ export function AssetManager() {
         <div className="flex flex-col h-full bg-background/50 backdrop-blur-xl border-l border-border/50">
             <div className="p-4 border-b border-border/50 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-10">
                 <div>
-                    <h3 className="font-semibold text-sm">素材库</h3>
-                    <p className="text-[10px] text-muted-foreground">拖拽素材到画布或对话</p>
+                    <h3 className="font-semibold text-sm">{t('assets')}</h3>
+                    <p className="text-[10px] text-muted-foreground">{t('assetsManager.dragDropHint')}</p>
                 </div>
                 <Button
                     size="sm"
@@ -116,7 +119,7 @@ export function AssetManager() {
                     disabled={uploading}
                 >
                     {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                    上传
+                    {t('assetsManager.upload')}
                 </Button>
                 <input
                     type="file"
@@ -131,14 +134,14 @@ export function AssetManager() {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
                         <Loader2 className="h-6 w-6 animate-spin" />
-                        <span className="text-xs">加载中...</span>
+                        <span className="text-xs">{tCommon('loading')}</span>
                     </div>
                 ) : assets.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground/50">
                         <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center border border-dashed border-border">
                             <ImageIcon className="h-8 w-8" />
                         </div>
-                        <p className="text-xs">暂无素材，点击上方按钮上传</p>
+                        <p className="text-xs">{t('assetsManager.emptyState')}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-3">
@@ -176,7 +179,7 @@ export function AssetManager() {
                                         variant="destructive"
                                         className="h-7 w-7 rounded-full shadow-lg scale-90 hover:scale-100 transition-transform"
                                         onClick={() => handleDelete(asset)}
-                                        title="删除"
+                                        title={tCommon('delete')}
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
                                     </Button>

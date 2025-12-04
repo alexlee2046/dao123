@@ -19,7 +19,8 @@
         "search": "Search",
         "loading": "Loading...",
         "error": "Error",
-        "success": "Success"
+        "success": "Success",
+        "credits": "Credits"
     },
     "nav": {
         "studio": "Studio",
@@ -27,7 +28,9 @@
         "admin": "Admin",
         "models": "Models",
         "users": "Users",
-        "profile": "Profile"
+        "profile": "Profile",
+        "aiImage": "AI Image",
+        "aiVideo": "AI Video"
     },
     "auth": {
         "loginTitle": "Login to Your Account",
@@ -43,7 +46,26 @@
         "loginButton": "Login",
         "signupButton": "Sign Up",
         "loginWithGoogle": "Login with Google",
-        "signupWithGoogle": "Sign Up with Google"
+        "signupWithGoogle": "Sign Up with Google",
+        "welcomeBack": "Welcome Back",
+        "enterEmailDesc": "Enter your email to login to the platform",
+        "loginSuccess": "Login successful",
+        "or": "Or",
+        "termsDesc": "By clicking login you agree to our",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "and": "and",
+        "quote": "Dao begets one, one begets two, two begets three, three begets all. Here, let AI assist you in creating from 0 to 1.",
+        "quoteAuthor": "Dao Begets One · The Origin of Creation",
+        "signupDesc": "Fill in the information below to start your AI journey",
+        "setPassword": "Set Password",
+        "passwordLength": "Password must be at least 6 characters",
+        "signupSuccess": "Account created successfully! Please check your email for verification.",
+        "checkEmail": "Please check your email to continue",
+        "haveAccountLogin": "Already have an account? Login",
+        "signupTermsDesc": "By clicking sign up you agree to our",
+        "signupQuote": "A journey of a thousand miles begins with a single step. Start building your digital world here.",
+        "signupQuoteAuthor": "Start Small, Dream Big"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -54,7 +76,26 @@
         "totalProjects": "Total Projects",
         "totalViews": "Total Views",
         "credits": "Credits",
-        "creditsRemaining": "Credits Remaining"
+        "creditsRemaining": "Credits Remaining",
+        "tagline": "One Begets Two · Interactive Symbiosis",
+        "myCreations": "My Creations",
+        "manageProjects": "Manage your AI generated projects, or start a new journey.",
+        "startProject": "Start New Project",
+        "newProjectTitle": "New Project",
+        "newProjectDesc": "Start from scratch, let AI assist you in realizing your vision.",
+        "projectSettings": "Project Settings",
+        "editProjectDesc": "Modify project name and preview image",
+        "inputNamePlaceholder": "Enter project name",
+        "previewUrl": "Preview Image URL",
+        "previewUrlDesc": "Enter image URL as project cover",
+        "continueEditing": "Continue Editing",
+        "projectUpdated": "Project updated",
+        "updateFailed": "Update failed",
+        "noDesc": "No description",
+        "edit": "Edit",
+        "aiImage": "AI Image",
+        "aiVideo": "AI Video",
+        "logout": "Logout"
     },
     "projects": {
         "title": "My Projects",
@@ -72,6 +113,80 @@
         "preview": "Preview",
         "duplicate": "Duplicate"
     },
+    "marketing": {
+        "nav": {
+            "philosophy": "Philosophy",
+            "features": "Features",
+            "pricing": "Pricing",
+            "loginSignup": "Login / Sign Up"
+        },
+        "hero": {
+            "tagline": "Dao Begets One · AI Drives All",
+            "title": "Dao Begets One",
+            "subtitle": "One Begets All",
+            "description": "Start with a simple idea, AI helps you derive infinite possibilities.\nBuild websites, generate apps, create value, it all starts here.",
+            "cta": "Start Creating Now",
+            "explore": "Explore Community"
+        },
+        "philosophy": {
+            "step1": {
+                "title": "Dao Begets One",
+                "desc": "Your single idea.\nWith just one description, the AI core starts immediately."
+            },
+            "step2": {
+                "title": "One Begets Two",
+                "desc": "Human-AI Interaction.\nEvery conversation with AI refines the details."
+            },
+            "step3": {
+                "title": "Two Begets Three",
+                "desc": "Infinite Generation.\nWebsites, apps, code, presented instantly, endlessly.",
+                "titleMain": "Three Begets All"
+            }
+        },
+        "whyChoose": "Why Choose dao123?",
+        "whyChooseDesc": "We combine state-of-the-art AI models with modern development frameworks to provide you with the ultimate website building experience.",
+        "features": {
+            "speed": {
+                "title": "Instant Generation",
+                "desc": "Generate complete landing pages, personal blogs, or corporate websites in seconds. No waiting, instant preview."
+            },
+            "design": {
+                "title": "Exquisite Design",
+                "desc": "Automatically apply modern design specifications to ensure your website looks perfect on any device."
+            },
+            "code": {
+                "title": "Code Export",
+                "desc": "The generated code belongs entirely to you. Support exporting React/Tailwind code for secondary development."
+            }
+        },
+        "community": {
+            "title": "Community Picks",
+            "desc": "See what others have created with dao123.",
+            "viewMore": "View More",
+            "project": "Project {i}",
+            "byUser": "Created by User"
+        },
+        "cta": {
+            "ready": "Ready to get started?",
+            "join": "Join thousands of creators and unleash your creativity with AI.",
+            "freeTrial": "Free Trial",
+            "noCreditCard": "No Credit Card Required",
+            "freeExport": "Free Code Export",
+            "support": "24/7 Support"
+        },
+        "footer": {
+            "slogan": "Dao Begets One, One Begets Two, Two Begets Three, Three Begets All.\nRedefine website building with AI.",
+            "product": "Product",
+            "features": "Features",
+            "pricing": "Pricing",
+            "changelog": "Changelog",
+            "company": "Company",
+            "about": "About Us",
+            "privacy": "Privacy Policy",
+            "terms": "Terms of Service",
+            "copyright": "© 2025 dao123 Inc. All rights reserved."
+        }
+    },
     "studio": {
         "title": "Studio",
         "canvas": "Canvas",
@@ -82,7 +197,211 @@
         "chat": "AI Assistant",
         "chatPlaceholder": "Describe what you want to create...",
         "generating": "Generating...",
-        "selectComponent": "Select a component to view settings"
+        "selectComponent": "Select a component to view settings",
+        "workshop": "Workshop",
+        "returnToDashboard": "Return to Dashboard",
+        "untitledProject": "Untitled Project",
+        "undo": "Undo",
+        "redo": "Redo",
+        "aiChat": "AI Chat",
+        "manualEdit": "Manual Edit",
+        "saving": "Saving...",
+        "saved": "Project saved",
+        "createdAndSaved": "Project created and saved",
+        "saveFailed": "Save failed: ",
+        "publishToCommunity": "Publish to Square",
+        "share": "Share",
+        "publishOnline": "Publish Online",
+        "generatedBy": "Generated by Dao123",
+        "loadFailed": "Failed to load project",
+        "assetsManager": {
+            "loadFailed": "Failed to load assets",
+            "uploadSuccess": "Asset uploaded successfully",
+            "uploadFailed": "Upload failed: ",
+            "deleteSuccess": "Asset deleted successfully",
+            "deleteFailed": "Delete failed: ",
+            "dragDropHint": "Drag & drop supported",
+            "upload": "Upload",
+            "emptyState": "No assets yet. Upload or drag files here."
+        },
+        "chatPanel": {
+            "title": "Dao Assistant",
+            "modelSettings": "Model Settings",
+            "modelSettingsDesc": "Configure AI models for different agents",
+            "architect": "Architect",
+            "designer": "Designer",
+            "builder": "Builder",
+            "stepArchitect": "Planning",
+            "stepDesigner": "Designing",
+            "stepBuilder": "Building",
+            "emptyTitle": "Dao Begets One (Origin)",
+            "emptyDesc": "Describe your idea to start the journey",
+            "building": "Building...",
+            "designCompleted": "Design Completed",
+            "coding": "AI is writing code...",
+            "previewUpdated": "Preview Updated",
+            "modeGuide": "Guide",
+            "modeDirect": "Generate",
+            "thinking": "Thinking...",
+            "stop": "Stop",
+            "inputPlaceholder": "Describe the website you want to build... (Drag & drop assets supported)",
+            "selectModel": "Select Model",
+            "noModelsAvailable": "No models available",
+            "serviceError": "AI Service Failed",
+            "uploadFailed": "Upload failed: ",
+            "assetPrefix": "Asset",
+            "availableAssets": "Available Assets",
+            "fileUploaded": "File uploaded"
+        },
+        "guide": {
+            "triggerButton": "AI Guide",
+            "steps": {
+                "1": "Brand & Identity",
+                "2": "Visual & Style",
+                "3": "Content & Tone",
+                "4": "Structure",
+                "5": "Your Vision"
+            },
+            "stepDesc": {
+                "1": "First, let's define the basic identity of the website.",
+                "2": "Define visual language so AI understands your aesthetic.",
+                "3": "Set the tone to attract the right audience.",
+                "4": "Plan page layout and select functional modules.",
+                "5": "Finally, describe any specific ideas or inspiration in your own words."
+            },
+            "labels": {
+                "brandName": "Brand/Project Name",
+                "brandNamePlaceholder": "e.g. Dao123, NextGen Coffee...",
+                "websiteType": "Website Type",
+                "otherType": "Other Type",
+                "otherTypePlaceholder": "Describe your specific needs...",
+                "style": "Design Style",
+                "colorTheme": "Primary Color",
+                "targetAudience": "Target Audience",
+                "targetAudiencePlaceholder": "e.g. Students, SMB Owners, Geeks...",
+                "tone": "Brand Tone",
+                "sections": "Recommended Sections",
+                "vision": "Additional Notes",
+                "visionPlaceholder": "I want an Airbnb-like homepage but with a dark theme..."
+            },
+            "actions": {
+                "prev": "Back",
+                "next": "Next",
+                "generate": "Generate"
+            },
+            "types": {
+                "portfolio": "Portfolio",
+                "portfolioDesc": "Showcase personal work, resume",
+                "landing": "Landing Page",
+                "landingDesc": "Promotion and conversion for a single product",
+                "corporate": "Corporate Site",
+                "corporateDesc": "Showcase company image and services",
+                "event": "Event Page",
+                "eventDesc": "Conferences, exhibitions, weddings, etc.",
+                "blog": "Blog/News",
+                "blogDesc": "Article sharing and reading",
+                "saas": "SaaS Home",
+                "saasDesc": "Software service introduction and pricing"
+            },
+            "styles": {
+                "minimal": "Minimalist",
+                "minimalDesc": "Whitespace, clean, modern",
+                "tech": "Futuristic Tech",
+                "techDesc": "Dark, neon, cyberpunk",
+                "luxury": "Luxury",
+                "luxuryDesc": "Serif, gold, exquisite",
+                "playful": "Playful",
+                "playfulDesc": "Rounded, vibrant colors, illustrations",
+                "corporate_clean": "Corporate Clean",
+                "corporate_cleanDesc": "Stable, blue tones, grid layout",
+                "retro": "Retro",
+                "retroDesc": "Noise, pixel, warm tones"
+            },
+            "colors": {
+                "blue": "Tech Blue",
+                "green": "Nature Green",
+                "purple": "Creative Purple",
+                "orange": "Vibrant Orange",
+                "black": "Ultimate Black",
+                "white": "Pure White"
+            },
+            "tones": {
+                "professional": "Professional",
+                "friendly": "Friendly",
+                "humorous": "Humorous",
+                "luxury": "Luxury",
+                "direct": "Direct",
+                "passionate": "Passionate"
+            },
+            "sections": {
+                "hero": "Hero Section",
+                "about": "About Us",
+                "features": "Core Features",
+                "products": "Products/Services",
+                "testimonials": "Testimonials",
+                "partners": "Partners",
+                "team": "Team",
+                "faq": "FAQ",
+                "pricing": "Pricing",
+                "contact": "Contact Form",
+                "footer": "Footer"
+            },
+            "prompt": {
+                "intro": "I need to build a website with the following requirements:",
+                "basicInfo": "1. Basic Information",
+                "brand": "Brand/Project Name",
+                "type": "Website Type",
+                "visualDesign": "2. Visual Design",
+                "style": "Design Style",
+                "color": "Color Preference",
+                "contentStrategy": "3. Content Strategy",
+                "audience": "Target Audience",
+                "tone": "Brand Tone",
+                "structure": "4. Page Structure",
+                "sections": "Included Sections",
+                "vision": "5. User Vision & Extras",
+                "instruction": "Based on the above information, please act as a senior web designer and generate the code for this website."
+            }
+        }
+    },
+    "builder": {
+        "title": "Builder",
+        "components": "Components",
+        "layers": "Layers",
+        "pages": "Pages",
+        "settings": "Settings",
+        "canvasWelcome": "Welcome to the Builder!",
+        "canvasInstruction": "Drag components from the left toolbox.",
+        "componentLibrary": "Component Library",
+        "text": "Text",
+        "button": "Button",
+        "image": "Image",
+        "container": "Container",
+        "customCode": "Custom Code",
+        "selectToEdit": "Click a component on canvas to edit",
+        "settingsSuffix": " Settings",
+        "textContent": "Text Content",
+        "imageLink": "Image Link",
+        "linkAddress": "Link Address",
+        "styleVariant": "Style Variant",
+        "htmlTag": "HTML Tag",
+        "htmlCode": "HTML Code",
+        "tailwindClasses": "Tailwind Classes",
+        "variants": {
+            "default": "Default",
+            "secondary": "Secondary",
+            "outline": "Outline",
+            "ghost": "Ghost",
+            "destructive": "Destructive",
+            "link": "Link"
+        },
+        "tags": {
+            "h1": "Heading 1",
+            "h2": "Heading 2",
+            "h3": "Heading 3",
+            "p": "Paragraph",
+            "span": "Span"
+        }
     },
     "community": {
         "title": "Community",
@@ -93,7 +412,25 @@
         "viewDetails": "View Details",
         "useTemplate": "Use Template",
         "likes": "Likes",
-        "views": "Views"
+        "views": "Views",
+        "tagline": "Three Begets All · Infinite Possibilities",
+        "squareDesc": "Explore what the community has created. Every project starts small.",
+        "searchPlaceholder": "Search inspiration...",
+        "free": "Free",
+        "anonymousUser": "Anonymous",
+        "buyToView": "Purchase to view full content",
+        "comments": "Comments ({count})",
+        "addReview": "Write a Review",
+        "postReview": "Post Review",
+        "shareYourThoughts": "Share your thoughts...",
+        "user": "User",
+        "commentAdded": "Comment posted",
+        "noDesc": "No description",
+        "purchaseSuccess": "Project purchased successfully!",
+        "cloneSuccess": "Project cloned to studio!",
+        "emptyContentError": "Project content is empty",
+        "purchaseBtn": "Purchase ({price} {unit})",
+        "cloneToStudioBtn": "Clone to Studio"
     },
     "settings": {
         "title": "Settings",
@@ -127,5 +464,93 @@
         "title": "dao123 - AI Website Builder",
         "description": "Generate AI-powered websites in seconds. Build beautiful websites quickly with advanced AI technology.",
         "keywords": "AI, website builder, website generator, low-code, no-code"
+    },
+    "preview": {
+        "pageNotFound": "Page not found: {href}",
+        "selectPage": "Select Page",
+        "desktopView": "Desktop View",
+        "mobileView": "Mobile View",
+        "refresh": "Refresh Preview",
+        "openNewWindow": "Open in New Window",
+        "externalLinkBlocked": "External link blocked: {href}",
+        "formSubmitBlocked": "Form submission blocked"
+    },
+    "publish": {
+        "title": "Publish Your Website",
+        "description": "Choose how to share your work with the world",
+        "customSubdomain": "Custom Subdomain",
+        "checking": "Checking...",
+        "available": "Available",
+        "deployTo": "Your site will be deployed to:",
+        "publishToDao": "Publish to dao123 Subdomain",
+        "or": "OR",
+        "deployToVercel": "Deploy to Vercel (Recommended)",
+        "vercelDesc": "Deploying to Vercel gives you better performance, global CDN, and automatic SSL certificates",
+        "confirmTitle": "Confirm Publication",
+        "confirmDesc": "Check your publication configuration",
+        "siteUrl": "Site URL",
+        "pageCount": "Page Count",
+        "deployMethod": "Deployment Method",
+        "daoHosted": "dao123 Hosted",
+        "back": "Back",
+        "publishing": "Publishing...",
+        "confirm": "Confirm Publish",
+        "deployingVercel": "Deploying to Vercel",
+        "vercelStepsDesc": "Please complete the deployment in the newly opened Vercel page",
+        "stepsTitle": "Please follow these steps:",
+        "step1": "Connect your GitHub account on Vercel page",
+        "step2": "Set required environment variables (pre-filled)",
+        "step3": "Click 'Deploy' to start deployment",
+        "step4": "After deployment, add custom domain in Vercel project settings:",
+        "yourSubdomain": "Your Subdomain",
+        "gotIt": "Got it",
+        "successTitle": "Published Successfully!",
+        "successDesc": "Your website is now live and ready to share",
+        "yourSiteUrl": "Your Site URL",
+        "simulationNote": "Note: This is a simulated publication. Actual access requires server configuration. To truly deploy, please use the 'Deploy to Vercel' option.",
+        "close": "Close",
+        "visitSite": "Visit Website",
+        "saveFailed": "Save failed, please try again",
+        "startDeployFailed": "Failed to initiate deployment, please try again",
+        "checkFailed": "Failed to check availability",
+        "communityTitle": "Share to Community",
+        "communityDesc": "Share your project with the community. You can set a credit price.",
+        "freeProject": "Free Project",
+        "price": "Price (Credits)",
+        "earningsNote": "You will receive 80% of the earnings.",
+        "publishBtn": "Publish",
+        "saveFirst": "Please save your project first",
+        "publishedToCommunity": "Project published to community!"
+    },
+    "generate": {
+        "image": {
+            "title": "AI Image",
+            "subtitle": "Create stunning visuals with state-of-the-art models.",
+            "model": "Model",
+            "prompt": "Prompt",
+            "generating": "Generating...",
+            "generate": "Generate Image",
+            "generatedSuccess": "Image generated successfully",
+            "generateFailed": "Generation failed",
+            "linkCopied": "Link copied",
+            "emptyPreview": "Generated image will appear here",
+            "cost": "Cost: {cost} {unit}"
+        },
+        "video": {
+            "title": "AI Video",
+            "subtitle": "Turn text into dynamic videos.",
+            "comingSoon": "Coming soon",
+            "integrationNote": "We are integrating top video models like Runway Gen-2 and Stable Video Diffusion. Stay tuned!",
+            "joinWaitlist": "Join waitlist"
+        }
+    },
+    "share": {
+        "title": "Share Your Website",
+        "description": "Share your website link with friends and colleagues.",
+        "email": "Share via Email",
+        "social": "Social Media",
+        "tip": "Tip: Publish your website first to get a shareable link",
+        "emailSubject": "Check out my website",
+        "emailBody": "I built this website with dao123: {url}"
     }
 }

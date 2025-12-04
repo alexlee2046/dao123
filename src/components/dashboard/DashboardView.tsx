@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Eye, Sparkles, Clock, ArrowRight, Settings, Image as ImageIcon, Loader2 } from "lucide-react";
@@ -13,6 +13,8 @@ import { useState } from 'react';
 import { updateProjectMetadata } from "@/lib/actions/projects";
 import { useRouter } from 'next/navigation';
 import { toast } from "sonner";
+
+import { useTranslations } from 'next-intl';
 
 interface Project {
     id: string;
@@ -28,6 +30,7 @@ interface DashboardViewProps {
 }
 
 export function DashboardView({ projects }: DashboardViewProps) {
+    const t = useTranslations('dashboard');
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -54,19 +57,19 @@ export function DashboardView({ projects }: DashboardViewProps) {
                 <div>
                     <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary backdrop-blur-sm mb-3">
                         <Sparkles className="mr-2 h-3 w-3" />
-                        一生二 · 交互共生
+                        {t('tagline')}
                     </div>
                     <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                        我的创造
+                        {t('myCreations')}
                     </h1>
                     <p className="text-muted-foreground mt-2 text-lg">
-                        管理您的 AI 生成项目，或开启新的旅程。
+                        {t('manageProjects')}
                     </p>
                 </div>
                 <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
                     <Link href="/studio/new">
                         <Plus className="mr-2 h-5 w-5" />
-                        开启新项目
+                        {t('startProject')}
                     </Link>
                 </Button>
             </motion.div>
@@ -84,9 +87,9 @@ export function DashboardView({ projects }: DashboardViewProps) {
                             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                                 <Plus className="h-8 w-8 text-primary" />
                             </div>
-                            <h3 className="font-bold text-xl mb-2">新建项目</h3>
+                            <h3 className="font-bold text-xl mb-2">{t('newProjectTitle')}</h3>
                             <p className="text-muted-foreground text-center max-w-[200px]">
-                                从零开始，让 AI 辅助您完成构想。
+                                {t('newProjectDesc')}
                             </p>
                         </Card>
                     </Link>
@@ -104,6 +107,9 @@ export function DashboardView({ projects }: DashboardViewProps) {
 }
 
 function ProjectCard({ project }: { project: Project }) {
+    const t = useTranslations('dashboard');
+    const tProjects = useTranslations('projects');
+    const tSettings = useTranslations('settings');
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [name, setName] = useState(project.name);
@@ -118,11 +124,11 @@ function ProjectCard({ project }: { project: Project }) {
                 name,
                 preview_image: previewImage
             });
-            toast.success("项目已更新");
+            toast.success(t('projectUpdated'));
             setIsSettingsOpen(false);
             router.refresh();
         } catch (error) {
-            toast.error("更新失败");
+            toast.error(t('updateFailed'));
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -140,23 +146,23 @@ function ProjectCard({ project }: { project: Project }) {
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>项目设置</DialogTitle>
+                            <DialogTitle>{t('projectSettings')}</DialogTitle>
                             <DialogDescription>
-                                修改项目名称和预览图
+                                {t('editProjectDesc')}
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleUpdate} className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">项目名称</Label>
+                                <Label htmlFor="name">{tProjects('projectName')}</Label>
                                 <Input
                                     id="name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="输入项目名称"
+                                    placeholder={t('inputNamePlaceholder')}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="preview">预览图链接</Label>
+                                <Label htmlFor="preview">{t('previewUrl')}</Label>
                                 <Input
                                     id="preview"
                                     value={previewImage}
@@ -164,13 +170,13 @@ function ProjectCard({ project }: { project: Project }) {
                                     placeholder="https://..."
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    输入图片的 URL 地址作为项目封面
+                                    {t('previewUrlDesc')}
                                 </p>
                             </div>
                             <DialogFooter>
                                 <Button type="submit" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    保存更改
+                                    {tSettings('saveChanges')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -195,7 +201,7 @@ function ProjectCard({ project }: { project: Project }) {
                     <Button size="sm" variant="secondary" className="w-full font-medium shadow-lg" asChild>
                         <Link href={`/studio/${project.id}`}>
                             <Edit className="mr-2 h-4 w-4" />
-                            继续编辑
+                            {t('continueEditing')}
                         </Link>
                     </Button>
                 </div>
@@ -208,7 +214,7 @@ function ProjectCard({ project }: { project: Project }) {
                     </Link>
                 </CardTitle>
                 <CardDescription className="line-clamp-2 min-h-[2.5em]">
-                    {project.description || "暂无描述"}
+                    {project.description || t('noDesc')}
                 </CardDescription>
             </CardHeader>
 
@@ -218,7 +224,7 @@ function ProjectCard({ project }: { project: Project }) {
                     {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
                 </div>
                 <Link href={`/studio/${project.id}`} className="hover:text-primary transition-colors flex items-center font-medium">
-                    编辑 <ArrowRight className="ml-1 h-3 w-3" />
+                    {t('edit')} <ArrowRight className="ml-1 h-3 w-3" />
                 </Link>
             </CardFooter>
         </Card>

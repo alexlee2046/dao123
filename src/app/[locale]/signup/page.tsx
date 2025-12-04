@@ -10,8 +10,11 @@ import { toast } from "sonner"
 import { Loader2, Atom, ArrowRight, Sparkles } from "lucide-react"
 import Link from 'next/link'
 import { motion } from "framer-motion"
+import { LanguageSwitcher } from '@/components/language-switcher'
+import { useTranslations } from 'next-intl'
 
 export default function SignupPage() {
+    const t = useTranslations('auth')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -33,8 +36,8 @@ export default function SignupPage() {
 
             if (error) throw error
 
-            toast.success('账户创建成功！请检查邮件进行验证。')
-            router.push('/login?message=请检查您的邮箱以继续')
+            toast.success(t('signupSuccess'))
+            router.push(`/login?message=${t('checkEmail')}`)
         } catch (error: any) {
             toast.error(error.message)
         } finally {
@@ -81,10 +84,10 @@ export default function SignupPage() {
                 <div className="relative z-10 max-w-md">
                     <blockquote className="space-y-2">
                         <p className="text-2xl font-medium leading-relaxed tracking-tight">
-                            &ldquo;合抱之木，生于毫末；九层之台，起于累土。从这里开始，构建你的数字世界。&rdquo;
+                            &ldquo;{t('signupQuote')}&rdquo;
                         </p>
                         <footer className="text-sm text-zinc-400 mt-4">
-                            Start Small, Dream Big
+                            {t('signupQuoteAuthor')}
                         </footer>
                     </blockquote>
                 </div>
@@ -92,23 +95,24 @@ export default function SignupPage() {
 
             {/* Right Side - Signup Form */}
             <div className="flex items-center justify-center p-8 bg-background relative">
-                <div className="absolute top-4 right-4 lg:top-8 lg:right-8">
+                <div className="absolute top-4 right-4 lg:top-8 lg:right-8 flex items-center gap-4">
+                    <LanguageSwitcher />
                     <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                        已有账户？登录
+                        {t('haveAccountLogin')}
                     </Link>
                 </div>
 
                 <div className="mx-auto w-full max-w-[350px] space-y-8">
                     <div className="flex flex-col space-y-2 text-center lg:text-left">
-                        <h1 className="text-3xl font-bold tracking-tight">创建账户</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">{t('signupTitle')}</h1>
                         <p className="text-sm text-muted-foreground">
-                            填写以下信息开始您的 AI 之旅
+                            {t('signupDesc')}
                         </p>
                     </div>
 
                     <form onSubmit={handleSignup} className="space-y-5">
                         <div className="space-y-2">
-                            <Label htmlFor="email">邮箱地址</Label>
+                            <Label htmlFor="email">{t('email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -120,7 +124,7 @@ export default function SignupPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">设置密码</Label>
+                            <Label htmlFor="password">{t('setPassword')}</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -130,7 +134,7 @@ export default function SignupPage() {
                                 className="h-11 bg-muted/30 border-muted-foreground/20 focus:border-primary/50 transition-all"
                             />
                             <p className="text-xs text-muted-foreground">
-                                密码长度至少为 6 位字符
+                                {t('passwordLength')}
                             </p>
                         </div>
 
@@ -139,7 +143,7 @@ export default function SignupPage() {
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
                                 <span className="flex items-center gap-2">
-                                    立即注册 <ArrowRight className="h-4 w-4" />
+                                    {t('signupLink')} <ArrowRight className="h-4 w-4" />
                                 </span>
                             )}
                         </Button>
@@ -151,7 +155,7 @@ export default function SignupPage() {
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
                             <span className="bg-background px-2 text-muted-foreground">
-                                或者
+                                {t('or')}
                             </span>
                         </div>
                     </div>
@@ -187,13 +191,13 @@ export default function SignupPage() {
                     </div>
 
                     <p className="px-8 text-center text-sm text-muted-foreground">
-                        点击注册即表示您同意我们的{" "}
+                        {t('signupTermsDesc')}{" "}
                         <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
-                            服务条款
+                            {t('terms')}
                         </Link>{" "}
-                        和{" "}
+                        {t('and')}{" "}
                         <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
-                            隐私政策
+                            {t('privacy')}
                         </Link>
                         .
                     </p>

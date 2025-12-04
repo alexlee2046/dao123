@@ -8,6 +8,7 @@ export type AgentStep = 'idle' | 'architect' | 'designer' | 'builder' | 'complet
 export function useAgentOrchestrator() {
     const {
         architectModel,
+        designerModel,
         builderModel,
         setBuilderData,
         toggleBuilderMode,
@@ -35,7 +36,7 @@ export function useAgentOrchestrator() {
             setStatusMessage('设计师正在制定视觉规范...');
 
             // 2. Designer Step
-            const designSystem = await generateDesignSystem(prompt, architectModel); // Use Architect model for Design too for now
+            const designSystem = await generateDesignSystem(prompt, designerModel);
             console.log('Design System:', designSystem);
             setProgress(50);
 

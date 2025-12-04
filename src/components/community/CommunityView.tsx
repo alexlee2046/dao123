@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Star, User, Sparkles, Infinity, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useTranslations } from 'next-intl';
 
 interface Project {
     id: string;
@@ -27,6 +28,8 @@ interface CommunityViewProps {
 
 export function CommunityView({ projects }: CommunityViewProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const t = useTranslations('community');
+    const tCommon = useTranslations('common');
 
     const filteredProjects = projects.filter(project => 
         project.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -58,19 +61,19 @@ export function CommunityView({ projects }: CommunityViewProps) {
             >
                 <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary backdrop-blur-sm">
                     <Infinity className="mr-2 h-3 w-3" />
-                    三生万物 · 无限可能
+                    {t('tagline')}
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
-                    灵感广场
+                    {t('title')}
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-2xl">
-                    探索社区成员创造的无限可能。每一个项目都是一颗独特的种子。
+                    {t('squareDesc')}
                 </p>
 
                 <div className="w-full max-w-md relative mt-8">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="搜索灵感..."
+                        placeholder={t('searchPlaceholder')}
                         className="pl-10 h-12 rounded-full bg-muted/50 border-border/50 focus:ring-primary/20"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -91,7 +94,7 @@ export function CommunityView({ projects }: CommunityViewProps) {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6 z-10">
                                     <Button asChild size="sm" className="w-full rounded-full bg-white text-black hover:bg-white/90">
                                         <Link href={`/community/${project.id}`}>
-                                            查看详情
+                                            {t('viewDetails')}
                                         </Link>
                                     </Button>
                                 </div>
@@ -103,11 +106,11 @@ export function CommunityView({ projects }: CommunityViewProps) {
 
                                 {project.price > 0 ? (
                                     <Badge className="absolute top-3 right-3 bg-amber-500/90 hover:bg-amber-600 backdrop-blur-sm shadow-sm">
-                                        {project.price} 积分
+                                        {project.price} {tCommon('credits')}
                                     </Badge>
                                 ) : (
                                     <Badge className="absolute top-3 right-3 bg-emerald-500/90 hover:bg-emerald-600 backdrop-blur-sm shadow-sm">
-                                        免费
+                                        {t('free')}
                                     </Badge>
                                 )}
                             </div>
@@ -118,13 +121,13 @@ export function CommunityView({ projects }: CommunityViewProps) {
                                     <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
                                         <User className="h-3 w-3 text-primary" />
                                     </div>
-                                    <span>{project.user?.email?.split('@')[0] || '匿名用户'}</span>
+                                    <span>{project.user?.email?.split('@')[0] || t('anonymousUser')}</span>
                                 </div>
                             </CardHeader>
 
                             <CardContent className="flex-1">
                                 <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                                    {project.description || "暂无描述。"}
+                                    {project.description || t('noDesc')}
                                 </p>
                             </CardContent>
 

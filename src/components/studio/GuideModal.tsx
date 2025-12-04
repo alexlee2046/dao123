@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -17,56 +17,14 @@ import {
     Users, Check, Type, Building2, MessageSquareQuote, Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from 'next-intl';
 
 interface GuideModalProps {
     onComplete: (prompt: string) => void;
 }
 
-// --- Constants & Options ---
-
-const WEBSITE_TYPES = [
-    { id: "portfolio", label: "个人作品集", icon: "🎨", desc: "展示个人作品、简历" },
-    { id: "landing", label: "产品落地页", icon: "🚀", desc: "单一产品的推广与转化" },
-    { id: "corporate", label: "企业官网", icon: "🏢", desc: "展示公司形象与服务" },
-    { id: "event", label: "活动宣传页", icon: "📅", desc: "会议、展览、婚礼等" },
-    { id: "blog", label: "博客/资讯", icon: "📰", desc: "文章分享与阅读" },
-    { id: "saas", label: "SaaS 首页", icon: "💻", desc: "软件服务的介绍与定价" }
-];
-
-const STYLES = [
-    { id: "minimal", label: "极简主义", desc: "留白、干净、现代" },
-    { id: "tech", label: "科技未来", desc: "深色、霓虹、赛博朋克" },
-    { id: "luxury", label: "高端典雅", desc: "衬线体、金色、精致" },
-    { id: "playful", label: "活泼可爱", desc: "圆角、鲜艳色彩、插画" },
-    { id: "corporate_clean", label: "商务专业", desc: "稳重、蓝色系、网格布局" },
-    { id: "retro", label: "复古怀旧", desc: "噪点、像素、暖色调" }
-];
-
-const COLOR_THEMES = [
-    { id: "blue", label: "科技蓝", color: "bg-blue-500" },
-    { id: "green", label: "自然绿", color: "bg-emerald-500" },
-    { id: "purple", label: "创意紫", color: "bg-purple-500" },
-    { id: "orange", label: "活力橙", color: "bg-orange-500" },
-    { id: "black", label: "极致黑", color: "bg-zinc-900" },
-    { id: "white", label: "纯净白", color: "bg-zinc-100 border border-zinc-300" },
-];
-
-const TONES = [
-    "专业权威 (Professional)",
-    "亲切友好 (Friendly)",
-    "幽默风趣 (Humorous)",
-    "高端奢华 (Luxury)",
-    "简洁直接 (Direct)",
-    "充满激情 (Passionate)"
-];
-
-const SECTIONS = [
-    "Hero (首屏)", "关于我们", "核心优势", "产品/服务展示",
-    "客户评价", "合作伙伴", "团队介绍", "FAQ (常见问题)",
-    "定价方案", "联系表单", "页脚"
-];
-
 export function GuideModal({ onComplete }: GuideModalProps) {
+    const t = useTranslations('guide');
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(1);
 
@@ -92,6 +50,41 @@ export function GuideModal({ onComplete }: GuideModalProps) {
         customVision: ''
     });
 
+    const WEBSITE_TYPES = useMemo(() => [
+        { id: "portfolio", label: t('types.portfolio'), icon: "🎨", desc: t('types.portfolioDesc') },
+        { id: "landing", label: t('types.landing'), icon: "🚀", desc: t('types.landingDesc') },
+        { id: "corporate", label: t('types.corporate'), icon: "🏢", desc: t('types.corporateDesc') },
+        { id: "event", label: t('types.event'), icon: "📅", desc: t('types.eventDesc') },
+        { id: "blog", label: t('types.blog'), icon: "📰", desc: t('types.blogDesc') },
+        { id: "saas", label: t('types.saas'), icon: "💻", desc: t('types.saasDesc') }
+    ], [t]);
+
+    const STYLES = useMemo(() => [
+        { id: "minimal", label: t('styles.minimal'), desc: t('styles.minimalDesc') },
+        { id: "tech", label: t('styles.tech'), desc: t('styles.techDesc') },
+        { id: "luxury", label: t('styles.luxury'), desc: t('styles.luxuryDesc') },
+        { id: "playful", label: t('styles.playful'), desc: t('styles.playfulDesc') },
+        { id: "corporate_clean", label: t('styles.corporate_clean'), desc: t('styles.corporate_cleanDesc') },
+        { id: "retro", label: t('styles.retro'), desc: t('styles.retroDesc') }
+    ], [t]);
+
+    const COLOR_THEMES = useMemo(() => [
+        { id: "blue", label: t('colors.blue'), color: "bg-blue-500" },
+        { id: "green", label: t('colors.green'), color: "bg-emerald-500" },
+        { id: "purple", label: t('colors.purple'), color: "bg-purple-500" },
+        { id: "orange", label: t('colors.orange'), color: "bg-orange-500" },
+        { id: "black", label: t('colors.black'), color: "bg-zinc-900" },
+        { id: "white", label: t('colors.white'), color: "bg-zinc-100 border border-zinc-300" },
+    ], [t]);
+
+    const TONES = ["professional", "friendly", "humorous", "luxury", "direct", "passionate"];
+    
+    const SECTIONS = [
+        "hero", "about", "features", "products",
+        "testimonials", "partners", "team", "faq",
+        "pricing", "contact", "footer"
+    ];
+
     const totalSteps = 5;
 
     const handleNext = () => {
@@ -105,30 +98,34 @@ export function GuideModal({ onComplete }: GuideModalProps) {
 
     const generateAndComplete = () => {
         const typeLabel = WEBSITE_TYPES.find(t => t.id === data.websiteType)?.label || data.customType;
-        const styleLabel = STYLES.find(s => s.id === data.style)?.label || '自适应';
-        const colorLabel = COLOR_THEMES.find(c => c.id === data.colorTheme)?.label || '默认';
+        const styleLabel = STYLES.find(s => s.id === data.style)?.label || 'Auto';
+        const colorLabel = COLOR_THEMES.find(c => c.id === data.colorTheme)?.label || 'Default';
+        const toneLabel = TONES.includes(data.tone) ? t(`tones.${data.tone}`) : data.tone;
+        const sectionsLabels = data.sections.length > 0 
+            ? data.sections.map(s => SECTIONS.includes(s) ? t(`sections.${s}`) : s).join(', ') 
+            : 'Auto Plan';
 
-        const prompt = `我需要构建一个网站，详细需求如下：
+        const prompt = `${t('prompt.intro')}
 
-1. **基本信息**
-   - 品牌/项目名称：${data.brandName || '未命名'}
-   - 网站类型：${typeLabel}
+${t('prompt.basicInfo')}
+   - ${t('prompt.brand')}：${data.brandName || 'Untitled'}
+   - ${t('prompt.type')}：${typeLabel}
 
-2. **视觉设计**
-   - 设计风格：${styleLabel}
-   - 色彩偏好：${colorLabel}
+${t('prompt.visualDesign')}
+   - ${t('prompt.style')}：${styleLabel}
+   - ${t('prompt.color')}：${colorLabel}
 
-3. **内容策略**
-   - 目标受众：${data.targetAudience || '通用用户'}
-   - 品牌语调：${data.tone || '专业'}
+${t('prompt.contentStrategy')}
+   - ${t('prompt.audience')}：${data.targetAudience || 'General'}
+   - ${t('prompt.tone')}：${toneLabel}
 
-4. **页面结构**
-   - 包含板块：${data.sections.length > 0 ? data.sections.join(', ') : '请根据类型自动规划'}
+${t('prompt.structure')}
+   - ${t('prompt.sections')}：${sectionsLabels}
 
-5. **用户愿景与补充**
-   ${data.customVision || '无特殊补充，请自由发挥。'}
+${t('prompt.vision')}
+   ${data.customVision || 'No specific instructions.'}
 
-请根据以上信息，扮演一位资深的网页设计师，为我生成这个网站的代码。`;
+${t('prompt.instruction')}`;
 
         onComplete(prompt);
         setOpen(false);
@@ -164,7 +161,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
             <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 h-7 text-xs border-dashed border-primary/50 hover:border-primary text-primary hover:bg-primary/5">
                     <Wand2 className="h-3.5 w-3.5" />
-                    AI 需求引导
+                    {t('triggerButton')}
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[700px] p-0 gap-0 overflow-hidden bg-background/95 backdrop-blur-xl border-primary/10 shadow-2xl">
@@ -172,22 +169,22 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                 <div className="p-6 pb-4 border-b border-border/50 bg-muted/30">
                     <div className="flex items-center justify-between mb-2">
                         <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-                            {step === 1 && <><Building2 className="h-5 w-5 text-primary" /> 品牌与定位</>}
-                            {step === 2 && <><Palette className="h-5 w-5 text-primary" /> 视觉与风格</>}
-                            {step === 3 && <><MessageSquareQuote className="h-5 w-5 text-primary" /> 内容与语调</>}
-                            {step === 4 && <><Layout className="h-5 w-5 text-primary" /> 结构规划</>}
-                            {step === 5 && <><Lightbulb className="h-5 w-5 text-primary" /> 您的想法</>}
+                            {step === 1 && <><Building2 className="h-5 w-5 text-primary" /> {t('steps.1')}</>}
+                            {step === 2 && <><Palette className="h-5 w-5 text-primary" /> {t('steps.2')}</>}
+                            {step === 3 && <><MessageSquareQuote className="h-5 w-5 text-primary" /> {t('steps.3')}</>}
+                            {step === 4 && <><Layout className="h-5 w-5 text-primary" /> {t('steps.4')}</>}
+                            {step === 5 && <><Lightbulb className="h-5 w-5 text-primary" /> {t('steps.5')}</>}
                         </DialogTitle>
                         <span className="text-xs font-medium text-muted-foreground bg-background px-2 py-1 rounded-full border">
                             Step {step} / {totalSteps}
                         </span>
                     </div>
                     <DialogDescription>
-                        {step === 1 && "首先，让我们确定网站的基础身份信息。"}
-                        {step === 2 && "定义网站的视觉语言，让 AI 更懂你的审美。"}
-                        {step === 3 && "设定沟通方式，吸引正确的目标人群。"}
-                        {step === 4 && "规划页面布局，勾选您需要的功能模块。"}
-                        {step === 5 && "最后，用您自己的话描述任何具体的想法或灵感。"}
+                        {step === 1 && t('stepDesc.1')}
+                        {step === 2 && t('stepDesc.2')}
+                        {step === 3 && t('stepDesc.3')}
+                        {step === 4 && t('stepDesc.4')}
+                        {step === 5 && t('stepDesc.5')}
                     </DialogDescription>
                 </div>
 
@@ -198,9 +195,9 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                     {step === 1 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="space-y-3">
-                                <Label className="text-sm font-medium">品牌 / 项目名称 <span className="text-red-500">*</span></Label>
+                                <Label className="text-sm font-medium">{t('labels.brandName')} <span className="text-red-500">*</span></Label>
                                 <Input
-                                    placeholder="例如：Dao Tech, 个人作品集, 婚礼邀请..."
+                                    placeholder={t('labels.brandNamePlaceholder')}
                                     value={data.brandName}
                                     onChange={e => setData({ ...data, brandName: e.target.value })}
                                     className="h-11 bg-muted/30"
@@ -209,7 +206,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                             </div>
 
                             <div className="space-y-3">
-                                <Label className="text-sm font-medium">网站类型 <span className="text-red-500">*</span></Label>
+                                <Label className="text-sm font-medium">{t('labels.websiteType')} <span className="text-red-500">*</span></Label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     {WEBSITE_TYPES.map(type => (
                                         <button
@@ -229,9 +226,9 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                                     ))}
                                 </div>
                                 <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-xs text-muted-foreground shrink-0">其他类型:</span>
+                                    <span className="text-xs text-muted-foreground shrink-0">{t('labels.otherType')}:</span>
                                     <Input
-                                        placeholder="手动输入..."
+                                        placeholder={t('labels.otherTypePlaceholder')}
                                         className="h-8 text-xs"
                                         value={data.customType}
                                         onChange={e => setData({ ...data, customType: e.target.value, websiteType: 'other' })}
@@ -245,7 +242,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                     {step === 2 && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="space-y-3">
-                                <Label>设计风格</Label>
+                                <Label>{t('labels.style')}</Label>
                                 <div className="grid grid-cols-2 gap-3">
                                     {STYLES.map(s => (
                                         <button
@@ -274,7 +271,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                             </div>
 
                             <div className="space-y-3">
-                                <Label>主色调偏好</Label>
+                                <Label>{t('labels.colorTheme')}</Label>
                                 <div className="flex flex-wrap gap-3">
                                     {COLOR_THEMES.map(c => (
                                         <button
@@ -300,9 +297,9 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                     {step === 3 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="space-y-3">
-                                <Label>目标受众 (Target Audience)</Label>
+                                <Label>{t('labels.targetAudience')}</Label>
                                 <Input
-                                    placeholder="例如：20-35岁的科技从业者、寻找装修服务的房主..."
+                                    placeholder={t('labels.targetAudiencePlaceholder')}
                                     value={data.targetAudience}
                                     onChange={e => setData({ ...data, targetAudience: e.target.value })}
                                     className="bg-muted/30"
@@ -311,20 +308,20 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                             </div>
 
                             <div className="space-y-3">
-                                <Label>品牌语调 (Tone of Voice)</Label>
+                                <Label>{t('labels.tone')}</Label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {TONES.map(t => (
+                                    {TONES.map(toneId => (
                                         <button
-                                            key={t}
-                                            onClick={() => setData({ ...data, tone: t })}
+                                            key={toneId}
+                                            onClick={() => setData({ ...data, tone: toneId })}
                                             className={cn(
                                                 "px-3 py-2 rounded-md text-xs font-medium border transition-all text-left",
-                                                data.tone === t
+                                                data.tone === toneId
                                                     ? "border-primary bg-primary/5 text-primary"
                                                     : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
                                             )}
                                         >
-                                            {t}
+                                            {t(`tones.${toneId}`)}
                                         </button>
                                     ))}
                                 </div>
@@ -336,7 +333,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                     {step === 4 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="flex items-center justify-between">
-                                <Label>选择页面板块</Label>
+                                <Label>{t('labels.sections')}</Label>
                                 <span className="text-xs text-muted-foreground">已选 {data.sections.length} 个</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
@@ -351,7 +348,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                                                 : "border-border text-muted-foreground hover:bg-muted/50"
                                         )}
                                     >
-                                        <span>{s}</span>
+                                        <span>{t(`sections.${s}`)}</span>
                                         {data.sections.includes(s) && <Check className="h-3.5 w-3.5" />}
                                     </button>
                                 ))}
@@ -368,16 +365,16 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex gap-3">
                                 <Lightbulb className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                                 <div className="space-y-1">
-                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-400">发挥您的想象力</p>
+                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-400">{t('steps.5')}</p>
                                     <p className="text-xs text-amber-700/80 dark:text-amber-500/80">
-                                        这是最关键的一步。请用您自己的话描述您想要的“感觉”。比如：“像 Apple 官网那样简洁”、“要有那种赛博朋克的霓虹感”、“温馨得像家一样”...
+                                        {t('stepDesc.5')}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="flex-1">
                                 <Textarea
-                                    placeholder="在这里输入您的任何想法、参考网站、或者特殊的文案要求..."
+                                    placeholder={t('labels.visionPlaceholder')}
                                     className="h-full min-h-[150px] resize-none bg-muted/30 p-4 leading-relaxed"
                                     value={data.customVision}
                                     onChange={e => setData({ ...data, customVision: e.target.value })}
@@ -396,7 +393,7 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                         className="text-muted-foreground hover:text-foreground"
                     >
                         <ChevronLeft className="mr-2 h-4 w-4" />
-                        上一步
+                        {t('actions.prev')}
                     </Button>
 
                     <div className="flex gap-2">
@@ -410,12 +407,12 @@ export function GuideModal({ onComplete }: GuideModalProps) {
                         >
                             {step === totalSteps ? (
                                 <>
-                                    生成提示词
+                                    {t('actions.generate')}
                                     <Wand2 className="ml-2 h-4 w-4" />
                                 </>
                             ) : (
                                 <>
-                                    下一步
+                                    {t('actions.next')}
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </>
                             )}

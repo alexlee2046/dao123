@@ -5,6 +5,7 @@ import { CommentsSection } from "@/components/community/CommentsSection";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { notFound } from "next/navigation";
+import { getTranslations } from 'next-intl/server';
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -15,6 +16,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     }
 
     const hasAccess = await checkAccess(id);
+    const t = await getTranslations('community');
+    const tCommon = await getTranslations('common');
 
     // Determine preview content
     let previewContent = project.content?.html || '';
@@ -36,7 +39,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         </div>
                         <div className="flex flex-col items-end gap-2">
                             <Badge variant={project.price > 0 ? "default" : "secondary"} className="text-lg px-4 py-1">
-                                {project.price > 0 ? `${project.price} 积分` : "免费"}
+                                {project.price > 0 ? `${project.price} ${tCommon('credits')}` : t('free')}
                             </Badge>
                         </div>
                     </div>
@@ -60,7 +63,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     />
                     {!hasAccess && (
                         <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
-                            <p className="font-semibold text-lg">购买以查看完整内容</p>
+                            <p className="font-semibold text-lg">{t('buyToView')}</p>
                         </div>
                     )}
                 </div>

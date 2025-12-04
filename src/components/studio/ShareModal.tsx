@@ -12,8 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, Check, Share2, Mail } from "lucide-react";
+import { useTranslations } from 'next-intl';
 
 export function ShareModal({ children }: { children: React.ReactNode }) {
+    const t = useTranslations('share');
     const [copied, setCopied] = useState(false);
     const shareUrl = "https://my-awesome-site.dao123.me"; // Mock URL
 
@@ -24,7 +26,9 @@ export function ShareModal({ children }: { children: React.ReactNode }) {
     };
 
     const handleEmailShare = () => {
-        window.location.href = `mailto:?subject=查看我的网站&body=我用 dao123 构建了这个网站: ${shareUrl}`;
+        const subject = t('emailSubject');
+        const body = t('emailBody', { url: shareUrl });
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
     };
 
     return (
@@ -34,9 +38,9 @@ export function ShareModal({ children }: { children: React.ReactNode }) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>分享您的网站</DialogTitle>
+                    <DialogTitle>{t('title')}</DialogTitle>
                     <DialogDescription>
-                        将您的网站链接分享给朋友和同事。
+                        {t('description')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -59,16 +63,16 @@ export function ShareModal({ children }: { children: React.ReactNode }) {
                     <div className="grid grid-cols-2 gap-2">
                         <Button variant="outline" onClick={handleEmailShare}>
                             <Mail className="h-4 w-4 mr-2" />
-                            邮件分享
+                            {t('email')}
                         </Button>
                         <Button variant="outline" disabled>
                             <Share2 className="h-4 w-4 mr-2" />
-                            社交媒体
+                            {t('social')}
                         </Button>
                     </div>
 
                     <div className="text-xs text-muted-foreground text-center pt-2">
-                        提示：先发布您的网站以获得可分享的链接
+                        {t('tip')}
                     </div>
                 </div>
             </DialogContent>

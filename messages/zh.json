@@ -19,7 +19,8 @@
         "search": "搜索",
         "loading": "加载中...",
         "error": "错误",
-        "success": "成功"
+        "success": "成功",
+        "credits": "积分"
     },
     "nav": {
         "studio": "工作室",
@@ -27,7 +28,9 @@
         "admin": "管理",
         "models": "模型",
         "users": "用户",
-        "profile": "个人资料"
+        "profile": "个人资料",
+        "aiImage": "AI 图片",
+        "aiVideo": "AI 视频"
     },
     "auth": {
         "loginTitle": "登录到您的账户",
@@ -43,7 +46,26 @@
         "loginButton": "登录",
         "signupButton": "注册",
         "loginWithGoogle": "使用 Google 登录",
-        "signupWithGoogle": "使用 Google 注册"
+        "signupWithGoogle": "使用 Google 注册",
+        "welcomeBack": "欢迎回来",
+        "enterEmailDesc": "输入您的邮箱以登录平台",
+        "loginSuccess": "登录成功",
+        "or": "或者",
+        "termsDesc": "点击登录即表示您同意我们的",
+        "terms": "服务条款",
+        "privacy": "隐私政策",
+        "and": "和",
+        "quote": "道生一，一生二，二生三，三生万物。在这里，让 AI 协助你完成从 0 到 1 的创造。",
+        "quoteAuthor": "Dao Begets One · The Origin of Creation",
+        "signupDesc": "填写以下信息开始您的 AI 之旅",
+        "setPassword": "设置密码",
+        "passwordLength": "密码长度至少为 6 位字符",
+        "signupSuccess": "账户创建成功！请检查邮件进行验证。",
+        "checkEmail": "请检查您的邮箱以继续",
+        "haveAccountLogin": "已有账户？登录",
+        "signupTermsDesc": "点击注册即表示您同意我们的",
+        "signupQuote": "合抱之木，生于毫末；九层之台，起于累土。从这里开始，构建你的数字世界。",
+        "signupQuoteAuthor": "Start Small, Dream Big"
     },
     "dashboard": {
         "title": "仪表板",
@@ -54,7 +76,100 @@
         "totalProjects": "总项目数",
         "totalViews": "总浏览量",
         "credits": "积分",
-        "creditsRemaining": "剩余积分"
+        "creditsRemaining": "剩余积分",
+        "tagline": "一生二 · 交互共生",
+        "myCreations": "我的创造",
+        "manageProjects": "管理您的 AI 生成项目，或开启新的旅程。",
+        "startProject": "开启新项目",
+        "newProjectTitle": "新建项目",
+        "newProjectDesc": "从零开始，让 AI 辅助您完成构想。",
+        "projectSettings": "项目设置",
+        "editProjectDesc": "修改项目名称和预览图",
+        "inputNamePlaceholder": "输入项目名称",
+        "previewUrl": "预览图链接",
+        "previewUrlDesc": "输入图片的 URL 地址作为项目封面",
+        "continueEditing": "继续编辑",
+        "projectUpdated": "项目已更新",
+        "updateFailed": "更新失败",
+        "noDesc": "暂无描述",
+        "edit": "编辑",
+        "aiImage": "AI 图片",
+        "aiVideo": "AI 视频",
+        "logout": "退出登录"
+    },
+    "marketing": {
+        "nav": {
+            "philosophy": "理念",
+            "features": "功能",
+            "pricing": "价格",
+            "loginSignup": "登录 / 注册"
+        },
+        "hero": {
+            "tagline": "道生一 · AI 驱动万物",
+            "title": "道生一",
+            "subtitle": "一生万物",
+            "description": "从一个简单的想法开始，AI 助您衍生出无限可能。\n构建网站、生成应用、创造价值，一切始于此。",
+            "cta": "立即开始创造",
+            "explore": "探索社区作品"
+        },
+        "philosophy": {
+            "step1": {
+                "title": "道生一",
+                "desc": "您的一个灵感 (Idea)。\n只需一句描述，AI 核心即刻启动。"
+            },
+            "step2": {
+                "title": "一生二",
+                "desc": "人机协作 (Interaction)。\n您与 AI 的每一次对话，都在完善细节。"
+            },
+            "step3": {
+                "title": "二生三",
+                "desc": "无限生成 (Generation)。\n网站、应用、代码，即刻呈现，生生不息。",
+                "titleMain": "三生万物"
+            }
+        },
+        "whyChoose": "为什么选择 dao123？",
+        "whyChooseDesc": "我们结合了最先进的 AI 模型和现代化的开发框架，为您提供极致的建站体验。",
+        "features": {
+            "speed": {
+                "title": "极速生成",
+                "desc": "几秒钟内生成完整的落地页、个人博客或企业官网。无需等待，即刻预览。"
+            },
+            "design": {
+                "title": "精美设计",
+                "desc": "自动应用现代化的设计规范，确保您的网站在任何设备上都完美呈现。"
+            },
+            "code": {
+                "title": "代码导出",
+                "desc": "生成的代码完全属于您。支持导出 React/Tailwind 代码，随意二次开发。"
+            }
+        },
+        "community": {
+            "title": "社区精选",
+            "desc": "看看其他人使用 dao123 创造了什么。",
+            "viewMore": "查看更多",
+            "project": "项目 {i}",
+            "byUser": "由用户创建"
+        },
+        "cta": {
+            "ready": "准备好开始了吗？",
+            "join": "加入数千名创作者的行列，使用 AI 释放您的创造力。",
+            "freeTrial": "免费试用",
+            "noCreditCard": "无需信用卡",
+            "freeExport": "免费导出代码",
+            "support": "7x24小时支持"
+        },
+        "footer": {
+            "slogan": "道生一，一生二，二生三，三生万物。\n用 AI 重新定义网站构建。",
+            "product": "产品",
+            "features": "功能特性",
+            "pricing": "价格方案",
+            "changelog": "更新日志",
+            "company": "公司",
+            "about": "关于我们",
+            "privacy": "隐私政策",
+            "terms": "服务条款",
+            "copyright": "© 2025 dao123 Inc. 保留所有权利。"
+        }
     },
     "projects": {
         "title": "我的项目",
@@ -82,7 +197,211 @@
         "chat": "AI 助手",
         "chatPlaceholder": "描述您想要创建的内容...",
         "generating": "生成中...",
-        "selectComponent": "选择一个组件以查看设置"
+        "selectComponent": "选择一个组件以查看设置",
+        "workshop": "创作工坊",
+        "returnToDashboard": "返回仪表盘",
+        "untitledProject": "未命名项目",
+        "undo": "撤销",
+        "redo": "重做",
+        "aiChat": "AI 对话",
+        "manualEdit": "手动编辑",
+        "saving": "保存中...",
+        "saved": "项目已保存",
+        "createdAndSaved": "项目已创建并保存",
+        "saveFailed": "保存失败: ",
+        "publishToCommunity": "发布到广场",
+        "share": "分享",
+        "publishOnline": "发布上线",
+        "generatedBy": "由 Dao123 生成",
+        "loadFailed": "加载项目失败",
+        "assetsManager": {
+            "loadFailed": "加载素材失败",
+            "uploadSuccess": "素材上传成功",
+            "uploadFailed": "上传失败: ",
+            "deleteSuccess": "素材已删除",
+            "deleteFailed": "删除失败: ",
+            "dragDropHint": "拖拽素材到画布或对话",
+            "upload": "上传",
+            "emptyState": "暂无素材，点击上方按钮上传"
+        },
+        "chatPanel": {
+            "title": "Dao 助手",
+            "modelSettings": "模型设置",
+            "modelSettingsDesc": "配置不同 Agent 使用的 AI 模型",
+            "architect": "架构师",
+            "designer": "设计师",
+            "builder": "构建者",
+            "stepArchitect": "规划",
+            "stepDesigner": "设计",
+            "stepBuilder": "构建",
+            "emptyTitle": "道生一 (Origin)",
+            "emptyDesc": "描述您的想法，开启创造之旅",
+            "building": "正在构建...",
+            "designCompleted": "设计已完成",
+            "coding": "AI 正在编写代码...",
+            "previewUpdated": "预览已更新",
+            "modeGuide": "引导",
+            "modeDirect": "直接生成",
+            "thinking": "思考中...",
+            "stop": "停止",
+            "inputPlaceholder": "描述你想构建的网站... (支持拖拽素材)",
+            "selectModel": "选择模型",
+            "noModelsAvailable": "无可用模型",
+            "serviceError": "AI 服务调用失败",
+            "uploadFailed": "上传失败: ",
+            "assetPrefix": "素材",
+            "availableAssets": "可用素材",
+            "fileUploaded": "文件已上传"
+        },
+        "guide": {
+            "triggerButton": "AI 需求引导",
+            "steps": {
+                "1": "品牌与定位",
+                "2": "视觉与风格",
+                "3": "内容与语调",
+                "4": "结构规划",
+                "5": "您的想法"
+            },
+            "stepDesc": {
+                "1": "首先，让我们确定网站的基础身份信息。",
+                "2": "定义网站的视觉语言，让 AI 更懂你的审美。",
+                "3": "设定沟通方式，吸引正确的目标人群。",
+                "4": "规划页面布局，勾选您需要的功能模块。",
+                "5": "最后，用您自己的话描述任何具体的想法或灵感。"
+            },
+            "labels": {
+                "brandName": "品牌/项目名称",
+                "brandNamePlaceholder": "例如：Dao123, NextGen Coffee...",
+                "websiteType": "网站类型",
+                "otherType": "其他类型",
+                "otherTypePlaceholder": "描述您的特殊需求...",
+                "style": "设计风格",
+                "colorTheme": "主色调",
+                "targetAudience": "目标受众",
+                "targetAudiencePlaceholder": "例如：大学生、中小企业主、极客...",
+                "tone": "品牌语调",
+                "sections": "推荐板块",
+                "vision": "补充说明",
+                "visionPlaceholder": "我想做一个类似 Airbnb 的首页，但是要更偏向暗黑风格..."
+            },
+            "actions": {
+                "prev": "上一步",
+                "next": "下一步",
+                "generate": "开始生成"
+            },
+            "types": {
+                "portfolio": "个人作品集",
+                "portfolioDesc": "展示个人作品、简历",
+                "landing": "产品落地页",
+                "landingDesc": "单一产品的推广与转化",
+                "corporate": "企业官网",
+                "corporateDesc": "展示公司形象与服务",
+                "event": "活动宣传页",
+                "eventDesc": "会议、展览、婚礼等",
+                "blog": "博客/资讯",
+                "blogDesc": "文章分享与阅读",
+                "saas": "SaaS 首页",
+                "saasDesc": "软件服务的介绍与定价"
+            },
+            "styles": {
+                "minimal": "极简主义",
+                "minimalDesc": "留白、干净、现代",
+                "tech": "科技未来",
+                "techDesc": "深色、霓虹、赛博朋克",
+                "luxury": "高端典雅",
+                "luxuryDesc": "衬线体、金色、精致",
+                "playful": "活泼可爱",
+                "playfulDesc": "圆角、鲜艳色彩、插画",
+                "corporate_clean": "商务专业",
+                "corporate_cleanDesc": "稳重、蓝色系、网格布局",
+                "retro": "复古怀旧",
+                "retroDesc": "噪点、像素、暖色调"
+            },
+            "colors": {
+                "blue": "科技蓝",
+                "green": "自然绿",
+                "purple": "创意紫",
+                "orange": "活力橙",
+                "black": "极致黑",
+                "white": "纯净白"
+            },
+            "tones": {
+                "professional": "专业权威",
+                "friendly": "亲切友好",
+                "humorous": "幽默风趣",
+                "luxury": "高端奢华",
+                "direct": "简洁直接",
+                "passionate": "充满激情"
+            },
+            "sections": {
+                "hero": "Hero (首屏)",
+                "about": "关于我们",
+                "features": "核心优势",
+                "products": "产品/服务展示",
+                "testimonials": "客户评价",
+                "partners": "合作伙伴",
+                "team": "团队介绍",
+                "faq": "FAQ (常见问题)",
+                "pricing": "定价方案",
+                "contact": "联系表单",
+                "footer": "页脚"
+            },
+            "prompt": {
+                "intro": "我需要构建一个网站，详细需求如下：",
+                "basicInfo": "1. 基本信息",
+                "brand": "品牌/项目名称",
+                "type": "网站类型",
+                "visualDesign": "2. 视觉设计",
+                "style": "设计风格",
+                "color": "色彩偏好",
+                "contentStrategy": "3. 内容策略",
+                "audience": "目标受众",
+                "tone": "品牌语调",
+                "structure": "4. 页面结构",
+                "sections": "包含板块",
+                "vision": "5. 用户愿景与补充",
+                "instruction": "请根据以上信息，扮演一位资深的网页设计师，为我生成这个网站的代码。"
+            }
+        }
+    },
+    "builder": {
+        "title": "构建器",
+        "components": "组件",
+        "layers": "图层",
+        "pages": "页面",
+        "settings": "设置",
+        "canvasWelcome": "欢迎使用构建器！",
+        "canvasInstruction": "从左侧工具箱拖动组件。",
+        "componentLibrary": "组件库",
+        "text": "文本",
+        "button": "按钮",
+        "image": "图片",
+        "container": "容器",
+        "customCode": "自定义代码",
+        "selectToEdit": "点击画布中的组件进行编辑",
+        "settingsSuffix": " 设置",
+        "textContent": "文本内容",
+        "imageLink": "图片链接",
+        "linkAddress": "链接地址",
+        "styleVariant": "样式变体",
+        "htmlTag": "HTML 标签",
+        "htmlCode": "HTML 代码",
+        "tailwindClasses": "Tailwind Classes",
+        "variants": {
+            "default": "默认",
+            "secondary": "次要",
+            "outline": "轮廓",
+            "ghost": "幽灵",
+            "destructive": "危险",
+            "link": "链接"
+        },
+        "tags": {
+            "h1": "标题 1",
+            "h2": "标题 2",
+            "h3": "标题 3",
+            "p": "段落",
+            "span": "文本"
+        }
     },
     "community": {
         "title": "社区",
@@ -93,7 +412,25 @@
         "viewDetails": "查看详情",
         "useTemplate": "使用模板",
         "likes": "点赞",
-        "views": "浏览"
+        "views": "浏览",
+        "tagline": "三生万物 · 无限可能",
+        "squareDesc": "探索社区成员创造的无限可能。每一个项目都是一颗独特的种子。",
+        "searchPlaceholder": "搜索灵感...",
+        "free": "免费",
+        "anonymousUser": "匿名用户",
+        "buyToView": "购买以查看完整内容",
+        "comments": "评论 ({count})",
+        "addReview": "发表评价",
+        "postReview": "发布评价",
+        "shareYourThoughts": "分享您的想法...",
+        "user": "用户",
+        "commentAdded": "评论已发布",
+        "noDesc": "暂无描述",
+        "purchaseSuccess": "项目购买成功！",
+        "cloneSuccess": "项目已克隆到工作室！",
+        "emptyContentError": "项目内容为空",
+        "purchaseBtn": "购买 ({price} {unit})",
+        "cloneToStudioBtn": "克隆到工作室"
     },
     "settings": {
         "title": "设置",
@@ -127,5 +464,93 @@
         "title": "dao123 - AI 网站构建器",
         "description": "秒级生成 AI 网站。使用先进的 AI 技术快速构建精美的网站。",
         "keywords": "AI, 网站构建器, 网站生成器, 低代码, 无代码"
+    },
+    "preview": {
+        "pageNotFound": "页面未找到: {href}",
+        "selectPage": "选择页面",
+        "desktopView": "桌面视图",
+        "mobileView": "移动视图",
+        "refresh": "刷新预览",
+        "openNewWindow": "在新窗口打开",
+        "externalLinkBlocked": "外部链接被拦截: {href}",
+        "formSubmitBlocked": "表单提交被拦截"
+    },
+    "publish": {
+        "title": "发布你的网站",
+        "description": "选择发布方式，让你的作品与世界分享",
+        "customSubdomain": "自定义子域名",
+        "checking": "检查中...",
+        "available": "可用",
+        "deployTo": "你的网站将部署到：",
+        "publishToDao": "发布到 dao123 子域名",
+        "or": "或",
+        "deployToVercel": "部署到 Vercel（推荐）",
+        "vercelDesc": "选择 Vercel 部署将获得更好的性能、全球 CDN 和自动 SSL 证书",
+        "confirmTitle": "确认发布信息",
+        "confirmDesc": "检查你的发布配置",
+        "siteUrl": "网站地址",
+        "pageCount": "页面数量",
+        "deployMethod": "部署方式",
+        "daoHosted": "dao123 托管",
+        "back": "返回",
+        "publishing": "发布中...",
+        "confirm": "确认发布",
+        "deployingVercel": "正在部署到 Vercel",
+        "vercelStepsDesc": "请在新打开的 Vercel 页面完成部署",
+        "stepsTitle": "请按照以下步骤操作：",
+        "step1": "在 Vercel 页面连接你的 GitHub 账号",
+        "step2": "设置所需的环境变量（已预填）",
+        "step3": "点击 'Deploy' 开始部署",
+        "step4": "部署完成后，在 Vercel 项目设置中添加自定义域名：",
+        "yourSubdomain": "你的子域名",
+        "gotIt": "我知道了",
+        "successTitle": "发布成功！",
+        "successDesc": "你的网站已经上线，可以分享给其他人了",
+        "yourSiteUrl": "你的网站地址",
+        "simulationNote": "注意：由于这是模拟发布，实际网站需要配置服务器才能访问。要真正部署，请使用 '部署到 Vercel' 选项。",
+        "close": "关闭",
+        "visitSite": "访问网站",
+        "saveFailed": "保存失败，请重试",
+        "startDeployFailed": "启动部署失败，请重试",
+        "checkFailed": "无法检查可用性",
+        "communityTitle": "分享到社区",
+        "communityDesc": "与社区分享您的项目。您可以设置积分价格。",
+        "freeProject": "免费项目",
+        "price": "价格 (积分)",
+        "earningsNote": "您将获得 80% 的收益。",
+        "publishBtn": "发布",
+        "saveFirst": "请先保存您的项目",
+        "publishedToCommunity": "项目已发布到社区！"
+    },
+    "generate": {
+        "image": {
+            "title": "AI 绘图",
+            "subtitle": "使用最先进的 AI 模型创建令人惊叹的视觉效果。",
+            "model": "模型",
+            "prompt": "提示词",
+            "generating": "生成中...",
+            "generate": "生成图片",
+            "generatedSuccess": "图片生成成功",
+            "generateFailed": "生成失败",
+            "linkCopied": "链接已复制",
+            "emptyPreview": "生成的图片将显示在这里",
+            "cost": "消耗：{cost} {unit}"
+        },
+        "video": {
+            "title": "AI 视频",
+            "subtitle": "将文本转换为动态视频。",
+            "comingSoon": "即将推出",
+            "integrationNote": "我们正在集成 Runway Gen-2 和 Stable Video Diffusion 等顶级视频生成模型。敬请期待！",
+            "joinWaitlist": "加入等待列表"
+        }
+    },
+    "share": {
+        "title": "分享您的网站",
+        "description": "将您的网站链接分享给朋友和同事。",
+        "email": "邮件分享",
+        "social": "社交媒体",
+        "tip": "提示：先发布您的网站以获得可分享的链接",
+        "emailSubject": "查看我的网站",
+        "emailBody": "我用 dao123 构建了这个网站: {url}"
     }
 }

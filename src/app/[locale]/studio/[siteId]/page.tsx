@@ -23,7 +23,10 @@ import { BuilderImage } from '@/components/builder/atoms/BuilderImage';
 import { BuilderContainer } from '@/components/builder/atoms/BuilderContainer';
 import { CustomHTML } from '@/components/builder/special/CustomHTML';
 
+import { useTranslations } from 'next-intl';
+
 export default function StudioPage() {
+    const t = useTranslations('studio');
     const params = useParams();
     const siteId = params?.siteId as string;
     const { setCurrentProject, setHtmlContent, setPages, isBuilderMode, setBuilderData } = useStudioStore();
@@ -54,7 +57,7 @@ export default function StudioPage() {
             }
         } catch (error) {
             console.error(error);
-            toast.error("加载项目失败");
+            toast.error(t('loadFailed'));
         }
     };
 

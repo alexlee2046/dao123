@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
     Dialog,
     DialogContent,
@@ -25,6 +26,7 @@ import {
 } from '@/lib/subdomain';
 
 export function PublishModal({ children, pageCount = 1 }: { children: React.ReactNode, pageCount?: number }) {
+    const t = useTranslations('publish');
     const params = useParams();
     const router = useRouter();
     const projectId = params.siteId as string;
@@ -107,7 +109,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
             }
         } catch (error) {
             console.error('Error checking availability:', error);
-            setSubdomainError('无法检查可用性');
+            setSubdomainError(t('checkFailed'));
             setIsAvailable(null);
         } finally {
             setIsCheckingAvailability(false);
@@ -141,7 +143,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
             setDeployedUrl(getSubdomainUrl(normalized));
         } catch (error) {
             console.error('Error saving subdomain:', error);
-            alert('保存失败，请重试');
+            alert(t('saveFailed'));
         } finally {
             setIsSaving(false);
         }
@@ -198,7 +200,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
 
         } catch (error) {
             console.error('Error initiating deployment:', error);
-            alert('启动部署失败，请重试');
+            alert(t('startDeployFailed'));
         } finally {
             setIsSaving(false);
         }
@@ -225,16 +227,16 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2">
                                 <Sparkles className="h-5 w-5 text-primary" />
-                                发布你的网站
+                                {t('title')}
                             </DialogTitle>
                             <DialogDescription>
-                                选择发布方式，让你的作品与世界分享
+                                {t('description')}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             {/* 配置子域名 */}
                             <div className="space-y-2">
-                                <Label htmlFor="subdomain">自定义子域名</Label>
+                                <Label htmlFor="subdomain">{t('customSubdomain')}</Label>
                                 <div className="flex items-center gap-2">
                                     <Input
                                         id="subdomain"
@@ -252,14 +254,14 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                 {isCheckingAvailability && (
                                     <p className="text-sm text-muted-foreground flex items-center gap-1">
                                         <Loader2 className="h-3 w-3 animate-spin" />
-                                        检查中...
+                                        {t('checking')}
                                     </p>
                                 )}
 
                                 {!isCheckingAvailability && isAvailable === true && subdomain && (
                                     <p className="text-sm text-green-600 flex items-center gap-1">
                                         <Check className="h-3 w-3" />
-                                        可用
+                                        {t('available')}
                                     </p>
                                 )}
 
@@ -273,7 +275,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                 {/* 预览完整 URL */}
                                 {subdomain && !subdomainError && (
                                     <p className="text-xs text-muted-foreground">
-                                        你的网站将部署到：<span className="font-medium">{getSubdomainUrl(normalizeSubdomain(subdomain))}</span>
+                                        {t('deployTo')} <span className="font-medium">{getSubdomainUrl(normalizeSubdomain(subdomain))}</span>
                                     </p>
                                 )}
                             </div>
@@ -286,7 +288,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                     disabled={!isAvailable || !!subdomainError || !subdomain}
                                 >
                                     <Globe className="mr-2 h-4 w-4" />
-                                    发布到 dao123 子域名
+                                    {t('publishToDao')}
                                 </Button>
 
                                 <div className="relative">
@@ -294,7 +296,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                         <span className="w-full border-t" />
                                     </div>
                                     <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="bg-background px-2 text-muted-foreground">或</span>
+                                        <span className="bg-background px-2 text-muted-foreground">{t('or')}</span>
                                     </div>
                                 </div>
 
@@ -311,13 +313,13 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                             <path d="M577.344 0L1154.69 1000H0L577.344 0Z" />
                                         </svg>
                                     )}
-                                    部署到 Vercel（推荐）
+                                    {t('deployToVercel')}
                                 </Button>
 
                                 <Alert>
                                     <AlertCircle className="h-4 w-4" />
                                     <AlertDescription className="text-xs">
-                                        选择 Vercel 部署将获得更好的性能、全球 CDN 和自动 SSL 证书
+                                        {t('vercelDesc')}
                                     </AlertDescription>
                                 </Alert>
                             </div>
@@ -328,41 +330,41 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                 {step === 'config' && (
                     <>
                         <DialogHeader>
-                            <DialogTitle>确认发布信息</DialogTitle>
+                            <DialogTitle>{t('confirmTitle')}</DialogTitle>
                             <DialogDescription>
-                                检查你的发布配置
+                                {t('confirmDesc')}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="py-4 space-y-4">
                             <div className="p-4 bg-muted rounded-lg space-y-3">
                                 <div className="flex justify-between items-start">
-                                    <span className="text-sm text-muted-foreground">网站地址</span>
+                                    <span className="text-sm text-muted-foreground">{t('siteUrl')}</span>
                                     <span className="text-sm font-medium text-right break-all">
                                         {getSubdomainUrl(normalizeSubdomain(subdomain))}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-muted-foreground">页面数量</span>
-                                    <span className="text-sm font-medium">{pageCount} 个</span>
+                                    <span className="text-sm text-muted-foreground">{t('pageCount')}</span>
+                                    <span className="text-sm font-medium">{pageCount} {t('pageCount').endsWith('Count') ? '' : '个'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-muted-foreground">部署方式</span>
-                                    <span className="text-sm font-medium">dao123 托管</span>
+                                    <span className="text-sm text-muted-foreground">{t('deployMethod')}</span>
+                                    <span className="text-sm font-medium">{t('daoHosted')}</span>
                                 </div>
                             </div>
                         </div>
                         <DialogFooter className="gap-2">
                             <Button variant="outline" onClick={handleReset}>
-                                返回
+                                {t('back')}
                             </Button>
                             <Button onClick={handleQuickPublish} disabled={isSaving}>
                                 {isSaving ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        发布中...
+                                        {t('publishing')}
                                     </>
                                 ) : (
-                                    '确认发布'
+                                    t('confirm')
                                 )}
                             </Button>
                         </DialogFooter>
@@ -374,22 +376,22 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2">
                                 <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                                正在部署到 Vercel
+                                {t('deployingVercel')}
                             </DialogTitle>
                             <DialogDescription>
-                                请在新打开的 Vercel 页面完成部署
+                                {t('vercelStepsDesc')}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="py-4 space-y-4">
                             <Alert>
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertDescription className="text-sm space-y-2">
-                                    <p className="font-medium">请按照以下步骤操作：</p>
+                                    <p className="font-medium">{t('stepsTitle')}</p>
                                     <ol className="list-decimal list-inside space-y-1 text-xs">
-                                        <li>在 Vercel 页面连接你的 GitHub 账号</li>
-                                        <li>设置所需的环境变量（已预填）</li>
-                                        <li>点击 "Deploy" 开始部署</li>
-                                        <li>部署完成后，在 Vercel 项目设置中添加自定义域名：<br />
+                                        <li>{t('step1')}</li>
+                                        <li>{t('step2')}</li>
+                                        <li>{t('step3')}</li>
+                                        <li>{t('step4')}<br />
                                             <code className="text-xs bg-muted px-1 py-0.5 rounded">
                                                 {normalizeSubdomain(subdomain)}.dao123.me
                                             </code>
@@ -399,7 +401,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                             </Alert>
 
                             <div className="p-4 bg-muted rounded-lg">
-                                <p className="text-sm font-medium mb-2">你的子域名</p>
+                                <p className="text-sm font-medium mb-2">{t('yourSubdomain')}</p>
                                 <code className="text-sm bg-background px-2 py-1 rounded block">
                                     {getSubdomainUrl(normalizeSubdomain(subdomain))}
                                 </code>
@@ -407,7 +409,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setIsOpen(false)}>
-                                我知道了
+                                {t('gotIt')}
                             </Button>
                         </DialogFooter>
                     </>
@@ -418,10 +420,10 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-green-600">
                                 <Check className="h-5 w-5" />
-                                发布成功！
+                                {t('successTitle')}
                             </DialogTitle>
                             <DialogDescription>
-                                你的网站已经上线，可以分享给其他人了
+                                {t('successDesc')}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="py-4 space-y-4">
@@ -429,7 +431,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                 <div className="flex items-center gap-2 mb-2">
                                     <Globe className="h-4 w-4 text-green-600" />
                                     <span className="text-sm font-medium text-green-900 dark:text-green-100">
-                                        你的网站地址
+                                        {t('yourSiteUrl')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -445,19 +447,18 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                             <Alert>
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertDescription className="text-xs">
-                                    注意：由于这是模拟发布，实际网站需要配置服务器才能访问。
-                                    要真正部署，请使用 "部署到 Vercel" 选项。
+                                    {t('simulationNote')}
                                 </AlertDescription>
                             </Alert>
                         </div>
                         <DialogFooter className="gap-2">
                             <Button variant="outline" onClick={() => setIsOpen(false)}>
-                                关闭
+                                {t('close')}
                             </Button>
                             <Button asChild>
                                 <a href={deployedUrl} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="mr-2 h-4 w-4" />
-                                    访问网站
+                                    {t('visitSite')}
                                 </a>
                             </Button>
                         </DialogFooter>

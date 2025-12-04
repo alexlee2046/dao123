@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from "@/components/ui/button";
 import { Smartphone, Monitor, RefreshCw, ExternalLink } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
@@ -14,6 +15,7 @@ import { toast } from "sonner";
 import { BuilderCanvas } from "@/components/studio/builder/BuilderCanvas";
 
 export function LivePreview() {
+    const t = useTranslations('preview');
     const { htmlContent, isMobileView, toggleViewMode, pages, currentPage, setCurrentPage, isBuilderMode } = useStudioStore();
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -37,14 +39,14 @@ export function LivePreview() {
                 if (targetPage) {
                     setCurrentPage(targetPage.path);
                 } else {
-                    toast.error(`页面未找到: ${href}`);
+                    toast.error(t('pageNotFound', { href }));
                 }
             }
         };
 
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, [pages, setCurrentPage]);
+    }, [pages, setCurrentPage, t]);
 
     const { setCaptureScreenshotHandler } = useStudioStore();
 
@@ -72,8 +74,10 @@ export function LivePreview() {
 
     useEffect(() => {
         if (iframeRef.current && !isBuilderMode) {
+            // 注入脚本拦截所有链接点击，防止 iframe 嵌套问题
             const script = `
                 <script>
+                    // 拦截所有链接点击
                     document.addEventListener('click', (e) => {
                         const link = e.target.closest('a');
                         if (!link) return;
@@ -81,23 +85,56 @@ export function LivePreview() {
                         const href = link.getAttribute('href');
                         const target = link.getAttribute('target');
                         
-                        if (target === '_blank') return;
-                        if (!href) return;
-                        if (href.startsWith('http')) return; 
-                        if (href.startsWith('#')) return; 
+                        // 如果是 _blank 新标签页，阻止默认行为（防止嵌套）
+                        if (target === '_blank') {
+                            e.preventDefault();
+                            // 可选：在新标签页打开
+                            // window.open(href, '_blank');
+                            return;
+                        }
                         
+                        if (!href) return;
+                        
+                        // 锚点链接，保持默认行为
+                        if (href.startsWith('#')) return;
+                        
+                        // 阻止所有链接的默认行为
                         e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // 检查是否是外部完整 URL
+                        if (href.startsWith('http://') || href.startsWith('https://')) {
+                            // 外部链接：显示提示或忽略
+                            console.log('外部链接被拦截:', href);
+                            return;
+                        }
+                        
+                        // 内部链接：发送消息给父窗口处理页面切换
                         window.parent.postMessage({ type: 'navigate', path: href }, '*');
                     }, true);
+                    
+                    // 防止表单提交导致导航
+                    document.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        console.log('表单提交被拦截');
+                    }, true);
                 </script>
+                <base target="_self">
             `;
 
             const contentToInject = htmlContent || '';
-            if (contentToInject.includes('</body>')) {
-                iframeRef.current.srcdoc = contentToInject.replace('</body>', `${script}</body>`);
+
+            // 在 head 末尾添加 base 标签，在 body 末尾添加脚本
+            let finalContent = contentToInject;
+
+            // 注入脚本
+            if (finalContent.includes('</body>')) {
+                finalContent = finalContent.replace('</body>', `${script}</body>`);
             } else {
-                iframeRef.current.srcdoc = contentToInject + script;
+                finalContent = finalContent + script;
             }
+
+            iframeRef.current.srcdoc = finalContent;
         }
     }, [htmlContent, isBuilderMode]);
 
@@ -115,7 +152,7 @@ export function LivePreview() {
                     {pages.length > 1 && (
                         <Select value={currentPage} onValueChange={setCurrentPage}>
                             <SelectTrigger className="h-7 w-[180px] text-xs bg-background/50 border-border/50 focus:ring-0">
-                                <SelectValue placeholder="选择页面" />
+                                <SelectValue placeholder={t('selectPage')} />
                             </SelectTrigger>
                             <SelectContent>
                                 {pages.map((page) => (
@@ -134,7 +171,7 @@ export function LivePreview() {
                         size="icon"
                         className="h-7 w-7 rounded-md"
                         onClick={() => isMobileView && toggleViewMode()}
-                        title="桌面视图"
+                        title={t('desktopView')}
                     >
                         <Monitor className="h-3.5 w-3.5" />
                     </Button>
@@ -143,7 +180,7 @@ export function LivePreview() {
                         size="icon"
                         className="h-7 w-7 rounded-md"
                         onClick={() => !isMobileView && toggleViewMode()}
-                        title="移动视图"
+                        title={t('mobileView')}
                     >
                         <Smartphone className="h-3.5 w-3.5" />
                     </Button>
@@ -155,7 +192,7 @@ export function LivePreview() {
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-foreground"
                         onClick={handleRefresh}
-                        title="刷新预览"
+                        title={t('refresh')}
                     >
                         <RefreshCw className="h-3.5 w-3.5" />
                     </Button>

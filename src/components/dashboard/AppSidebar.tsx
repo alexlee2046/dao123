@@ -34,8 +34,8 @@ export function AppSidebar({ className }: { className?: string }) {
     const sidebarItems = [
         { icon: LayoutDashboard, label: t('dashboard'), href: "/dashboard" },
         { icon: Palette, label: tNav('studio'), href: "/studio" },
-        { icon: ImageIcon, label: "AI Image", href: "/generate/image" },
-        { icon: Video, label: "AI Video", href: "/generate/video" },
+        { icon: ImageIcon, label: tNav('aiImage'), href: "/generate/image" },
+        { icon: Video, label: tNav('aiVideo'), href: "/generate/video" },
         { icon: Globe, label: t('community'), href: "/community" },
         { icon: Settings, label: t('settings'), href: "/settings" },
     ]

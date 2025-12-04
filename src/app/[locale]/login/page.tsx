@@ -10,8 +10,11 @@ import { toast } from "sonner"
 import { Loader2, Atom, ArrowRight, Sparkles } from "lucide-react"
 import Link from 'next/link'
 import { motion } from "framer-motion"
+import { LanguageSwitcher } from '@/components/language-switcher'
+import { useTranslations } from 'next-intl'
 
 export default function LoginPage() {
+    const t = useTranslations('auth')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -30,7 +33,7 @@ export default function LoginPage() {
 
             if (error) throw error
 
-            toast.success('登录成功')
+            toast.success(t('loginSuccess'))
             router.push('/dashboard')
             router.refresh()
         } catch (error: any) {
@@ -78,10 +81,10 @@ export default function LoginPage() {
                 <div className="relative z-10 max-w-md">
                     <blockquote className="space-y-2">
                         <p className="text-2xl font-medium leading-relaxed tracking-tight">
-                            &ldquo;道生一，一生二，二生三，三生万物。在这里，让 AI 协助你完成从 0 到 1 的创造。&rdquo;
+                            &ldquo;{t('quote')}&rdquo;
                         </p>
                         <footer className="text-sm text-zinc-400 mt-4">
-                            Dao Begets One · The Origin of Creation
+                            {t('quoteAuthor')}
                         </footer>
                     </blockquote>
                 </div>
@@ -89,23 +92,24 @@ export default function LoginPage() {
 
             {/* Right Side - Login Form */}
             <div className="flex items-center justify-center p-8 bg-background relative">
-                <div className="absolute top-4 right-4 lg:top-8 lg:right-8">
+                <div className="absolute top-4 right-4 lg:top-8 lg:right-8 flex items-center gap-4">
+                    <LanguageSwitcher />
                     <Link href="/signup" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                        注册账户
+                        {t('signupButton')}
                     </Link>
                 </div>
 
                 <div className="mx-auto w-full max-w-[350px] space-y-8">
                     <div className="flex flex-col space-y-2 text-center lg:text-left">
-                        <h1 className="text-3xl font-bold tracking-tight">欢迎回来</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">{t('welcomeBack')}</h1>
                         <p className="text-sm text-muted-foreground">
-                            输入您的邮箱以登录平台
+                            {t('enterEmailDesc')}
                         </p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div className="space-y-2">
-                            <Label htmlFor="email">邮箱地址</Label>
+                            <Label htmlFor="email">{t('email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -118,9 +122,9 @@ export default function LoginPage() {
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="password">密码</Label>
+                                <Label htmlFor="password">{t('password')}</Label>
                                 <Link href="#" className="text-xs text-primary hover:underline">
-                                    忘记密码?
+                                    {t('forgotPassword')}
                                 </Link>
                             </div>
                             <Input
@@ -138,7 +142,7 @@ export default function LoginPage() {
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
                                 <span className="flex items-center gap-2">
-                                    登录 <ArrowRight className="h-4 w-4" />
+                                    {t('loginButton')} <ArrowRight className="h-4 w-4" />
                                 </span>
                             )}
                         </Button>
@@ -150,7 +154,7 @@ export default function LoginPage() {
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
                             <span className="bg-background px-2 text-muted-foreground">
-                                或者
+                                {t('or')}
                             </span>
                         </div>
                     </div>
@@ -186,13 +190,13 @@ export default function LoginPage() {
                     </div>
 
                     <p className="px-8 text-center text-sm text-muted-foreground">
-                        点击登录即表示您同意我们的{" "}
+                        {t('termsDesc')}{" "}
                         <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
-                            服务条款
+                            {t('terms')}
                         </Link>{" "}
-                        和{" "}
+                        {t('and')}{" "}
                         <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
-                            隐私政策
+                            {t('privacy')}
                         </Link>
                         .
                     </p>

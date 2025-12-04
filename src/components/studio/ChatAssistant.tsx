@@ -25,11 +25,20 @@ import { getModels, type Model } from "@/lib/actions/models";
 import { toast } from "sonner";
 import { GuideModal } from "./GuideModal";
 import { useAgentOrchestrator } from "@/lib/hooks/useAgentOrchestrator";
+import { useTranslations } from 'next-intl';
 import ReactMarkdown from 'react-markdown';
 
+// 聊天输入框中上传的素材类型
+interface ChatAsset {
+    id: string;
+    url: string;
+    name: string;
+    type: 'image' | 'video' | 'font' | 'other';
+}
+
 export function ChatAssistant() {
+    const t = useTranslations('studio');
     const {
-        assets,
         htmlContent,
         setHtmlContent,
         setPages,
@@ -38,9 +47,10 @@ export function ChatAssistant() {
         setSelectedModel,
         architectModel,
         setArchitectModel,
+        designerModel,
+        setDesignerModel,
         builderModel,
         setBuilderModel,
-        removeAsset
     } = useStudioStore();
 
     const { startGeneration, currentStep, progress, statusMessage } = useAgentOrchestrator();
@@ -51,6 +61,8 @@ export function ChatAssistant() {
     const [mode, setMode] = useState<'guide' | 'direct'>('direct');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
+    // 本地聊天素材状态 - 只显示用户在聊天中上传的素材
+    const [chatAssets, setChatAssets] = useState<ChatAsset[]>([]);
 
     useEffect(() => {
         getModels('chat').then(setModels);
@@ -107,7 +119,7 @@ export function ChatAssistant() {
         },
         onError: (error: any) => {
             console.error('Chat API Error:', error);
-            toast.error(error.message || 'AI服务调用失败');
+            toast.error(error.message || t('chatPanel.serviceError'));
         },
     } as any) as any;
 
@@ -144,11 +156,11 @@ export function ChatAssistant() {
         }
 
         let messageContent = contentToSend;
-        if (assets.length > 0) {
-            const assetInfo = assets.map((asset, idx) =>
-                `素材${idx + 1}: ${asset.name} (${asset.url})`
+        if (chatAssets.length > 0) {
+            const assetInfo = chatAssets.map((asset, idx) =>
+                `${t('chatPanel.assetPrefix')}${idx + 1}: ${asset.name} (${asset.url})`
             ).join('\n');
-            messageContent += `\n\n可用素材：\n${assetInfo}`;
+            messageContent += `\n\n${t('chatPanel.availableAssets')}：\n${assetInfo}`;
         }
 
         await append({
@@ -189,12 +201,19 @@ export function ChatAssistant() {
                 type,
             });
 
+            // 同时添加到全局素材库和本地聊天素材
             addAsset({ ...newAsset, type: newAsset.type as "image" | "video" | "font" });
+            setChatAssets(prev => [...prev, {
+                id: newAsset.id,
+                url: publicUrl,
+                name: file.name,
+                type: type as 'image' | 'video' | 'font' | 'other',
+            }]);
             setLocalInput(prev => prev + (prev ? '\n' : '') + `[附件: ${file.name}](${publicUrl})`);
-            toast.success("文件已上传");
+            toast.success(t('chatPanel.fileUploaded'));
         } catch (error: any) {
             console.error(error);
-            toast.error("上传失败: " + error.message);
+            toast.error(t('chatPanel.uploadFailed') + error.message);
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -222,7 +241,7 @@ export function ChatAssistant() {
                         <Atom className="h-4 w-4 text-primary animate-spin-slow" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-sm text-foreground">Dao 助手</h3>
+                        <h3 className="font-semibold text-sm text-foreground">{t('chatPanel.title')}</h3>
                     </div>
                 </div>
 
@@ -236,34 +255,48 @@ export function ChatAssistant() {
                         <PopoverContent className="w-80">
                             <div className="grid gap-4">
                                 <div className="space-y-2">
-                                    <h4 className="font-medium leading-none">模型设置</h4>
+                                    <h4 className="font-medium leading-none">{t('chatPanel.modelSettings')}</h4>
                                     <p className="text-sm text-muted-foreground">
-                                        配置不同 Agent 使用的 AI 模型
+                                        {t('chatPanel.modelSettingsDesc')}
                                     </p>
                                 </div>
-                                <div className="grid gap-2">
+                                <div className="grid gap-3">
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <Label htmlFor="architect">架构师</Label>
+                                        <Label htmlFor="architect" className="text-xs">{t('chatPanel.architect')}</Label>
                                         <Select value={architectModel} onValueChange={setArchitectModel}>
                                             <SelectTrigger id="architect" className="col-span-2 h-8">
-                                                <SelectValue placeholder="Select model" />
+                                                <SelectValue placeholder={t('chatPanel.selectModel')} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</SelectItem>
-                                                <SelectItem value="openai/gpt-4o">GPT-4o</SelectItem>
+                                                {models.map(m => (
+                                                    <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <Label htmlFor="builder">构建者</Label>
-                                        <Select value={builderModel} onValueChange={setBuilderModel}>
-                                            <SelectTrigger id="builder" className="col-span-2 h-8">
-                                                <SelectValue placeholder="Select model" />
+                                        <Label htmlFor="designer" className="text-xs">{t('chatPanel.designer')}</Label>
+                                        <Select value={designerModel} onValueChange={setDesignerModel}>
+                                            <SelectTrigger id="designer" className="col-span-2 h-8">
+                                                <SelectValue placeholder={t('chatPanel.selectModel')} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash</SelectItem>
-                                                <SelectItem value="deepseek/deepseek-chat">DeepSeek V3</SelectItem>
-                                                <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini</SelectItem>
+                                                {models.map(m => (
+                                                    <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid grid-cols-3 items-center gap-4">
+                                        <Label htmlFor="builder" className="text-xs">{t('chatPanel.builder')}</Label>
+                                        <Select value={builderModel} onValueChange={setBuilderModel}>
+                                            <SelectTrigger id="builder" className="col-span-2 h-8">
+                                                <SelectValue placeholder={t('chatPanel.selectModel')} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {models.map(m => (
+                                                    <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -278,14 +311,14 @@ export function ChatAssistant() {
                             className={cn("px-2 py-1 text-[10px] font-medium rounded-md transition-all flex items-center gap-1", mode === 'guide' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}
                         >
                             <MessageSquare className="h-3 w-3" />
-                            沟通
+                            {t('chatPanel.modeGuide')}
                         </button>
                         <button
                             onClick={() => setMode('direct')}
                             className={cn("px-2 py-1 text-[10px] font-medium rounded-md transition-all flex items-center gap-1", mode === 'direct' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}
                         >
                             <Layout className="h-3 w-3" />
-                            生成
+                            {t('chatPanel.modeDirect')}
                         </button>
                     </div>
                 </div>
@@ -310,9 +343,9 @@ export function ChatAssistant() {
                                 />
                             </div>
                             <div className="flex justify-between text-xs text-muted-foreground">
-                                <span className={currentStep === 'architect' ? 'text-primary font-medium' : ''}>规划</span>
-                                <span className={currentStep === 'designer' ? 'text-primary font-medium' : ''}>设计</span>
-                                <span className={currentStep === 'builder' ? 'text-primary font-medium' : ''}>构建</span>
+                                <span className={currentStep === 'architect' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepArchitect')}</span>
+                                <span className={currentStep === 'designer' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepDesigner')}</span>
+                                <span className={currentStep === 'builder' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepBuilder')}</span>
                             </div>
                         </div>
                     )}
@@ -323,8 +356,8 @@ export function ChatAssistant() {
                                 <Sparkles className="h-6 w-6 text-primary/50" />
                             </div>
                             <div className="space-y-1">
-                                <p className="font-medium text-sm">道生一 (Origin)</p>
-                                <p className="text-xs text-muted-foreground">描述您的想法，开启创造之旅</p>
+                                <p className="font-medium text-sm">{t('chatPanel.emptyTitle')}</p>
+                                <p className="text-xs text-muted-foreground">{t('chatPanel.emptyDesc')}</p>
                             </div>
                         </div>
                     )}
@@ -346,13 +379,13 @@ export function ChatAssistant() {
                                         <div className="flex flex-col gap-2 min-w-[200px]">
                                             <div className="flex items-center gap-2 font-medium border-b border-border/10 pb-1.5">
                                                 <span className="text-base">🎨</span>
-                                                <span className="text-xs">{isLoading && msg.id === messages[messages.length - 1].id ? '正在构建...' : '设计已完成'}</span>
+                                                <span className="text-xs">{isLoading && msg.id === messages[messages.length - 1].id ? t('chatPanel.building') : t('chatPanel.designCompleted')}</span>
                                             </div>
                                             <div className="text-[10px] opacity-90 flex items-center gap-1.5 bg-background/10 rounded px-2 py-1">
                                                 {isLoading && msg.id === messages[messages.length - 1].id ? (
-                                                    <><span className="animate-pulse text-yellow-400">⚡</span><span>AI 正在编写代码...</span></>
+                                                    <><span className="animate-pulse text-yellow-400">⚡</span><span>{t('chatPanel.coding')}</span></>
                                                 ) : (
-                                                    <><span className="text-emerald-400">✅</span><span>预览已更新</span></>
+                                                    <><span className="text-emerald-400">✅</span><span>{t('chatPanel.previewUpdated')}</span></>
                                                 )}
                                             </div>
                                         </div>
@@ -373,8 +406,8 @@ export function ChatAssistant() {
                             </Avatar>
                             <div className="px-3 py-2 rounded-2xl rounded-tl-sm bg-muted/50 border border-border/50 flex items-center gap-2">
                                 <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                                <span className="text-xs text-muted-foreground font-medium">思考中...</span>
-                                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-destructive ml-1" onClick={() => stop()}>停止</Button>
+                                <span className="text-xs text-muted-foreground font-medium">{t('chatPanel.thinking')}</span>
+                                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-destructive ml-1" onClick={() => stop()}>{t('chatPanel.stop')}</Button>
                             </div>
                         </div>
                     )}
@@ -384,9 +417,9 @@ export function ChatAssistant() {
 
             {/* Input Area */}
             <div className="p-3 bg-background/50 backdrop-blur-md border-t border-border/50">
-                {assets.length > 0 && (
+                {chatAssets.length > 0 && (
                     <div className="flex gap-2 mb-2 overflow-x-auto py-1 px-1 no-scrollbar">
-                        {assets.map((asset) => (
+                        {chatAssets.map((asset) => (
                             <div key={asset.id} className="relative group/asset shrink-0">
                                 <div className="h-12 w-12 rounded-lg border border-border bg-muted/50 overflow-hidden flex items-center justify-center relative">
                                     {asset.type === 'image' ? (
@@ -402,7 +435,7 @@ export function ChatAssistant() {
                                             variant="destructive"
                                             size="icon"
                                             className="h-5 w-5 rounded-full"
-                                            onClick={() => removeAsset(asset.id)}
+                                            onClick={() => setChatAssets(prev => prev.filter(a => a.id !== asset.id))}
                                         >
                                             <X className="h-3 w-3" />
                                         </Button>
@@ -416,7 +449,7 @@ export function ChatAssistant() {
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div className="relative bg-background rounded-xl border border-border shadow-sm focus-within:ring-1 focus-within:ring-primary/30 transition-all">
                         <Textarea
-                            placeholder="描述你想构建的网站... (支持拖拽素材)"
+                            placeholder={t('chatPanel.inputPlaceholder')}
                             className="min-h-[80px] pr-10 resize-none border-none focus-visible:ring-0 bg-transparent rounded-xl text-sm"
                             value={localInput}
                             onChange={(e) => setLocalInput(e.target.value)}
@@ -438,20 +471,12 @@ export function ChatAssistant() {
                         </div>
                     </div>
                 </div>
-                <div className="mt-2 flex items-center justify-between gap-2 px-1">
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        {assets.length === 0 && (
-                            <>
-                                <Sparkles className="h-3 w-3 text-amber-500" />
-                                <span>支持多模态输入</span>
-                            </>
-                        )}
-                    </div>
+                <div className="mt-2 flex items-center justify-end gap-2 px-1">
                     <div className="flex items-center gap-1">
                         <GuideModal onComplete={(prompt) => handleSend(prompt)} />
                         <Select value={selectedModel} onValueChange={setSelectedModel}>
                             <SelectTrigger className="h-6 text-[10px] border-none bg-transparent focus:ring-0 px-1 text-muted-foreground hover:text-foreground w-auto min-w-[100px] justify-end">
-                                <SelectValue placeholder={models.length > 0 ? "选择模型" : "无可用模型"} />
+                                <SelectValue placeholder={models.length > 0 ? t('chatPanel.selectModel') : t('chatPanel.noModelsAvailable')} />
                             </SelectTrigger>
                             <SelectContent align="end" className="w-[200px]">
                                 {models.map(m => (
