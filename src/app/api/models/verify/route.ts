@@ -1,4 +1,4 @@
-import { OpenAI } from 'openai';
+import OpenAI from 'openai';
 
 export const runtime = 'edge';
 
@@ -6,15 +6,33 @@ export async function POST(req: Request) {
   try {
     const { apiKey, modelId } = await req.json();
 
-    if (!apiKey) {
+    // Fetch API Key from system settings or env
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: setting } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'OPENROUTER_API_KEY')
+      .single();
+
+    const systemApiKey = setting?.value || process.env.OPENROUTER_API_KEY;
+
+    // If apiKey is provided in body (e.g. admin testing), use it. Otherwise use system key.
+    const finalApiKey = apiKey || systemApiKey;
+
+    if (!finalApiKey) {
       return new Response(
-        JSON.stringify({ error: '缺少 OpenRouter API Key' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'System API Key not configured' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const openai = new OpenAI({
-      apiKey,
+      apiKey: finalApiKey,
       baseURL: 'https://openrouter.ai/api/v1',
       defaultHeaders: {
         'HTTP-Referer': 'https://dao123.app',

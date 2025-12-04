@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
 
 interface Asset {
   id: string;

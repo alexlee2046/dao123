@@ -5,21 +5,29 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Send, Sparkles, AlertCircle, Bot, User } from "lucide-react";
+import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2 } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { AssetLibrary } from "@/components/studio/AssetLibrary";
+
+import { getModels, type Model } from "@/lib/actions/models";
+import { toast } from "sonner";
 
 export function ChatAssistant() {
-    const { assets, setHtmlContent, openRouterApiKey, selectedModel } = useStudioStore();
+    const { assets, setHtmlContent, selectedModel, addAsset } = useStudioStore();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [localInput, setLocalInput] = useState('');
+    const [models, setModels] = useState<Model[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+
+    useEffect(() => {
+        getModels('chat').then(setModels);
+    }, []);
 
     const { messages, append, isLoading } = useChat({
         api: '/api/chat',
         body: {
-            apiKey: openRouterApiKey,
             model: selectedModel,
         },
         onFinish: (message: Message) => {
@@ -27,6 +35,10 @@ export function ChatAssistant() {
             if (htmlContent.includes('<!DOCTYPE') || htmlContent.includes('<html')) {
                 setHtmlContent(htmlContent);
             }
+        },
+        onError: (error) => {
+            console.error('Chat API Error:', error);
+            toast.error(error.message || 'AI服务调用失败，请检查API配置和积分余额');
         },
     });
 
@@ -52,10 +64,7 @@ export function ChatAssistant() {
 
     const handleSend = async () => {
         if (!localInput.trim()) return;
-        if (!openRouterApiKey) {
-            alert('请先在设置页面配置 OpenRouter API Key');
-            return;
-        }
+
 
         let messageContent = localInput;
         if (assets.length > 0) {
@@ -73,47 +82,111 @@ export function ChatAssistant() {
         setLocalInput('');
     };
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        await uploadFile(file);
+    };
+
+    const uploadFile = async (file: File) => {
+        try {
+            setUploading(true);
+            const { createClient } = await import('@/lib/supabase/client');
+            const { saveAssetRecord } = await import('@/lib/actions/assets');
+
+            const supabase = createClient();
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('assets')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('assets')
+                .getPublicUrl(filePath);
+
+            let type = 'other';
+            if (file.type.startsWith('image/')) type = 'image';
+            else if (file.type.startsWith('video/')) type = 'video';
+            else if (file.type.startsWith('font/') || ['ttf', 'otf', 'woff', 'woff2'].includes(fileExt || '')) type = 'font';
+
+            const newAsset = await saveAssetRecord({
+                url: publicUrl,
+                name: file.name,
+                type,
+            });
+
+            // Add to store so it's available in context
+            addAsset({
+                ...newAsset,
+                type: newAsset.type as "image" | "video" | "font"
+            });
+
+            // Append URL to input
+            setLocalInput(prev => prev + (prev ? '\n' : '') + `[Asset: ${file.name}](${publicUrl})`);
+            toast.success("File uploaded and added to chat");
+
+        } catch (error: any) {
+            console.error(error);
+            toast.error("Upload failed: " + error.message);
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+
+        // Check if dropping a file from OS
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            await uploadFile(file);
+            return;
+        }
+
+        // Check if dropping an asset from AssetManager
+        const assetUrl = e.dataTransfer.getData('text/plain');
+        if (assetUrl) {
+            setLocalInput(prev => prev + (prev ? '\n' : '') + assetUrl);
+            return;
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+    };
+
     return (
         <div className="flex flex-col h-full bg-background/50 backdrop-blur-xl border-l border-border/50 shadow-2xl">
             {/* Header */}
             <div className="p-4 border-b border-border/50 bg-background/50 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
-                    <Bot className="h-6 w-6 text-primary" />
+                    <Atom className="h-6 w-6 text-primary animate-spin-slow" />
                 </div>
                 <div>
-                    <h3 className="font-semibold text-foreground">AI 设计助手</h3>
-                    <div className="flex items-center gap-1.5">
-                        <span className={`h-2 w-2 rounded-full ${openRouterApiKey ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500'}`} />
-                        <p className="text-xs text-muted-foreground font-medium">
-                            {openRouterApiKey ? '已连接' : '未配置 API Key'}
-                        </p>
-                    </div>
+                    <h3 className="font-semibold text-foreground">Dao Assistant</h3>
+                    <p className="text-xs text-muted-foreground">道生一 · 一生二</p>
                 </div>
             </div>
-
-            {/* API Key Warning */}
-            {!openRouterApiKey && (
-                <div className="p-4 animate-in slide-in-from-top-2 fade-in">
-                    <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription className="font-medium">
-                            请先在设置页面配置 OpenRouter API Key
-                        </AlertDescription>
-                    </Alert>
-                </div>
-            )}
 
             {/* Messages Area */}
             <ScrollArea className="flex-1 p-4">
                 <div className="space-y-6">
                     {messages.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-[300px] text-center space-y-4 opacity-50">
-                            <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center">
+                            <div className="h-16 w-16 rounded-full bg-primary/5 flex items-center justify-center relative">
+                                <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping opacity-20"></div>
                                 <Sparkles className="h-8 w-8 text-primary/50" />
                             </div>
                             <div className="space-y-1">
-                                <p className="font-medium">开始您的设计之旅</p>
-                                <p className="text-sm text-muted-foreground">描述您想要的网站，AI 将为您实时生成</p>
+                                <p className="font-medium">道生一 (Origin)</p>
+                                <p className="text-sm text-muted-foreground">描述您的想法，开启创造之旅</p>
                             </div>
                         </div>
                     )}
@@ -132,7 +205,7 @@ export function ChatAssistant() {
                                     isUser ? "ring-primary/20" : "ring-muted-foreground/20"
                                 )}>
                                     <AvatarFallback className={isUser ? "bg-primary text-primary-foreground" : "bg-muted"}>
-                                        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                                        {isUser ? <User className="h-4 w-4" /> : <Atom className="h-4 w-4" />}
                                     </AvatarFallback>
                                 </Avatar>
 
@@ -173,15 +246,14 @@ export function ChatAssistant() {
                     {isLoading && (
                         <div className="flex gap-4 animate-in fade-in slide-in-from-bottom-2">
                             <Avatar className="h-8 w-8 ring-2 ring-muted-foreground/20 ring-offset-2 ring-offset-background">
-                                <AvatarFallback className="bg-muted"><Bot className="h-4 w-4" /></AvatarFallback>
+                                <AvatarFallback className="bg-muted"><Atom className="h-4 w-4 animate-spin" /></AvatarFallback>
                             </Avatar>
                             <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-muted/50 border border-border/50 flex items-center gap-3">
-                                <div className="flex gap-1">
-                                    <div className="w-2 h-2 rounded-full bg-primary/50 animate-bounce [animation-delay:-0.3s]"></div>
-                                    <div className="w-2 h-2 rounded-full bg-primary/50 animate-bounce [animation-delay:-0.15s]"></div>
-                                    <div className="w-2 h-2 rounded-full bg-primary/50 animate-bounce"></div>
+                                <div className="relative flex items-center justify-center w-6 h-6">
+                                    <div className="absolute inset-0 bg-primary/30 rounded-full animate-ping"></div>
+                                    <div className="relative w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50"></div>
                                 </div>
-                                <span className="text-xs text-muted-foreground font-medium">思考中...</span>
+                                <span className="text-xs text-muted-foreground font-medium">Dao 正在衍化万物...</span>
                             </div>
                         </div>
                     )}
@@ -191,11 +263,15 @@ export function ChatAssistant() {
 
             {/* Input Area */}
             <div className="p-4 bg-background/50 backdrop-blur-md border-t border-border/50">
-                <div className="relative group">
+                <div
+                    className="relative group"
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                >
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div className="relative bg-background rounded-xl border border-border shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
                         <Textarea
-                            placeholder="描述你想构建的网站..."
+                            placeholder="描述你想构建的网站... (支持拖拽图片/文件)"
                             className="min-h-[100px] pr-12 resize-none border-none focus-visible:ring-0 bg-transparent rounded-xl"
                             value={localInput}
                             onChange={(e) => setLocalInput(e.target.value)}
@@ -208,17 +284,24 @@ export function ChatAssistant() {
                             disabled={isLoading}
                         />
                         <div className="absolute bottom-2 right-2 flex gap-2">
-                            <AssetLibrary>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-lg"
-                                    disabled={isLoading}
-                                    title="素材库"
-                                >
-                                    <Paperclip className="h-4 w-4" />
-                                </Button>
-                            </AssetLibrary>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                onChange={handleFileUpload}
+                                accept="image/*,video/*,.ttf,.otf,.woff,.woff2"
+                            />
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-lg"
+                                disabled={isLoading || uploading}
+                                title="上传附件"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                            </Button>
+
                             <Button
                                 size="icon"
                                 className={cn(
@@ -242,7 +325,29 @@ export function ChatAssistant() {
                                 : '支持多模态输入'}
                         </span>
                     </div>
-                    <div className="opacity-50">Enter 发送</div>
+                    <div className="flex items-center gap-3">
+                        <select
+                            className="bg-transparent border-none text-xs text-muted-foreground focus:ring-0 cursor-pointer hover:text-foreground transition-colors"
+                            value={selectedModel}
+                            onChange={(e) => useStudioStore.getState().setSelectedModel(e.target.value)}
+                        >
+                            {models.length > 0 ? (
+                                models.map((model) => (
+                                    <option key={model.id} value={model.id}>
+                                        {model.name}
+                                    </option>
+                                ))
+                            ) : (
+                                <>
+                                    <option value="openai/gpt-5">GPT-5</option>
+                                    <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash Exp (Free)</option>
+                                    <option value="deepseek/deepseek-chat-v3.1:free">DeepSeek Chat V3.1 (Free)</option>
+                                    <option value="qwen/qwen3-coder:free">Qwen3 Coder (Free)</option>
+                                </>
+                            )}
+                        </select>
+                        <div className="opacity-50">Enter 发送</div>
+                    </div>
                 </div>
             </div>
         </div>

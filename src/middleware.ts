@@ -2,6 +2,11 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+    // Skip middleware for API routes - let them handle auth themselves
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.next()
+    }
+
     let response = NextResponse.next({
         request: {
             headers: request.headers,
@@ -33,7 +38,24 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    await supabase.auth.getUser()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    // Protected routes pattern
+    const protectedPaths = ['/studio', '/dashboard', '/admin', '/generate', '/settings', '/community']
+    const isProtected = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
+
+    // Auth routes (login/signup)
+    const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
+
+    if (isProtected && !user) {
+        return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    if (isAuthRoute && user) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
 
     return response
 }
@@ -45,7 +67,6 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
-         * Feel free to modify this pattern to include more paths.
          */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],

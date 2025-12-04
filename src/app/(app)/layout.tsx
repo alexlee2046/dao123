@@ -1,18 +1,25 @@
-import { Sidebar } from "@/components/shared/Sidebar";
+import { AppSidebar } from "@/components/dashboard/AppSidebar"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
-export default function AppLayout({
+export default async function DashboardLayout({
     children,
 }: {
-    children: React.ReactNode;
+    children: React.ReactNode
 }) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        redirect('/login')
+    }
+
     return (
-        <div className="h-full relative">
-            <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-[80] bg-sidebar border-r border-border/50 backdrop-blur-xl">
-                <Sidebar />
-            </div>
-            <main className="md:pl-72 h-full">
+        <div className="flex h-screen bg-background">
+            <AppSidebar />
+            <main className="flex-1 overflow-y-auto">
                 {children}
             </main>
         </div>
-    );
+    )
 }

@@ -1,0 +1,167 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import type { Asset } from "@/lib/actions/assets"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Card, CardContent } from "@/components/ui/card"
+import { toast } from "sonner"
+import { Loader2, Download, Copy, Sparkles, Image as ImageIcon } from "lucide-react"
+import Image from "next/image"
+import { useStudioStore } from "@/lib/store"
+
+export default function ImageGenerationPage() {
+    const [prompt, setPrompt] = useState('')
+    const [model, setModel] = useState('openai/dall-e-3')
+    const [generating, setGenerating] = useState(false)
+    const [generatedImage, setGeneratedImage] = useState<Asset | null>(null)
+    const { openRouterApiKey } = useStudioStore()
+
+    const handleGenerate = async () => {
+        if (!prompt) return
+
+        // Note: We are using the API route which now prioritizes DB key, but falls back to user key.
+        // We pass the user key just in case they want to use their own.
+
+        try {
+            setGenerating(true)
+            const response = await fetch('/api/generate-asset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt,
+                    model,
+                    type: 'image',
+                    apiKey: openRouterApiKey
+                })
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Generation failed')
+            }
+
+            setGeneratedImage(data)
+            toast.success("Image generated successfully")
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Generation failed'
+            console.error(message)
+            toast.error(message)
+        } finally {
+            setGenerating(false)
+        }
+    }
+
+    return (
+        <div className="container mx-auto py-8 max-w-5xl">
+            <div className="flex flex-col gap-8">
+                <div>
+                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                        <Sparkles className="h-8 w-8 text-primary" />
+                        AI Image Generator
+                    </h1>
+                    <p className="text-muted-foreground mt-2">
+                        Create stunning visuals with state-of-the-art AI models.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Controls */}
+                    <Card className="lg:col-span-1 h-fit">
+                        <CardContent className="p-6 space-y-6">
+                            <div className="space-y-2">
+                                <Label>Model</Label>
+                                <Select value={model} onValueChange={setModel}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="openai/dall-e-3">DALL-E 3</SelectItem>
+                                        <SelectItem value="openai/gpt-image-1">GPT Image 1</SelectItem>
+                                        <SelectItem value="stabilityai/stable-diffusion-xl-beta-v2-2-2">Stable Diffusion XL</SelectItem>
+                                        <SelectItem value="google/gemini-3-pro-image-preview">Gemini 3 Pro (Nano Banana Pro)</SelectItem>
+                                        <SelectItem value="black-forest-labs/flux-1.1-pro">Flux 1.1 Pro</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Prompt</Label>
+                                <Textarea
+                                    placeholder="Describe your image in detail..."
+                                    className="min-h-[150px]"
+                                    value={prompt}
+                                    onChange={(e) => setPrompt(e.target.value)}
+                                />
+                            </div>
+
+                            <Button
+                                className="w-full"
+                                size="lg"
+                                onClick={handleGenerate}
+                                disabled={generating || !prompt}
+                            >
+                                {generating ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="mr-2 h-4 w-4" />
+                                        Generate Image
+                                    </>
+                                )}
+                            </Button>
+
+                            <p className="text-xs text-muted-foreground text-center">
+                                Cost: {model.includes('gemini-3-pro') ? '20' : model.includes('flux') ? '15' : '10'} Credits
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Preview */}
+                    <div className="lg:col-span-2">
+                        <div className="aspect-square rounded-xl border-2 border-dashed flex items-center justify-center bg-muted/30 relative overflow-hidden group">
+                            {generatedImage ? (
+                                <>
+                                    <Image
+                                        src={generatedImage.url}
+                                        alt={generatedImage.name}
+                                        fill
+                                        className="object-contain"
+                                    />
+                                    <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button size="icon" variant="secondary" onClick={() => window.open(generatedImage.url, '_blank')}>
+                                            <Download className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="icon" variant="secondary" onClick={() => {
+                                            navigator.clipboard.writeText(generatedImage.url)
+                                            toast.success("URL copied")
+                                        }}>
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-center text-muted-foreground">
+                                    <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                                    <p>Generated image will appear here</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}

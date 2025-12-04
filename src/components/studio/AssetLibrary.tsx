@@ -13,20 +13,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Loader2, Upload, Image as ImageIcon, FileVideo, Type, Trash2, Copy, Check, Plus, Sparkles } from "lucide-react"
+import { Loader2, Upload, Image as ImageIcon, FileVideo, Type, Trash2, Copy, Check, Plus } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { getAssets, saveAssetRecord, deleteAsset, type Asset } from "@/lib/actions/assets"
 import { toast } from "sonner"
 import Image from 'next/image'
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import { useStudioStore } from "@/lib/store"
 
 export function AssetLibrary({ children }: { children: React.ReactNode }) {
@@ -36,49 +27,7 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    // Generation state
-    const [prompt, setPrompt] = useState('')
-    const [genModel, setGenModel] = useState('openai/dall-e-3')
-    const [genType, setGenType] = useState('image')
-    const [generating, setGenerating] = useState(false)
     const { openRouterApiKey } = useStudioStore()
-
-    const handleGenerate = async () => {
-        if (!prompt) return
-        if (!openRouterApiKey) {
-            toast.error("Please configure OpenRouter API Key in settings first")
-            return
-        }
-
-        try {
-            setGenerating(true)
-            const response = await fetch('/api/generate-asset', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prompt,
-                    model: genModel,
-                    type: genType,
-                    apiKey: openRouterApiKey
-                })
-            })
-
-            const data = await response.json()
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Generation failed')
-            }
-
-            setAssets([data, ...assets])
-            toast.success("Asset generated successfully")
-            setPrompt('')
-        } catch (error: any) {
-            console.error(error)
-            toast.error(error.message)
-        } finally {
-            setGenerating(false)
-        }
-    }
 
     useEffect(() => {
         if (isOpen) {
@@ -191,10 +140,6 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                                 <TabsTrigger value="image">Images</TabsTrigger>
                                 <TabsTrigger value="video">Videos</TabsTrigger>
                                 <TabsTrigger value="font">Fonts</TabsTrigger>
-                                <TabsTrigger value="generate" className="gap-2">
-                                    <Sparkles className="h-4 w-4 text-amber-500" />
-                                    Generate
-                                </TabsTrigger>
                             </TabsList>
                             <div>
                                 <input
@@ -262,67 +207,6 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                                             )}
                                         </TabsContent>
                                     ))}
-
-                                    <TabsContent value="generate" className="mt-0 h-full">
-                                        <div className="flex flex-col h-full gap-4">
-                                            <div className="space-y-4 p-1">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="prompt">Prompt</Label>
-                                                    <Textarea
-                                                        id="prompt"
-                                                        placeholder="Describe the image you want to generate..."
-                                                        value={prompt}
-                                                        onChange={(e) => setPrompt(e.target.value)}
-                                                        className="min-h-[100px]"
-                                                    />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="genModel">Model</Label>
-                                                        <Select value={genModel} onValueChange={setGenModel}>
-                                                            <SelectTrigger id="genModel">
-                                                                <SelectValue placeholder="Select model" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="openai/dall-e-3">DALL-E 3</SelectItem>
-                                                                <SelectItem value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL</SelectItem>
-                                                                <SelectItem value="recraft-ai/recraft-v3">Recraft V3</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="genType">Type</Label>
-                                                        <Select value={genType} onValueChange={setGenType}>
-                                                            <SelectTrigger id="genType">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="image">Image</SelectItem>
-                                                                <SelectItem value="video" disabled>Video (Coming Soon)</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    className="w-full"
-                                                    onClick={handleGenerate}
-                                                    disabled={generating || !prompt}
-                                                >
-                                                    {generating ? (
-                                                        <>
-                                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                            Generating...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Sparkles className="h-4 w-4 mr-2" />
-                                                            Generate
-                                                        </>
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </TabsContent>
                                 </>
                             )}
                         </ScrollArea>

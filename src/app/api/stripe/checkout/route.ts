@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
     try {
-        const { priceId, amount } = await req.json();
+        const { price, credits } = await req.json();
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -19,20 +19,20 @@ export async function POST(req: Request) {
                     price_data: {
                         currency: 'usd',
                         product_data: {
-                            name: `${amount} Credits`,
+                            name: `${credits} Credits`,
                             description: 'Credits for AI generation',
                         },
-                        unit_amount: priceId * 100, // priceId here is actually amount in dollars for simplicity, or use real Stripe Price IDs
+                        unit_amount: Math.round(price * 100),
                     },
                     quantity: 1,
                 },
             ],
             mode: 'payment',
-            success_url: `${req.headers.get('origin')}/dashboard?success=true`,
-            cancel_url: `${req.headers.get('origin')}/dashboard?canceled=true`,
+            success_url: `${req.headers.get('origin')}/settings?success=true`,
+            cancel_url: `${req.headers.get('origin')}/settings?canceled=true`,
             metadata: {
                 userId: user.id,
-                creditsAmount: amount,
+                creditsAmount: credits,
             },
         });
 

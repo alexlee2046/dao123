@@ -24,26 +24,42 @@ export interface Rating {
 export async function getCommunityProjects() {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
-        .from('projects')
-        .select(`
-      *,
-      user:user_id(email),
-      ratings(score)
-    `)
-        .eq('is_public', true)
-        .order('published_at', { ascending: false })
+    try {
+        const { data, error } = await supabase
+            .from('projects')
+            .select(`
+          *,
+          user:user_id(email),
+          ratings(score)
+        `)
+            .eq('is_public', true)
+            .order('published_at', { ascending: false })
 
-    if (error) throw new Error(error.message)
+        if (error) {
+            console.error("Supabase error fetching community projects:", error);
+            throw new Error(error.message)
+        }
 
-    // Calculate average rating
-    return data.map((project: any) => ({
-        ...project,
-        averageRating: project.ratings?.length
-            ? project.ratings.reduce((a: number, b: { score: number }) => a + b.score, 0) / project.ratings.length
-            : 0,
-        ratingCount: project.ratings?.length || 0
-    }))
+        if (!data) return [];
+
+        // Calculate average rating safely
+        return data.map((project: any) => {
+            const ratings = Array.isArray(project.ratings) ? project.ratings : [];
+            const averageRating = ratings.length > 0
+                ? ratings.reduce((a: number, b: { score: number }) => a + b.score, 0) / ratings.length
+                : 0;
+
+            return {
+                ...project,
+                averageRating,
+                ratingCount: ratings.length
+            };
+        });
+    } catch (e) {
+        console.error("Failed to get community projects:", e);
+        // Return empty array to prevent page crash, or rethrow if you want to show error page
+        return [];
+    }
 }
 
 export async function publishProject(id: string, price: number) {

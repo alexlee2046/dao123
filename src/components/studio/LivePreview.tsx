@@ -48,7 +48,7 @@ export function LivePreview() {
                         ref={iframeRef}
                         className="w-full h-full border-0"
                         title="Preview"
-                        sandbox="allow-scripts"
+                        sandbox="allow-scripts allow-same-origin allow-forms"
                     />
                 </div>
             </div>
