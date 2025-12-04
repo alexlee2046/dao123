@@ -10,6 +10,7 @@ const sidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
     { icon: Users, label: "Users", href: "/admin/users" },
     { icon: FileText, label: "Projects", href: "/admin/projects" },
+    { icon: Database, label: "Models", href: "/admin/models" },
     { icon: Image, label: "Assets", href: "/admin/assets" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
 ]
