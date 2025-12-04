@@ -36,7 +36,8 @@ export default async function DashboardLayout({
                     <div className="ml-4 font-bold text-lg">Dao123</div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto">
+                <main className="flex-1 overflow-y-auto relative">
+                    <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pointer-events-none"></div>
                     {children}
                 </main>
             </div>

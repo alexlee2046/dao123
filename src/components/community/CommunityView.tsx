@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, User, Sparkles, Infinity, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 interface Project {
     id: string;
@@ -25,6 +26,13 @@ interface CommunityViewProps {
 }
 
 export function CommunityView({ projects }: CommunityViewProps) {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredProjects = projects.filter(project => 
+        project.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -64,6 +72,8 @@ export function CommunityView({ projects }: CommunityViewProps) {
                     <Input
                         placeholder="搜索灵感..."
                         className="pl-10 h-12 rounded-full bg-muted/50 border-border/50 focus:ring-primary/20"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </motion.div>
@@ -74,7 +84,7 @@ export function CommunityView({ projects }: CommunityViewProps) {
                 animate="show"
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
-                {projects.map((project) => (
+                {filteredProjects.map((project) => (
                     <motion.div key={project.id} variants={item}>
                         <Card className="overflow-hidden flex flex-col h-full hover:shadow-xl transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm group hover:-translate-y-1">
                             <div className="relative aspect-video bg-muted overflow-hidden">

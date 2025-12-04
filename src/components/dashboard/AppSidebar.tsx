@@ -13,7 +13,8 @@ import {
     Settings,
     LogOut,
     CreditCard,
-    Cpu
+    Cpu,
+    Code2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getCredits } from "@/lib/actions/credits"
@@ -80,10 +81,10 @@ export function AppSidebar({ className }: { className?: string }) {
     return (
         <div className={cn("w-64 bg-card border-r flex flex-col h-full", className)}>
             <div className="p-6 border-b flex items-center gap-3">
-                <div className="h-8 w-8 bg-gradient-to-br from-primary to-violet-600 rounded-lg flex items-center justify-center text-primary-foreground font-bold shadow-md">
-                    D
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                    <Code2 className="h-5 w-5" />
                 </div>
-                <span className="font-bold text-xl tracking-tight">Dao123</span>
+                <span className="font-bold text-xl tracking-tight">dao123</span>
             </div>
 
             <nav className="flex-1 p-4 space-y-2">

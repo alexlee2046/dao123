@@ -113,8 +113,10 @@ export default function LandingPage() {
                                         立即开始创造 <ArrowRight className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
-                                <Button variant="outline" size="lg" className="rounded-full px-8 text-lg h-14 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all">
-                                    探索社区作品
+                                <Button asChild variant="outline" size="lg" className="rounded-full px-8 text-lg h-14 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all">
+                                    <Link href="/community">
+                                        探索社区作品
+                                    </Link>
                                 </Button>
                             </motion.div>
                         </div>

@@ -202,7 +202,11 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
 
             <CardHeader className="pb-2">
-                <CardTitle className="truncate text-lg">{project.name}</CardTitle>
+                <CardTitle className="truncate text-lg">
+                    <Link href={`/studio/${project.id}`} className="hover:text-primary transition-colors">
+                        {project.name}
+                    </Link>
+                </CardTitle>
                 <CardDescription className="line-clamp-2 min-h-[2.5em]">
                     {project.description || "暂无描述"}
                 </CardDescription>
@@ -213,8 +217,8 @@ function ProjectCard({ project }: { project: Project }) {
                     <Clock className="mr-1 h-3 w-3" />
                     {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
                 </div>
-                <Link href={`/studio/${project.id}`} className="hover:text-primary transition-colors flex items-center">
-                    预览 <ArrowRight className="ml-1 h-3 w-3" />
+                <Link href={`/studio/${project.id}`} className="hover:text-primary transition-colors flex items-center font-medium">
+                    编辑 <ArrowRight className="ml-1 h-3 w-3" />
                 </Link>
             </CardFooter>
         </Card>
