@@ -1,144 +1,205 @@
-# 🎉 OpenRouter 模型更新完成 (2025年12月)
+# 模型管理系统
 
-## ✅ 更新内容
+## 功能概述
 
-### 1. **模型列表全面更新**
-已更新至 **2025年12月最新版本**，新增 **60+ 顶级模型**
+这个更新添加了一个完整的AI模型管理系统,包括:
 
-### 2. **2025年顶级推荐模型** (已标注 ⭐)
-1. **Claude Opus 4.5** - 世界最强代码生成模型 ⭐⭐⭐
-2. **Claude Sonnet 4.5** - 代码质量顶级，速度更快 ⭐⭐
-3. **Gemini 2.5 Pro** - Google 最新多模态旗舰 ⭐⭐
-4. **Grok Code Fast 1** - xAI 编程专用，速度极快 ⭐⭐
+1. **模型数据库表** - 存储所有可用的AI模型配置
+2. **管理员模型管理页面** - `/admin/models` 页面用于管理模型
+3. **自动化模型选择** - 在ChatAssistant中动态加载启用的模型
+4. **最新模型支持** - 修复了DeepSeek V3.2的模型ID问题
 
-### 3. **2025年新增系列**
+## 已修复的问题
 
-#### Meta Llama 4 系列 (2025年4月发布)
-- Llama 4 Maverick (256K 上下文窗口)
-- Llama 4 Scout
-- Llama 4 Behemoth
+### DeepSeek Chat V3.2 模型ID错误
 
-#### xAI Grok 系列 (2025)
-- Grok Code Fast 1 (编程王者)
-- Grok 4.1 Fast (免费)
-- Grok Vision Beta
+**问题**: 使用了错误的模型ID `deepseek/deepseek-chat-v3.2`,导致400错误
 
-#### Google Gemini 2.5 系列 (2025最新)
-- Gemini 2.5 Pro
-- Gemini 2.5 Flash (超快速)
-- Gemini 2.0 Flash (免费)
+**解决方案**: 
+- 正确的模型ID为: `deepseek/deepseek-v3.2-exp` (免费实验版)
+- 或者: `deepseek/deepseek-v3.2-speciale` (高性能推理版)
 
-#### DeepSeek V3.2 (2025更新)
-- DeepSeek V3.2 (性价比王)
-- 性能媲美 Gemini 3.0 Pro
+已更新以下文件:
+- `src/components/studio/ChatAssistant.tsx` - 更新硬编码模型列表
+- `src/lib/pricing.ts` - 添加新模型的定价配置
 
-#### Moonshot AI (2025新)
-- Kimi K2 Thinking (推理专用)
-- Kimi Linear (长文本处理)
+## 数据库迁移步骤
 
-#### Amazon Nova (2025新)
-- Nova Premier 1.0 (多模态)
+### 方法1: 使用Supabase Dashboard (推荐)
 
-#### Qwen 系列 (阿里)
-- Qwen3 Coder 480B (免费)
-- QwQ 32B (推理模型)
+1. 登录到 [Supabase Dashboard](https://app.supabase.com)
+2. 选择你的项目
+3. 进入 **SQL Editor**
+4. 复制 `migrations/add_models_table.sql` 的内容
+5. 粘贴并执行
 
-### 4. **免费模型** (2025推荐)
-- ✅ Gemini 2.0 Flash
-- ✅ Grok 4.1 Fast
-- ✅ Qwen3 Coder 480B
-- ✅ DeepSeek V3.2 (部分免费)
+### 方法2: 使用Node.js脚本
 
-### 5. **默认模型调整**
-- **旧默认**: Claude 3.5 Sonnet
-- **新默认**: Claude Opus 4.5 (2025年最强)
+运行以下命令:
 
-## 📊 模型对比 (2025年12月)
+```bash
+npm run migrate:models
+```
 
-### 代码生成排行
-1. Claude Opus 4.5 ⭐⭐⭐
-2. Grok Code Fast 1 ⭐⭐
-3. Claude Sonnet 4.5 ⭐⭐
-4. DeepSeek Coder
-5. Qwen3 Coder 480B
+### 方法3: 手动执行SQL
 
-### 推理能力排行
-1. OpenAI O1
-2. Claude Opus 4.5
-3. Kimi K2 Thinking
-4. QwQ 32B
-5. OpenAI O1 Mini
+```bash
+# 设置环境变量
+export SUPABASE_URL="你的Supabase URL"
+export SUPABASE_SERVICE_KEY="你的Service Role Key"
 
-### 性价比排行
-1. DeepSeek V3.2 ⭐⭐⭐
-2. Qwen3 Coder 480B (免费)
-3. Gemini 2.5 Flash
-4. Claude Sonnet 4.5
-5. GPT-4o Mini
+# 执行迁移
+psql $SUPABASE_URL -f migrations/add_models_table.sql
+```
 
-### 多模态排行
-1. Gemini 2.5 Pro ⭐⭐⭐
-2. GPT-4o
-3. Claude Opus 4.5
-4. Amazon Nova Premier
-5. Grok Vision Beta
+## 使用管理员面板
 
-## 🎯 使用建议
+### 访问模型管理页面
 
-### 场景 1: 代码生成 (追求质量)
-**推荐**: Claude Opus 4.5
-- 最高代码质量
-- 最佳架构设计
-- 完美的错误处理
+1. 确保你的账户具有 `admin` 角色
+2. 访问: `http://localhost:3000/admin/models`
+3. 你会看到一个完整的模型管理界面
 
-### 场景 2: 代码生成 (追求速度)
-**推荐**: Grok Code Fast 1
-- 极快响应速度
-- 代码质量优秀
-- 编程专用优化
+### 功能列表
 
-### 场景 3: 快速原型 (免费)
-**推荐**: Qwen3 Coder 480B
-- 完全免费
-- 480B 参数
-- 代码质量不错
+- ✅ 查看所有模型
+- ✅ 创建新模型
+- ✅ 编辑现有模型
+- ✅ 删除模型
+- ✅ 启用/禁用模型
+- ✅ 批量导入推荐模型
+- ✅ 按类型筛选 (Chat/Image/Video)
+- ✅ 标记免费模型
 
-### 场景 4: 推理任务
-**推荐**: OpenAI O1 或 Kimi K2 Thinking
-- 深度推理能力
-- 复杂问题解决
-- 多步骤任务
+### 批量导入推荐模型
 
-### 场景 5: 预算有限
-**推荐**: DeepSeek V3.2
-- 性价比最高
-- 性能接近顶级模型
-- 价格只有 1/10
+点击 **"导入推荐模型"** 按钮会自动导入以下模型:
 
-## 📝 更新的文件
+#### Chat Models (对话模型)
+- GPT-5 (OpenAI)
+- GPT-4o (OpenAI)
+- Claude 3.5 Sonnet (Anthropic)
+- Gemini 3 Pro Preview (Google)
+- DeepSeek V3.2 Experimental (DeepSeek) ⭐ 新增
+- DeepSeek V3.2 Speciale (DeepSeek) ⭐ 新增
+- Qwen3 Coder (Qwen)
 
-1. `/src/app/(app)/settings/page.tsx` - 设置页面模型列表
-2. `/src/lib/store.ts` - 默认模型配置
-3. `/OPENROUTER_GUIDE.md` - 使用指南文档
+#### Image Models (图像生成)
+- DALL-E 3 (OpenAI)
+- Flux 1.1 Pro (Black Forest Labs)
 
-## 🚀 如何体验
+#### Video Models (视频生成)
+- Luma Dream Machine (Luma)
 
-1. 重启应用: `npm run dev`
-2. 访问设置页面: http://localhost:3000/settings
-3. 在模型下拉框中查看全部 60+ 模型
-4. 选择 **Claude Opus 4.5** 或 **Grok Code Fast 1**
-5. 开始创建你的网站！
+## 定价配置
 
-## 💡 特别说明
+在 `src/lib/pricing.ts` 中配置了以下模型价格:
 
-- 所有模型 ID 已验证可用
-- 免费模型标注了 `:free` 后缀
-- 模型按类别和年份分组，便于选择
-- 推荐模型用星标 ⭐ 标注
+| 模型 | 积分/请求 | 备注 |
+|------|----------|------|
+| `deepseek/deepseek-v3.2-exp` | 1 | 免费实验版 |
+| `deepseek/deepseek-v3.2-speciale` | 3 | 高性能推理 |
+| `openai/gpt-5` | 20 | 高级模型 |
+| `google/gemini-2.0-flash-exp:free` | 1 | 免费 |
 
----
+## 更新内容
 
-**更新时间**: 2025年12月3日
-**模型总数**: 60+
-**免费模型**: 10+
-**2025新增**: 20+
+### 新增文件
+
+1. `src/lib/actions/admin-models.ts` - 模型管理的Server Actions
+2. `src/app/(app)/admin/models/page.tsx` - 管理员模型管理页面
+3. `migrations/add_models_table.sql` - 数据库迁移脚本
+4. `MODEL_UPDATE_2025.md` - 本文档
+
+### 修改文件
+
+1. `src/components/studio/ChatAssistant.tsx`
+   - 修复过时的DeepSeek模型ID
+   - 从 `deepseek-chat-v3.1:free` 更新为 `deepseek-v3.2-exp`
+
+2. `src/lib/pricing.ts`
+   - 添加 DeepSeek V3.2 模型定价
+
+3. `src/components/dashboard/AppSidebar.tsx`
+   - 添加管理员角色检测
+   - 添加 "Model Management" 菜单项(仅管理员可见)
+
+4. `src/lib/actions/models.ts`
+   - 已存在,用于获取启用的模型列表
+
+## OpenRouter 模型ID格式
+
+所有模型ID遵循OpenRouter的命名规范:
+
+```
+provider/model-name[:variant]
+```
+
+示例:
+- `openai/gpt-4o`
+- `deepseek/deepseek-v3.2-exp`
+- `google/gemini-2.0-flash-exp:free`
+
+## 故障排除
+
+### 问题1: 未找到models表
+
+**解决方案**: 执行数据库迁移脚本
+
+### 问题2: 权限被拒绝
+
+**解决方案**: 确保你的账户角色是 `admin`
+
+```sql
+-- 在Supabase SQL Editor中运行
+UPDATE profiles 
+SET role = 'admin' 
+WHERE email = 'your-email@example.com';
+```
+
+### 问题3: 模型API调用失败
+
+**解决方案**: 
+1. 检查OpenRouter API密钥配置
+2. 确认模型ID正确
+3. 查看 `src/lib/pricing.ts` 确认模型已添加定价
+
+## 下一步建议
+
+1. ✅ 执行数据库迁移
+2. ✅ 将你的账户设置为管理员
+3. ✅ 访问 `/admin/models` 导入推荐模型
+4. ✅ 测试聊天功能,确认模型切换正常工作
+5. ⏭️ 根据需要添加更多自定义模型
+
+## 技术细节
+
+### 数据库Schema
+
+```sql
+CREATE TABLE models (
+    id TEXT PRIMARY KEY,              -- OpenRouter模型ID
+    name TEXT NOT NULL,               -- 显示名称
+    provider TEXT NOT NULL,           -- 提供商
+    type TEXT NOT NULL,               -- 'chat' | 'image' | 'video'
+    enabled BOOLEAN DEFAULT true,     -- 是否启用
+    is_free BOOLEAN DEFAULT false,    -- 是否免费
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+```
+
+### API权限
+
+所有模型管理操作需要管理员权限:
+- `getAllModels()` - 获取所有模型
+- `createModel()` - 创建新模型
+- `updateModel()` - 更新模型
+- `deleteModel()` - 删除模型
+- `bulkImportModels()` - 批量导入
+
+## 参考资源
+
+- [OpenRouter Models 文档](https://openrouter.ai/docs#models)
+- [DeepSeek V3.2 发布说明](https://openrouter.ai/models/deepseek/deepseek-v3.2-exp)
+- [Supabase SQL Editor](https://app.supabase.com)

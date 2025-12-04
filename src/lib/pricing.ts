@@ -35,15 +35,17 @@ export const MODEL_COSTS: Record<string, number> = {
     // Chat Models (Per Message)
     // Premium Models (Target ROI > 5x)
     'openai/gpt-5': 20,           // Premium Future Model
-    'openai/gpt-4o': 5,           // Standard Premium ($0.01 cost -> $0.05 price)
-    'anthropic/claude-3.5-sonnet': 5,
-    'google/gemini-3-pro-preview': 5, // Added as requested
+    'openai/gpt-4o': 6,           // Standard Premium (Increased for context handling)
+    'anthropic/claude-3.5-sonnet': 6, // Increased for context handling
+    'google/gemini-3-pro-preview': 6, // Increased for context handling
     'qwen/qwen-2.5-72b-instruct': 3,
 
     // Efficient/Free-tier Models (Charge 1 credit to cover infra/compute overhead)
     'google/gemini-2.5-flash': 1,
     'deepseek/deepseek-chat': 1,
     'deepseek/deepseek-chat-v3.1:free': 1,
+    'deepseek/deepseek-v3.2-exp': 1,          // DeepSeek V3.2 Experimental (Free)
+    'deepseek/deepseek-v3.2-speciale': 3,     // DeepSeek V3.2 Speciale (High Performance)
     'qwen/qwen3-coder:free': 1,
     'google/gemini-2.0-flash-exp:free': 1,
     'moonshotai/kimi-k2:free': 1,

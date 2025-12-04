@@ -8,7 +8,7 @@ export const runtime = 'edge';
 
 export async function POST(req: Request) {
     try {
-        const { messages, model } = await req.json();
+        const { messages, model, currentHtml } = await req.json();
 
         // 1. Authenticate User
         const supabase = await createClient();
@@ -23,6 +23,7 @@ export async function POST(req: Request) {
 
 
         // 2. Calculate Cost
+        // If modifying existing code (large context), we might want to adjust cost logic here in the future.
         const cost = calculateCost('chat', model || 'anthropic/claude-3.5-sonnet');
         console.log(`[Chat API] User: ${user.id}, Model: ${model}, Cost: ${cost}`);
 
@@ -133,7 +134,7 @@ export async function POST(req: Request) {
             }
         });
 
-        const systemPrompt = `你是一个专业的网页设计助手。你的任务是根据用户的需求生成完整的 HTML 代码。
+        let systemPrompt = `你是一个专业的网页设计助手。你的任务是根据用户的需求生成完整的 HTML 代码。
 
 规则：
 1. 必须生成完整的 HTML 文档，包含 <!DOCTYPE html>, <html>, <head>, <body> 标签
@@ -142,6 +143,10 @@ export async function POST(req: Request) {
 4. 如果用户提到了上传的素材，请在代码中使用这些素材的 URL
 5. 直接输出 HTML 代码，不要添加 markdown 代码块标记
 6. 确保代码可以直接在浏览器中运行`;
+
+        if (currentHtml) {
+            systemPrompt += `\n\n当前代码状态:\n\`\`\`html\n${currentHtml}\n\`\`\`\n\n用户想要修改上述代码。请基于用户的要求和当前代码，返回修改后的完整 HTML 代码。请保持原有代码结构，仅根据用户需求进行修改。`;
+        }
 
         console.log('[Chat API] Calling OpenRouter API with model:', model || 'anthropic/claude-3.5-sonnet');
         console.log('[Chat API] Message count:', messages.length);

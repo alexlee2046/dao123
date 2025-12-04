@@ -14,7 +14,7 @@ import { getModels, type Model } from "@/lib/actions/models";
 import { toast } from "sonner";
 
 export function ChatAssistant() {
-    const { assets, setHtmlContent, selectedModel, addAsset } = useStudioStore();
+    const { assets, htmlContent, setHtmlContent, selectedModel, addAsset } = useStudioStore();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [localInput, setLocalInput] = useState('');
     const [models, setModels] = useState<Model[]>([]);
@@ -29,6 +29,7 @@ export function ChatAssistant() {
         api: '/api/chat',
         body: {
             model: selectedModel,
+            currentHtml: htmlContent,
         },
         onFinish: (message: Message) => {
             const htmlContent = message.content;
@@ -341,7 +342,7 @@ export function ChatAssistant() {
                                 <>
                                     <option value="openai/gpt-5">GPT-5</option>
                                     <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash Exp (Free)</option>
-                                    <option value="deepseek/deepseek-chat-v3.1:free">DeepSeek Chat V3.1 (Free)</option>
+                                    <option value="deepseek/deepseek-v3.2-exp">DeepSeek V3.2 (Free)</option>
                                     <option value="qwen/qwen3-coder:free">Qwen3 Coder (Free)</option>
                                 </>
                             )}

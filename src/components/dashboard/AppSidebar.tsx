@@ -12,7 +12,8 @@ import {
     Globe,
     Settings,
     LogOut,
-    CreditCard
+    CreditCard,
+    Cpu
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getCredits } from "@/lib/actions/credits"
@@ -27,13 +28,19 @@ const sidebarItems = [
     { icon: Settings, label: "Settings", href: "/settings" },
 ]
 
+const adminItems = [
+    { icon: Cpu, label: "Model Management", href: "/admin/models" },
+]
+
 export function AppSidebar() {
     const pathname = usePathname()
     const router = useRouter()
     const [credits, setCredits] = useState<number | null>(null)
+    const [isAdmin, setIsAdmin] = useState(false)
 
     useEffect(() => {
         loadCredits()
+        checkAdminRole()
     }, [])
 
     const loadCredits = async () => {
@@ -42,6 +49,24 @@ export function AppSidebar() {
             setCredits(balance)
         } catch (error) {
             console.error('Failed to load credits:', error)
+        }
+    }
+
+    const checkAdminRole = async () => {
+        try {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+
+            setIsAdmin(profile?.role === 'admin')
+        } catch (error) {
+            console.error('Failed to check admin role:', error)
         }
     }
 
@@ -73,6 +98,27 @@ export function AppSidebar() {
                         </Button>
                     </Link>
                 ))}
+
+                {isAdmin && (
+                    <>
+                        <div className="pt-4 mt-4 border-t">
+                            <div className="px-2 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                Admin
+                            </div>
+                            {adminItems.map((item) => (
+                                <Link key={item.href} href={item.href}>
+                                    <Button
+                                        variant={pathname === item.href || pathname.startsWith(item.href) ? "secondary" : "ghost"}
+                                        className="w-full justify-start"
+                                    >
+                                        <item.icon className="mr-2 h-4 w-4" />
+                                        {item.label}
+                                    </Button>
+                                </Link>
+                            ))}
+                        </div>
+                    </>
+                )}
             </nav>
 
             <div className="p-4 border-t">
