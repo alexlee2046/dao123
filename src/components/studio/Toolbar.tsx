@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from '@/components/link';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -14,17 +14,30 @@ import { useEditor } from "@craftjs/core";
 import { useTranslations, useLocale } from 'next-intl';
 import { ModeToggle } from "@/components/mode-toggle";
 import { convertHtmlToBuilder } from "@/app/actions/ai-transform";
+import { getModels, type Model } from "@/lib/actions/models";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function Toolbar() {
   const router = useRouter();
-  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData } = useStudioStore();
+  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData, selectedModel, setSelectedModel } = useStudioStore();
   const [saving, setSaving] = React.useState(false);
   const [isRefining, setIsRefining] = React.useState(false);
+  const [models, setModels] = React.useState<Model[]>([]);
   const t = useTranslations('studio');
   const tCommon = useTranslations('common');
   const locale = useLocale();
 
   const { query, actions } = useEditor();
+
+  useEffect(() => {
+    getModels('chat').then(setModels);
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -145,41 +158,56 @@ export function Toolbar() {
         </ImportCodeModal>
 
         {isBuilderMode && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={async () => {
-              if (!htmlContent) {
-                toast.error(t('emptyContentError'));
-                return;
-              }
-              
-              if (!confirm("This will use AI to reconstruct the builder components from the original HTML. Current changes in the builder might be lost. Continue?")) {
-                  return;
-              }
+          <>
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger className="h-8 w-[180px] text-xs rounded-full border-border/50 bg-transparent">
+                <SelectValue placeholder={t('chatPanel.selectModel')} />
+              </SelectTrigger>
+              <SelectContent>
+                {models.map((model) => (
+                  <SelectItem key={model.id} value={model.id} className="text-xs">
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              try {
-                setIsRefining(true);
-                const result = await convertHtmlToBuilder(htmlContent as string);
-                if (result.success) {
-                  setBuilderData(result.data);
-                  toast.success(t('refineSuccess'));
-                } else {
-                  toast.error(t('refineError') + ': ' + result.error);
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                if (!htmlContent) {
+                  toast.error(t('emptyContentError'));
+                  return;
                 }
-              } catch (e: any) {
-                toast.error(e.message);
-              } finally {
-                setIsRefining(false);
-              }
-            }}
-            disabled={isRefining}
-            className="h-8 rounded-full px-3 text-xs font-medium border border-transparent hover:border-border/50 text-purple-500 hover:text-purple-600"
-            title={t('refineStructure')}
-          >
-            {isRefining ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5 mr-1.5" />}
-            {isRefining ? t('refining') : t('refineStructure')}
-          </Button>
+                
+                if (!confirm("This will use AI to reconstruct the builder components from the original HTML. Current changes in the builder might be lost. Continue?")) {
+                    return;
+                }
+
+                try {
+                  setIsRefining(true);
+                  const result = await convertHtmlToBuilder(htmlContent || '', selectedModel);
+                  if (result.success) {
+                    setBuilderData(result.data);
+                    toast.success(t('refineSuccess'));
+                  } else {
+                    toast.error(t('refineError') + ': ' + result.error);
+                  }
+                } catch (e: any) {
+                  toast.error(e.message);
+                } finally {
+                  setIsRefining(false);
+                }
+              }}
+              disabled={isRefining}
+              className="h-8 rounded-full px-3 text-xs font-medium border border-transparent hover:border-border/50 text-purple-500 hover:text-purple-600"
+              title={t('refineStructure')}
+            >
+              {isRefining ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5 mr-1.5" />}
+              {isRefining ? t('refining') : t('refineStructure')}
+            </Button>
+          </>
         )}
 
         <Button
