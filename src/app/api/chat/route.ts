@@ -1,4 +1,4 @@
-import { streamText } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createClient } from '@/lib/supabase/server';
 import { calculateCost } from '@/lib/pricing';
@@ -177,7 +177,7 @@ export async function POST(req: Request) {
         const result = streamText({
             model: openRouter(model || 'anthropic/claude-3.5-sonnet'),
             system: systemPrompt,
-            messages,
+            messages: convertToModelMessages(messages),
         });
 
         console.log('[Chat API] OpenRouter API call successful, streaming response...');
