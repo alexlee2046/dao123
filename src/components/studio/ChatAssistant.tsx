@@ -178,12 +178,15 @@ export function ChatAssistant() {
         // For now, let's add a toggle or just check a keyword like "build site" or if we are in builder mode?
         // Let's assume if the user clicks "生成" (Generate mode) we try to use the new flow if enabled.
 
-        // For this MVP, let's just hook it up:
+        // TEMPORARY: Disable auto-trigger of Agentic Workflow until it is fully stable and configured.
+        // Users reported accidental switching and 500 errors.
+        /*
         if (mode === 'direct' && (contentToSend.includes('网站') || contentToSend.includes('page') || contentToSend.includes('site'))) {
             await startGeneration(contentToSend);
             setLocalInput('');
             return;
         }
+        */
 
         let messageContent = contentToSend;
         if (chatAssets.length > 0) {
