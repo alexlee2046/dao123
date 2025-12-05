@@ -411,6 +411,7 @@
         "footer": "页脚",
         "customCode": "自定义代码",
         "selectToEdit": "点击画布中的组件进行编辑",
+        "selectElementPrompt": "请选择一个元素",
         "settingsSuffix": " 设置",
         "textContent": "文本内容",
         "imageLink": "图片链接",

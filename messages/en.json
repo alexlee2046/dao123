@@ -411,6 +411,7 @@
         "footer": "Footer",
         "customCode": "Custom Code",
         "selectToEdit": "Click a component on canvas to edit",
+        "selectElementPrompt": "Select an element",
         "settingsSuffix": " Settings",
         "textContent": "Text Content",
         "imageLink": "Image Link",
