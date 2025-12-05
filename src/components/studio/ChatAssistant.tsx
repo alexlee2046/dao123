@@ -90,15 +90,31 @@ export function ChatAssistant() {
         return null;
     };
 
-    // Configure transport with API endpoint and body parameters
+    // 使用 refs 来存储动态值，确保每次请求时获取最新值
+    const selectedModelRef = useRef(selectedModel);
+    const htmlContentRef = useRef(htmlContent);
+    const modeRef = useRef(mode);
+
+    // 更新 refs
+    useEffect(() => {
+        selectedModelRef.current = selectedModel;
+    }, [selectedModel]);
+    useEffect(() => {
+        htmlContentRef.current = htmlContent;
+    }, [htmlContent]);
+    useEffect(() => {
+        modeRef.current = mode;
+    }, [mode]);
+
+    // Configure transport with API endpoint and dynamic body parameters
     const transport = useMemo(() => new DefaultChatTransport({
         api: '/api/chat',
-        body: {
-            model: selectedModel,
-            currentHtml: htmlContent,
-            mode,
-        },
-    }), [selectedModel, htmlContent, mode]);
+        body: () => ({
+            model: selectedModelRef.current,
+            currentHtml: htmlContentRef.current,
+            mode: modeRef.current,
+        }),
+    }), []);
 
     const { messages, sendMessage, stop, status, error } = useChat({
         transport,
