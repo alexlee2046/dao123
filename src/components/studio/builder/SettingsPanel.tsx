@@ -136,6 +136,19 @@ export const SettingsPanel = () => {
         });
     };
 
+    // 如果没有选中任何组件，显示提示信息
+    if (!selected) {
+        return (
+            <div className="h-full flex flex-col items-center justify-center p-4 text-center text-muted-foreground space-y-2">
+                <div className="p-3 bg-muted rounded-full">
+                    <Monitor className="h-6 w-6 opacity-50" />
+                </div>
+                <p className="text-sm font-medium">{t('selectElementPrompt')}</p>
+                <p className="text-xs max-w-[200px] opacity-70">Click on any element in the canvas to customize its properties</p>
+            </div>
+        );
+    }
+
     // 判断组件类型
     const componentName = selected.name || selected.displayName || '';
     const isTextComponent = componentName.includes('Text') || componentName.includes('Link');
