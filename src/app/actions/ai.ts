@@ -35,10 +35,11 @@ function getProvider(modelName: string) {
 export async function generateSitePlan(prompt: string, model: string) {
     'use server';
 
-    const cost = calculateCost('agent_architect', model);
-    await deductCredits(cost, `Architect Agent: ${model}`);
+    try {
+        const cost = calculateCost('agent_architect', model);
+        await deductCredits(cost, `Architect Agent: ${model}`);
 
-    const systemPrompt = `
+        const systemPrompt = `
     You are an expert Website Architect. Your goal is to plan the structure of a high-converting, aesthetically pleasing website based on the user's request.
     
     Analyze the user's request and break it down into logical sections.
@@ -47,14 +48,18 @@ export async function generateSitePlan(prompt: string, model: string) {
     Be specific about content requirements.
   `;
 
-    const { object } = await generateObject({
-        model: getProvider(model),
-        schema: SitePlanSchema,
-        system: systemPrompt,
-        prompt: prompt,
-    });
+        const { object } = await generateObject({
+            model: getProvider(model),
+            schema: SitePlanSchema,
+            system: systemPrompt,
+            prompt: prompt,
+        });
 
-    return object;
+        return object;
+    } catch (error: any) {
+        console.error('Error in generateSitePlan:', error);
+        throw new Error(error.message || 'Failed to generate site plan');
+    }
 }
 
 // 2. Designer Agent: Generate Design System

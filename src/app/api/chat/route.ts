@@ -174,10 +174,25 @@ export async function POST(req: Request) {
         console.log('[Chat API] Calling OpenRouter API with model:', model || 'anthropic/claude-3.5-sonnet');
         console.log('[Chat API] Message count:', messages.length);
 
+        // 清洗消息：确保 content 是字符串，如果前端传来了数组（旧版或错误格式），尝试修复
+        const cleanMessages = messages.map((m: any) => {
+            if (Array.isArray(m.content)) {
+                // 如果 content 是数组，说明可能是 parts 结构被错误地放在了 content 字段
+                // 或者这是新版 SDK 的某种内部格式
+                // 我们将其转换为空字符串，并确保 parts 存在（如果原数组是 parts）
+                return {
+                    ...m,
+                    content: m.content.map((p: any) => p.text || '').join(''), // 尝试提取文本
+                    // 如果需要保留 parts，可以尝试: parts: m.content
+                };
+            }
+            return m;
+        });
+
         const result = streamText({
             model: openRouter(model || 'anthropic/claude-3.5-sonnet'),
             system: systemPrompt,
-            messages: convertToModelMessages(messages),
+            messages: convertToModelMessages(cleanMessages),
         });
 
         console.log('[Chat API] OpenRouter API call successful, streaming response...');
