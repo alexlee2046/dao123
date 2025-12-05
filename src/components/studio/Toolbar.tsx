@@ -125,14 +125,13 @@ export function Toolbar() {
           variant={isBuilderMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => {
-            // 当进入构建模式时，检查是否需要同步 AI 内容
-            if (!isBuilderMode) {
-              const currentData = query.getSerializedNodes();
-              // 检查编辑器是否为空（只有 ROOT 节点或完全为空）
-              const isBasicallyEmpty = !currentData || Object.keys(currentData).length <= 1;
+            // 当进入构建模式时，同步 AI 生成的内容到 Craft.js 编辑器
+            if (!isBuilderMode && htmlContent) {
+              // 检查是否是初始默认内容（不需要同步）
+              const isDefaultContent = htmlContent.includes('欢迎来到您的新网站') ||
+                htmlContent.includes('Welcome to your new website');
 
-              // 如果编辑器为空，且有 AI 生成的 HTML 内容，则进行同步
-              if (isBasicallyEmpty && htmlContent) {
+              if (!isDefaultContent) {
                 const initialData = {
                   "ROOT": {
                     "type": { "resolvedName": "BuilderContainer" },
