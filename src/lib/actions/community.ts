@@ -35,6 +35,12 @@ export async function getCommunityProjects() {
             .eq('is_public', true)
             .order('published_at', { ascending: false })
 
+        console.log('[getCommunityProjects] Query result:', {
+            count: data?.length || 0,
+            error: error?.message,
+            firstProject: data?.[0]?.name
+        });
+
         if (error) {
             console.error("Supabase error fetching community projects:", error);
             throw new Error(error.message)
@@ -68,7 +74,9 @@ export async function publishProject(id: string, price: number) {
 
     if (!user) throw new Error('Unauthorized')
 
-    const { error } = await supabase
+    console.log('[publishProject] Publishing project:', { id, price, userId: user.id });
+
+    const { data, error } = await supabase
         .from('projects')
         .update({
             is_public: true,
@@ -77,8 +85,19 @@ export async function publishProject(id: string, price: number) {
         })
         .eq('id', id)
         .eq('user_id', user.id)
+        .select()
+
+    console.log('[publishProject] Update result:', {
+        success: !error,
+        updatedRows: data?.length || 0,
+        error: error?.message
+    });
 
     if (error) throw new Error(error.message)
+    if (!data || data.length === 0) {
+        throw new Error('Project not found or you do not have permission to publish it')
+    }
+
     revalidatePath('/community')
 }
 
