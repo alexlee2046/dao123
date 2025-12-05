@@ -25,13 +25,14 @@ export async function getCommunityProjects() {
     const supabase = await createClient()
 
     try {
+        // Note: Cannot directly join auth.users, use profiles table instead
         const { data, error } = await supabase
             .from('projects')
             .select(`
-          *,
-          user:user_id(email),
-          ratings(score)
-        `)
+              *,
+              profiles:user_id(email),
+              ratings(score)
+            `)
             .eq('is_public', true)
             .order('published_at', { ascending: false })
 
@@ -48,7 +49,7 @@ export async function getCommunityProjects() {
 
         if (!data) return [];
 
-        // Calculate average rating safely
+        // Calculate average rating safely and map user info
         return data.map((project: any) => {
             const ratings = Array.isArray(project.ratings) ? project.ratings : [];
             const averageRating = ratings.length > 0
@@ -57,6 +58,7 @@ export async function getCommunityProjects() {
 
             return {
                 ...project,
+                user: project.profiles, // Map profiles to user for compatibility
                 averageRating,
                 ratingCount: ratings.length
             };
