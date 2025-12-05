@@ -137,56 +137,65 @@ export function Toolbar() {
         <Button
           variant={isBuilderMode ? "secondary" : "ghost"}
           size="sm"
-          onClick={() => {
+          onClick={async () => {
             if (!isBuilderMode) {
               // 如果编辑器是空的，且我们有 HTML 内容，尝试将其转换为 Builder 数据
-              // 注意：我们通过检查 store 中的 builderData 来判断，或者简单地覆盖它（如果这是第一次进入且 builderData 是空的）
-              const isBasicallyEmpty = !builderData || builderData === '{}' || (JSON.parse(builderData).ROOT && JSON.parse(builderData).ROOT.nodes.length === 0);
+              let isBasicallyEmpty = !builderData || builderData === '{}';
+
+              if (!isBasicallyEmpty && builderData) {
+                try {
+                  const parsed = JSON.parse(builderData);
+                  // 检查 ROOT 节点是否为空（没有子节点）
+                  isBasicallyEmpty = !parsed.ROOT || (parsed.ROOT.nodes && parsed.ROOT.nodes.length === 0);
+                } catch (e) {
+                  // 解析失败，视为空
+                  isBasicallyEmpty = true;
+                }
+              }
 
               if (isBasicallyEmpty && htmlContent) {
                 try {
                   console.log("Auto-converting HTML content to Builder data...");
                   // 动态导入解析器以避免服务端渲染问题（它使用了 DOMParser）
-                  import('@/lib/builder/htmlInfoCraft').then(({ htmlToCraftData }) => {
-                    const craftJson = htmlToCraftData(htmlContent);
-                    setBuilderData(craftJson);
-                  });
+                  const { htmlToCraftData } = await import('@/lib/builder/htmlInfoCraft');
+                  const craftJson = htmlToCraftData(htmlContent);
+                  console.log("Conversion successful, setting builder data...");
+                  setBuilderData(craftJson);
                 } catch (e) {
                   console.error("Failed to convert HTML to Builder data:", e);
-                  // 降级：仅包裹在 CustomHTML 中 (旧逻辑)
-                  import('@/components/builder/special/CustomHTML').then(({ CustomHTML }) => {
-                    const fallbackJson = JSON.stringify({
-                      "ROOT": {
-                        "type": { "resolvedName": "BuilderContainer" },
-                        "isCanvas": true,
-                        "props": { "className": "w-full min-h-screen bg-white" },
-                        "displayName": "Body",
-                        "custom": {},
-                        "hidden": false,
-                        "nodes": ["fallback-node"],
-                        "linkedNodes": {}
-                      },
-                      "fallback-node": {
-                        "type": { "resolvedName": "CustomHTML" },
-                        "isCanvas": true,
-                        "props": { "code": htmlContent },
-                        "displayName": "Custom HTML",
-                        "custom": {},
-                        "hidden": false,
-                        "nodes": [],
-                        "linkedNodes": {},
-                        "parent": "ROOT"
-                      }
-                    });
-                    setBuilderData(fallbackJson);
+                  // 降级：仅包裹在 CustomHTML 中
+                  const fallbackJson = JSON.stringify({
+                    "ROOT": {
+                      "type": { "resolvedName": "BuilderContainer" },
+                      "isCanvas": true,
+                      "props": { "className": "w-full min-h-screen bg-white" },
+                      "displayName": "Body",
+                      "custom": {},
+                      "hidden": false,
+                      "nodes": ["fallback-node"],
+                      "linkedNodes": {}
+                    },
+                    "fallback-node": {
+                      "type": { "resolvedName": "CustomHTML" },
+                      "isCanvas": true,
+                      "props": { "code": htmlContent },
+                      "displayName": "Custom HTML",
+                      "custom": {},
+                      "hidden": false,
+                      "nodes": [],
+                      "linkedNodes": {},
+                      "parent": "ROOT"
+                    }
                   });
+                  setBuilderData(fallbackJson);
                 }
               }
 
+              // 等待一小段时间让状态更新
+              await new Promise(resolve => setTimeout(resolve, 100));
               toggleBuilderMode();
             } else {
               // 切换回 AI 模式
-              // TODO: 可选 - 将 Builder 数据反向转换为 HTML（非常困难，暂时不处理）
               toggleBuilderMode();
             }
           }}
