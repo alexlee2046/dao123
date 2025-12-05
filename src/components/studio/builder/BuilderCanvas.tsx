@@ -13,9 +13,28 @@ export const BuilderCanvas = () => {
     useEffect(() => {
         if (builderData) {
             try {
+                // 验证数据格式
+                const data = typeof builderData === 'string' ? JSON.parse(builderData) : builderData;
+
+                // 检查是否有 ROOT 节点
+                if (!data.ROOT) {
+                    console.warn("Builder data missing ROOT node, using default");
+                    return;
+                }
+
+                // 验证所有节点都有必需的属性
+                for (const [nodeId, node] of Object.entries(data)) {
+                    const nodeData = node as any;
+                    if (!nodeData.type || !nodeData.type.resolvedName) {
+                        console.warn(`Node ${nodeId} has invalid type, skipping deserialization`);
+                        return;
+                    }
+                }
+
                 actions.deserialize(builderData);
             } catch (e) {
-                console.error("Failed to load builder data", e);
+                console.error("Failed to load builder data:", e);
+                // 不要崩溃，让默认画布显示
             }
         }
     }, [builderData, actions]);

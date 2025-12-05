@@ -70,14 +70,18 @@ export const SettingsPanel = () => {
         let selected: any;
 
         if (currentNodeId) {
-            selected = {
-                id: currentNodeId,
-                name: state.nodes[currentNodeId].data.name,
-                displayName: state.nodes[currentNodeId].data.displayName,
-                settings: state.nodes[currentNodeId].related && state.nodes[currentNodeId].related.settings,
-                isDeletable: query.node(currentNodeId).isDeletable(),
-                ...state.nodes[currentNodeId].data.props,
-            };
+            const node = state.nodes[currentNodeId];
+            // 安全检查：确保节点和节点数据存在
+            if (node && node.data) {
+                selected = {
+                    id: currentNodeId,
+                    name: node.data.name || node.data.displayName || 'Unknown',
+                    displayName: node.data.displayName || node.data.name || 'Unknown',
+                    settings: node.related && node.related.settings,
+                    isDeletable: query.node(currentNodeId).isDeletable(),
+                    ...(node.data.props || {}),
+                };
+            }
         }
 
         return {
