@@ -25,7 +25,7 @@ import {
 
 export function Toolbar() {
   const router = useRouter();
-  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData, selectedModel, setSelectedModel } = useStudioStore();
+  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData, selectedModel, setSelectedModel, openRouterApiKey } = useStudioStore();
   const [saving, setSaving] = React.useState(false);
   const [isRefining, setIsRefining] = React.useState(false);
   const [models, setModels] = React.useState<Model[]>([]);
@@ -187,7 +187,7 @@ export function Toolbar() {
 
                 try {
                   setIsRefining(true);
-                  const result = await convertHtmlToBuilder(htmlContent || '', selectedModel);
+                  const result = await convertHtmlToBuilder(htmlContent || '', selectedModel, openRouterApiKey);
                   if (result.success) {
                     setBuilderData(result.data || null);
                     toast.success(t('refineSuccess'));

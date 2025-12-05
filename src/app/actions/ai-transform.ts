@@ -10,20 +10,19 @@ import { createClient } from '@/lib/supabase/server';
 import { deductCredits } from '@/lib/actions/credits';
 
 // Initialize providers
-const openRouter = createOpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY,
-});
-
-const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-});
-
-function getProvider(modelName: string) {
+function getProvider(modelName: string, apiKey?: string) {
     if (modelName.startsWith('google/')) {
         const cleanName = modelName.replace('google/', '');
+        const google = createGoogleGenerativeAI({
+            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+        });
         return google(cleanName);
     }
+
+    const openRouter = createOpenAI({
+        baseURL: 'https://openrouter.ai/api/v1',
+        apiKey: apiKey || process.env.OPENROUTER_API_KEY,
+    });
     return openRouter(modelName);
 }
 
@@ -55,12 +54,14 @@ async function deductAgentCredits(baseCost: number, model: string, description: 
  * AI Transformation: HTML to Builder JSON
  * Uses an LLM to intelligently convert raw HTML into structured Builder components.
  */
-export async function convertHtmlToBuilder(html: string, model: string = 'anthropic/claude-3.5-sonnet') {
+export async function convertHtmlToBuilder(html: string, model: string = 'anthropic/claude-3.5-sonnet', apiKey?: string) {
     try {
         // Deduct credits for this operation (treat as 'agent_builder' or similar cost)
-        // Using a slightly lower cost or same as builder since it's one pass
-        const cost = calculateCost('agent_builder', model); 
-        await deductAgentCredits(cost, model, `AI Transformation: HTML to Builder (${model})`);
+        // Only deduct credits if no custom API key is provided
+        if (!apiKey) {
+            const cost = calculateCost('agent_builder', model); 
+            await deductAgentCredits(cost, model, `AI Transformation: HTML to Builder (${model})`);
+        }
 
         const systemPrompt = `
         You are an expert React Component Builder using Craft.js.
@@ -98,7 +99,7 @@ export async function convertHtmlToBuilder(html: string, model: string = 'anthro
         `;
 
         const { object } = await generateObject({
-            model: getProvider(model),
+            model: getProvider(model, apiKey),
             schema: ComponentSchema,
             system: systemPrompt,
             prompt: `Convert this HTML to Builder JSON:\n\n${html.substring(0, 20000)}`, // Limit length to avoid context overflow
