@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { SettingsForm } from '@/components/settings/SettingsForm';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -9,11 +10,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     };
 }
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'settings' });
+
     return (
-        <div className="p-8">
-            <h1 className="text-3xl font-bold mb-4">Settings Page</h1>
-            <p>This page will display user settings.</p>
+        <div className="container max-w-4xl py-10">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+                <p className="text-muted-foreground">
+                    {t('general')}
+                </p>
+            </div>
+            <SettingsForm />
         </div>
     );
 }

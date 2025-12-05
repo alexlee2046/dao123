@@ -110,3 +110,45 @@ export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architec
 
     return 0;
 }
+
+export function calculateUserCost(baseCost: number, modelId: string, membershipTier: 'free' | 'pro' = 'free'): number {
+    // Define Free Models based on cost (<= 1)
+    // This aligns with the pricing strategy where efficient models are ~1 credit
+    const isFreeModel = baseCost <= 1;
+
+    if (membershipTier === 'free') {
+        if (!isFreeModel) {
+            // Premium model for free user -> Blocked
+            // We return -1 to indicate this action is not allowed for the current tier
+            return -1;
+        }
+        // Free user pays for free models
+        return baseCost;
+    }
+
+    if (membershipTier === 'pro') {
+        if (isFreeModel) {
+            // Pro user gets free models for 0 credits
+            return 0;
+        }
+        // Pro user pays for premium models
+        return baseCost;
+    }
+
+    return baseCost;
+}
+
+export function getEffectiveTier(profile: { membership_tier?: string | null, membership_expires_at?: string | null }): 'free' | 'pro' {
+    if (profile?.membership_tier === 'pro') {
+        // Check expiry if present
+        if (profile.membership_expires_at) {
+            const expiresAt = new Date(profile.membership_expires_at);
+            // Give a small buffer (e.g. 1 hour) or strict check
+            if (expiresAt < new Date()) {
+                return 'free';
+            }
+        }
+        return 'pro';
+    }
+    return 'free';
+}

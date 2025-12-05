@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from "@/components/ui/button";
-import { Smartphone, Monitor, RefreshCw, ExternalLink } from "lucide-react";
+import { Smartphone, Monitor, Tablet, RefreshCw, ExternalLink } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +16,7 @@ import { BuilderCanvas } from "@/components/studio/builder/BuilderCanvas";
 
 export function LivePreview() {
     const t = useTranslations('preview');
-    const { htmlContent, isMobileView, toggleViewMode, pages, currentPage, setCurrentPage, isBuilderMode } = useStudioStore();
+    const { htmlContent, previewDevice, setPreviewDevice, pages, currentPage, setCurrentPage, isBuilderMode } = useStudioStore();
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     useEffect(() => {
@@ -167,19 +167,28 @@ export function LivePreview() {
 
                 <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5 border border-border/50">
                     <Button
-                        variant={!isMobileView ? "secondary" : "ghost"}
+                        variant={previewDevice === 'desktop' ? "secondary" : "ghost"}
                         size="icon"
                         className="h-7 w-7 rounded-md"
-                        onClick={() => isMobileView && toggleViewMode()}
+                        onClick={() => setPreviewDevice('desktop')}
                         title={t('desktopView')}
                     >
                         <Monitor className="h-3.5 w-3.5" />
                     </Button>
                     <Button
-                        variant={isMobileView ? "secondary" : "ghost"}
+                        variant={previewDevice === 'tablet' ? "secondary" : "ghost"}
                         size="icon"
                         className="h-7 w-7 rounded-md"
-                        onClick={() => !isMobileView && toggleViewMode()}
+                        onClick={() => setPreviewDevice('tablet')}
+                        title="Tablet"
+                    >
+                        <Tablet className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                        variant={previewDevice === 'mobile' ? "secondary" : "ghost"}
+                        size="icon"
+                        className="h-7 w-7 rounded-md"
+                        onClick={() => setPreviewDevice('mobile')}
                         title={t('mobileView')}
                     >
                         <Smartphone className="h-3.5 w-3.5" />
@@ -206,23 +215,25 @@ export function LivePreview() {
                 <div
                     className={cn(
                         "bg-white shadow-2xl transition-all duration-500 ease-in-out relative z-10 overflow-hidden",
-                        isMobileView
+                        previewDevice === 'mobile'
                             ? "w-[375px] h-[667px] rounded-[40px] border-[8px] border-zinc-800 ring-1 ring-black/5"
+                            : previewDevice === 'tablet'
+                            ? "w-[768px] h-[1024px] rounded-[20px] border-[8px] border-zinc-800 ring-1 ring-black/5"
                             : "w-full h-full rounded-lg border border-border/50 ring-1 ring-black/5"
                     )}
                 >
-                    {isMobileView && (
+                    {previewDevice === 'mobile' && (
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-zinc-800 rounded-b-xl z-20"></div>
                     )}
 
                     {isBuilderMode ? (
-                        <div className={cn("w-full h-full bg-white overflow-y-auto", isMobileView ? "rounded-[32px]" : "rounded-lg")}>
+                        <div className={cn("w-full h-full bg-white overflow-y-auto", previewDevice === 'mobile' ? "rounded-[32px]" : "rounded-lg")}>
                             <BuilderCanvas />
                         </div>
                     ) : (
                         <iframe
                             ref={iframeRef}
-                            className={cn("w-full h-full border-0 bg-white", isMobileView ? "rounded-[32px]" : "rounded-lg")}
+                            className={cn("w-full h-full border-0 bg-white", previewDevice === 'mobile' ? "rounded-[32px]" : "rounded-lg")}
                             title="Preview"
                             sandbox="allow-scripts allow-same-origin allow-forms"
                         />

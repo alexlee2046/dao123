@@ -6,7 +6,8 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { DesignSystemSchema, SitePlanSchema, ComponentSchema } from '@/lib/ai/schemas';
 import { z } from 'zod';
 import { deductCredits } from '@/lib/actions/credits';
-import { calculateCost } from '@/lib/pricing';
+import { calculateCost, calculateUserCost, getEffectiveTier } from '@/lib/pricing';
+import { createClient } from '@/lib/supabase/server';
 
 // Initialize providers
 const openRouter = createOpenAI({
@@ -21,14 +22,35 @@ const google = createGoogleGenerativeAI({
 // Helper to get provider based on model string
 function getProvider(modelName: string) {
     if (modelName.startsWith('google/')) {
-        // Remove prefix for Google provider if needed, or pass as is if SDK handles it
-        // The Vercel Google provider expects model names like 'models/gemini-1.5-pro-latest'
-        // But our frontend sends 'google/gemini-2.0-flash-exp:free'
-        // Let's map common ones or just strip prefix
         const cleanName = modelName.replace('google/', '');
         return google(cleanName);
     }
     return openRouter(modelName);
+}
+
+// Helper to deduct credits with tier check
+async function deductAgentCredits(baseCost: number, model: string, description: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error('User not authenticated');
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('membership_tier, membership_expires_at')
+        .eq('id', user.id)
+        .single();
+    
+    const effectiveTier = getEffectiveTier(profile || {});
+    const actualCost = calculateUserCost(baseCost, model, effectiveTier);
+
+    if (actualCost < 0) {
+        throw new Error(`您的会员等级 (${effectiveTier === 'pro' ? '专业版' : '免费版'}) 无法使用此高级模型 (${model})，请升级会员。`);
+    }
+    
+    if (actualCost > 0) {
+        await deductCredits(actualCost, description);
+    }
 }
 
 // 1. Architect Agent: Generate Site Plan
@@ -37,7 +59,7 @@ export async function generateSitePlan(prompt: string, model: string) {
 
     try {
         const cost = calculateCost('agent_architect', model);
-        await deductCredits(cost, `Architect Agent: ${model}`);
+        await deductAgentCredits(cost, model, `Architect Agent: ${model}`);
 
         const systemPrompt = `
     You are an expert Website Architect. Your goal is to plan the structure of a high-converting, aesthetically pleasing website based on the user's request.
@@ -67,7 +89,7 @@ export async function generateDesignSystem(intent: string, model: string) {
     'use server';
 
     const cost = calculateCost('agent_designer', model);
-    await deductCredits(cost, `Designer Agent: ${model}`);
+    await deductAgentCredits(cost, model, `Designer Agent: ${model}`);
 
     const systemPrompt = `
     You are a world-class UI/UX Designer. Your goal is to create a cohesive design system (Tailwind CSS tokens) for a website.
@@ -104,7 +126,7 @@ export async function streamSectionGeneration(
     // Note: Streaming makes it harder to deduct credits upfront if we want to charge per token, 
     // but we are charging per section (fixed cost).
     const cost = calculateCost('agent_builder', model);
-    await deductCredits(cost, `Builder Agent (Stream): ${sectionType} using ${model}`);
+    await deductAgentCredits(cost, model, `Builder Agent (Stream): ${sectionType} using ${model}`);
 
     const systemPrompt = `
     You are an expert React Component Builder using Craft.js.
@@ -148,7 +170,7 @@ export async function generateSection(
     'use server';
 
     const cost = calculateCost('agent_builder', model);
-    await deductCredits(cost, `Builder Agent: ${sectionType} using ${model}`);
+    await deductAgentCredits(cost, model, `Builder Agent: ${sectionType} using ${model}`);
 
     const systemPrompt = `
     You are an expert React Component Builder using Craft.js.

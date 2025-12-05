@@ -1,7 +1,7 @@
 import { streamText, convertToModelMessages } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createClient } from '@/lib/supabase/server';
-import { calculateCost } from '@/lib/pricing';
+import { calculateCost, calculateUserCost, getEffectiveTier } from '@/lib/pricing';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
@@ -24,8 +24,8 @@ export async function POST(req: Request) {
 
         // 2. Calculate Cost
         // If modifying existing code (large context), we might want to adjust cost logic here in the future.
-        const cost = calculateCost('chat', model || 'anthropic/claude-3.5-sonnet');
-        console.log(`[Chat API] User: ${user.id}, Model: ${model}, Cost: ${cost}, Mode: ${mode}`);
+        const baseCost = calculateCost('chat', model || 'anthropic/claude-3.5-sonnet');
+        console.log(`[Chat API] User: ${user.id}, Model: ${model}, Base Cost: ${baseCost}, Mode: ${mode}`);
 
         // 3. Check and Deduct Credits (using Admin Client for security)
         const adminSupabase = createSupabaseClient(
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         // Get current credits
         const { data: profile, error: profileError } = await adminSupabase
             .from('profiles')
-            .select('credits')
+            .select('credits, membership_tier, membership_expires_at')
             .eq('id', user.id)
             .single();
 
@@ -59,12 +59,25 @@ export async function POST(req: Request) {
             );
         }
 
-        console.log(`[Chat API] User credits: ${profile.credits}, Required: ${cost}`);
+        const effectiveTier = getEffectiveTier(profile);
+        const actualCost = calculateUserCost(baseCost, model || 'anthropic/claude-3.5-sonnet', effectiveTier);
+        console.log(`[Chat API] User Tier: ${effectiveTier} (Raw: ${profile.membership_tier}), Actual Cost: ${actualCost}`);
 
-        if (profile.credits < cost) {
+        if (actualCost < 0) {
+             return new Response(
+                JSON.stringify({
+                    error: `您的会员等级 (${effectiveTier === 'pro' ? '专业版' : '免费版'}) 无法使用此高级模型，请升级会员。`
+                }),
+                { status: 403, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
+
+        console.log(`[Chat API] User credits: ${profile.credits}, Required: ${actualCost}`);
+
+        if (profile.credits < actualCost) {
             return new Response(
                 JSON.stringify({
-                    error: `积分不足 (当前: ${profile.credits}, 需要: ${cost})`
+                    error: `积分不足 (当前: ${profile.credits}, 需要: ${actualCost})`
                 }),
                 { status: 402, headers: { 'Content-Type': 'application/json' } }
             );
@@ -73,7 +86,7 @@ export async function POST(req: Request) {
         // Deduct credits
         const { error: updateError } = await adminSupabase
             .from('profiles')
-            .update({ credits: profile.credits - cost })
+            .update({ credits: profile.credits - actualCost })
             .eq('id', user.id);
 
         if (updateError) {
@@ -87,17 +100,19 @@ export async function POST(req: Request) {
             );
         }
 
-        console.log(`[Chat API] Credits deducted successfully. New balance: ${profile.credits - cost}`);
+        console.log(`[Chat API] Credits deducted successfully. New balance: ${profile.credits - actualCost}`);
 
         // Record transaction (async, don't block)
-        adminSupabase.from('transactions').insert({
-            user_id: user.id,
-            amount: -cost,
-            type: 'usage',
-            description: `Chat generation (${model})`
-        }).then(({ error }) => {
-            if (error) console.error('Failed to record transaction:', error);
-        });
+        if (actualCost > 0) {
+            adminSupabase.from('transactions').insert({
+                user_id: user.id,
+                amount: -actualCost,
+                type: 'usage',
+                description: `Chat generation (${model})`
+            }).then(({ error }) => {
+                if (error) console.error('Failed to record transaction:', error);
+            });
+        }
 
         // 4. Get API Key
         const { data: setting, error: settingError } = await adminSupabase

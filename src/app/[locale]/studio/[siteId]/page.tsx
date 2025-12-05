@@ -17,10 +17,29 @@ import { useStudioStore } from "@/lib/store";
 import { getProject } from "@/lib/actions/projects";
 import { toast } from "sonner";
 import { Editor } from '@craftjs/core';
+
+// Atoms
 import { BuilderText } from '@/components/builder/atoms/BuilderText';
 import { BuilderButton } from '@/components/builder/atoms/BuilderButton';
 import { BuilderImage } from '@/components/builder/atoms/BuilderImage';
 import { BuilderContainer } from '@/components/builder/atoms/BuilderContainer';
+import { BuilderLink } from '@/components/builder/atoms/BuilderLink';
+import { BuilderDivider } from '@/components/builder/atoms/BuilderDivider';
+import { BuilderSpacer } from '@/components/builder/atoms/BuilderSpacer';
+import { BuilderVideo } from '@/components/builder/atoms/BuilderVideo';
+
+// Layout
+import { BuilderRow } from '@/components/builder/layout/BuilderRow';
+import { BuilderColumn } from '@/components/builder/layout/BuilderColumn';
+import { BuilderGrid } from '@/components/builder/layout/BuilderGrid';
+
+// Blocks
+import { BuilderCard } from '@/components/builder/blocks/BuilderCard';
+import { BuilderHero } from '@/components/builder/blocks/BuilderHero';
+import { BuilderNavbar } from '@/components/builder/blocks/BuilderNavbar';
+import { BuilderFooter } from '@/components/builder/blocks/BuilderFooter';
+
+// Special
 import { CustomHTML } from '@/components/builder/special/CustomHTML';
 
 import { useTranslations } from 'next-intl';
@@ -64,10 +83,25 @@ export default function StudioPage() {
     return (
         <Editor
             resolver={{
+                // Atoms
                 BuilderText,
                 BuilderButton,
                 BuilderImage,
                 BuilderContainer,
+                BuilderLink,
+                BuilderDivider,
+                BuilderSpacer,
+                BuilderVideo,
+                // Layout
+                BuilderRow,
+                BuilderColumn,
+                BuilderGrid,
+                // Blocks
+                BuilderCard,
+                BuilderHero,
+                BuilderNavbar,
+                BuilderFooter,
+                // Special
                 CustomHTML
             }}
         >

@@ -41,8 +41,8 @@ interface StudioState {
   removeAsset: (id: string) => void;
 
   // UI State
-  isMobileView: boolean;
-  toggleViewMode: () => void;
+  previewDevice: 'desktop' | 'tablet' | 'mobile';
+  setPreviewDevice: (device: 'desktop' | 'tablet' | 'mobile') => void;
 
   // History
   past: { pages: Page[], currentPage: string }[];
@@ -160,8 +160,8 @@ export const useStudioStore = create<StudioState>((set) => {
     setAssets: (assets: Asset[]) => set({ assets }),
     removeAsset: (id: string) => set((state) => ({ assets: state.assets.filter(a => a.id !== id) })),
 
-    isMobileView: false,
-    toggleViewMode: () => set((state) => ({ isMobileView: !state.isMobileView })),
+    previewDevice: 'desktop',
+    setPreviewDevice: (device) => set({ previewDevice: device }),
 
     past: [],
     future: [],

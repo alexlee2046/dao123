@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { deductCredits, getCredits } from '@/lib/actions/credits';
 import { getImageModelConfig } from '@/lib/ai-config';
+import { calculateUserCost, getEffectiveTier } from '@/lib/pricing';
 
 export async function POST(req: Request) {
     try {
@@ -18,6 +19,15 @@ export async function POST(req: Request) {
         if (!user) {
             return NextResponse.json({ error: '未授权' }, { status: 401 });
         }
+
+        // Get User Profile for Tier
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('membership_tier, membership_expires_at, credits')
+            .eq('id', user.id)
+            .single();
+        
+        const effectiveTier = getEffectiveTier(profile || {});
 
         // 2. Get Platform API Key from DB
         let apiKey = process.env.OPENROUTER_API_KEY;
@@ -49,17 +59,21 @@ export async function POST(req: Request) {
         // 3. Validate Model & Cost
         const modelConfig = getImageModelConfig(model);
         const selectedModel = modelConfig.id;
-        const cost = modelConfig.cost;
+        const baseCost = modelConfig.cost;
 
-        // 4. Check Credits (Read-only check to fail fast)
-        // Only check if not using own key? Usually we deduct credits for platform usage.
-        // If user provides key, maybe we shouldn't deduct credits?
-        // For now, let's assume we always deduct credits as per original logic,
-        // unless the original logic implied something else.
-        // The original logic DEDUCTED credits regardless of key source, so we keep it.
+        // Calculate Actual Cost based on Tier
+        const actualCost = calculateUserCost(baseCost, selectedModel, effectiveTier);
 
-        const currentCredits = await getCredits();
-        if (currentCredits < cost) {
+        if (actualCost < 0) {
+             return NextResponse.json({ 
+                 error: `您的会员等级 (${effectiveTier === 'pro' ? '专业版' : '免费版'}) 无法使用此高级模型，请升级会员。` 
+             }, { status: 403 });
+        }
+
+        // 4. Check Credits
+        const currentCredits = profile?.credits || 0;
+        
+        if (currentCredits < actualCost) {
              return NextResponse.json({ error: '积分不足' }, { status: 402 });
         }
 
@@ -158,7 +172,9 @@ export async function POST(req: Request) {
 
         // 7. Deduct Credits (FINAL STEP)
         try {
-            await deductCredits(cost, `Generated ${type} with ${selectedModel}`);
+            if (actualCost > 0) {
+                await deductCredits(actualCost, `Generated ${type} with ${selectedModel}`);
+            }
         } catch (creditError) {
             // CRITICAL: If deduction fails here, we have already given the user the image.
             // We should probably log this significantly.

@@ -2,11 +2,12 @@ import React from 'react';
 import { Link } from '@/components/link';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Undo, Redo, Share, Play, ArrowLeft, Save, Globe, Sparkles, ChevronRight, Loader2, MessageSquare, Hammer } from "lucide-react";
+import { Undo, Redo, Share, Play, ArrowLeft, Save, Globe, Sparkles, ChevronRight, Loader2, MessageSquare, Hammer, FileCode } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { PublishModal } from "@/components/studio/PublishModal";
 import { ShareModal } from "@/components/studio/ShareModal";
 import { PublishToCommunityModal } from "@/components/studio/PublishToCommunityModal";
+import { ImportCodeModal } from "@/components/studio/ImportCodeModal";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEditor } from "@craftjs/core";
@@ -14,7 +15,7 @@ import { useTranslations, useLocale } from 'next-intl';
 
 export function Toolbar() {
   const router = useRouter();
-  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode } = useStudioStore();
+  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData } = useStudioStore();
   const [saving, setSaving] = React.useState(false);
   const t = useTranslations('studio');
   const tCommon = useTranslations('common');
@@ -121,52 +122,72 @@ export function Toolbar() {
       </div>
 
       <div className="flex items-center gap-2">
+        <ImportCodeModal>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 rounded-full px-3 text-xs font-medium border border-transparent hover:border-border/50"
+          >
+            <FileCode className="h-3.5 w-3.5 mr-1.5" />
+            Import
+          </Button>
+        </ImportCodeModal>
+
         <Button
           variant={isBuilderMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => {
-            // 当进入构建模式时，同步 AI 生成的内容到 Craft.js 编辑器
-            if (!isBuilderMode && htmlContent) {
-              // 检查是否是初始默认内容（不需要同步）
-              const isDefaultContent = htmlContent.includes('欢迎来到您的新网站') ||
-                htmlContent.includes('Welcome to your new website');
+            if (!isBuilderMode) {
+              // 如果编辑器是空的，且我们有 HTML 内容，尝试将其转换为 Builder 数据
+              // 注意：我们通过检查 store 中的 builderData 来判断，或者简单地覆盖它（如果这是第一次进入且 builderData 是空的）
+              const isBasicallyEmpty = !builderData || builderData === '{}' || (JSON.parse(builderData).ROOT && JSON.parse(builderData).ROOT.nodes.length === 0);
 
-              if (!isDefaultContent) {
-                const initialData = {
-                  "ROOT": {
-                    "type": { "resolvedName": "BuilderContainer" },
-                    "isCanvas": true,
-                    "props": { "className": "min-h-screen w-full bg-background" },
-                    "displayName": "Page",
-                    "custom": {},
-                    "hidden": false,
-                    "nodes": ["node-ai-content"],
-                    "linkedNodes": {},
-                    "parent": null
-                  },
-                  "node-ai-content": {
-                    "type": { "resolvedName": "CustomHTML" },
-                    "isCanvas": false,
-                    "props": { "code": htmlContent, "className": "w-full" },
-                    "displayName": "AI Generated Content",
-                    "custom": {},
-                    "parent": "ROOT",
-                    "hidden": false,
-                    "nodes": [],
-                    "linkedNodes": {}
-                  }
-                };
-
+              if (isBasicallyEmpty && htmlContent) {
                 try {
-                  actions.deserialize(initialData);
-                  toast.success(t('syncedFromAI'));
-                } catch (err) {
-                  console.error("Failed to sync AI content:", err);
-                  // 不阻断模式切换
+                  console.log("Auto-converting HTML content to Builder data...");
+                  // 动态导入解析器以避免服务端渲染问题（它使用了 DOMParser）
+                  import('@/lib/builder/htmlInfoCraft').then(({ htmlToCraftData }) => {
+                    const craftJson = htmlToCraftData(htmlContent);
+                    setBuilderData(craftJson);
+                  });
+                } catch (e) {
+                  console.error("Failed to convert HTML to Builder data:", e);
+                  // 降级：仅包裹在 CustomHTML 中 (旧逻辑)
+                  import('@/components/builder/special/CustomHTML').then(({ CustomHTML }) => {
+                    const fallbackJson = JSON.stringify({
+                      "ROOT": {
+                        "type": { "resolvedName": "BuilderContainer" },
+                        "isCanvas": true,
+                        "props": { "className": "w-full min-h-screen bg-white" },
+                        "displayName": "Body",
+                        "custom": {},
+                        "hidden": false,
+                        "nodes": ["fallback-node"],
+                        "linkedNodes": {}
+                      },
+                      "fallback-node": {
+                        "type": { "resolvedName": "CustomHTML" },
+                        "isCanvas": true,
+                        "props": { "code": htmlContent },
+                        "displayName": "Custom HTML",
+                        "custom": {},
+                        "hidden": false,
+                        "nodes": [],
+                        "linkedNodes": {},
+                        "parent": "ROOT"
+                      }
+                    });
+                    setBuilderData(fallbackJson);
+                  });
                 }
               }
+
+              toggleBuilderMode();
+            } else {
+              // 切换回 AI 模式
+              // TODO: 可选 - 将 Builder 数据反向转换为 HTML（非常困难，暂时不处理）
+              toggleBuilderMode();
             }
-            toggleBuilderMode();
           }}
           className="h-8 rounded-full px-3 text-xs font-medium border border-transparent hover:border-border/50"
         >

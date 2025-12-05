@@ -5,6 +5,7 @@ import { locales } from '@/i18n';
 import type { Metadata } from "next";
 import "../globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
     const { locale } = await params;
@@ -38,11 +39,18 @@ export default async function LocaleLayout({
     const messages = await getMessages({ locale });
 
     return (
-        <html lang={locale}>
+        <html lang={locale} suppressHydrationWarning>
             <body className="font-sans antialiased">
                 <NextIntlClientProvider messages={messages}>
-                    {children}
-                    <Toaster />
+                    <ThemeProvider
+                        attribute="class"
+                        defaultTheme="system"
+                        enableSystem
+                        disableTransitionOnChange
+                    >
+                        {children}
+                        <Toaster />
+                    </ThemeProvider>
                 </NextIntlClientProvider>
             </body>
         </html>
