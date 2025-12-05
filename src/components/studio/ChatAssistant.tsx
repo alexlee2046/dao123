@@ -377,7 +377,19 @@ export function ChatAssistant() {
 
                     {messages.map((msg: any) => {
                         const isUser = msg.role === 'user';
-                        const isHtml = msg.role === 'assistant' && (msg.content.includes('<!DOCTYPE html>') || msg.content.includes('```html'));
+
+                        // 兼容新版 AI SDK: 内容可能在 content 或 parts 中
+                        let msgContent = '';
+                        if (typeof msg.content === 'string') {
+                            msgContent = msg.content;
+                        } else if (msg.parts && Array.isArray(msg.parts)) {
+                            msgContent = msg.parts
+                                .filter((part: any) => part.type === 'text')
+                                .map((part: any) => part.text)
+                                .join('');
+                        }
+
+                        const isHtml = msg.role === 'assistant' && msgContent && (msgContent.includes('<!DOCTYPE html>') || msgContent.includes('```html'));
 
                         return (
                             <div key={msg.id} className={cn("flex gap-3 group", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -404,7 +416,7 @@ export function ChatAssistant() {
                                         </div>
                                     ) : (
                                         <div className="whitespace-pre-wrap leading-relaxed">
-                                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                            {msgContent ? <ReactMarkdown>{msgContent}</ReactMarkdown> : <span className="text-muted-foreground italic">...</span>}
                                         </div>
                                     )}
                                 </div>

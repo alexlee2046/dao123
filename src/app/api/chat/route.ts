@@ -174,14 +174,15 @@ export async function POST(req: Request) {
         console.log('[Chat API] Calling OpenRouter API with model:', model || 'anthropic/claude-3.5-sonnet');
         console.log('[Chat API] Message count:', messages.length);
 
-        const result = await streamText({
+        const result = streamText({
             model: openRouter(model || 'anthropic/claude-3.5-sonnet'),
             system: systemPrompt,
             messages,
         });
 
         console.log('[Chat API] OpenRouter API call successful, streaming response...');
-        return result.toTextStreamResponse();
+        // 使用 toUIMessageStreamResponse 以兼容新版 @ai-sdk/react useChat
+        return result.toUIMessageStreamResponse();
 
     } catch (error: unknown) {
         console.error('=== AI API Error Details ===');
