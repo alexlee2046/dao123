@@ -116,7 +116,7 @@ export function ChatAssistant() {
         }),
     }), []);
 
-    const { messages, sendMessage, stop, status, error } = useChat({
+    const { messages, sendMessage, stop, status, error, setMessages } = useChat({
         transport,
         onError: (err) => {
             console.error('Chat error:', err);
@@ -157,6 +157,11 @@ export function ChatAssistant() {
     });
 
     const isLoading = status === 'streaming' || status === 'submitted';
+
+    // 当模式改变时，清空消息历史，避免格式冲突
+    useEffect(() => {
+        setMessages([]);
+    }, [mode, setMessages]);
 
     useEffect(() => {
         if (scrollRef.current) {
