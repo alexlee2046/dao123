@@ -125,50 +125,45 @@ export function Toolbar() {
           variant={isBuilderMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => {
-            if (!isBuilderMode && !query.getSerializedNodes() || JSON.stringify(query.getSerializedNodes()) === '{}') {
-              // If entering builder mode and it's empty, try to sync from HTML
-              // We need to check if there is HTML content to sync
-              if (htmlContent && (!past.length && !future.length)) { // Simple heuristic: if no history, assume empty/fresh
-                // Actually, better to check if the serialized data is basically empty (just ROOT)
-                const currentData = query.getSerializedNodes();
-                const isBasicallyEmpty = !currentData || Object.keys(currentData).length <= 1; // Only ROOT
+            // 当进入构建模式时，检查是否需要同步 AI 内容
+            if (!isBuilderMode) {
+              const currentData = query.getSerializedNodes();
+              // 检查编辑器是否为空（只有 ROOT 节点或完全为空）
+              const isBasicallyEmpty = !currentData || Object.keys(currentData).length <= 1;
 
-                if (isBasicallyEmpty) {
-                  const initialData = {
-                    "ROOT": {
-                      "type": { "resolvedName": "BuilderContainer" },
-                      "isCanvas": true,
-                      "props": { "className": "min-h-screen w-full bg-background" },
-                      "displayName": "Page",
-                      "custom": {},
-                      "hidden": false,
-                      "nodes": ["node-ai-content"],
-                      "linkedNodes": {},
-                      "parent": null
-                    },
-                    "node-ai-content": {
-                      "type": { "resolvedName": "CustomHTML" },
-                      "isCanvas": false,
-                      "props": { "code": htmlContent, "className": "w-full" },
-                      "displayName": "AI Generated Content",
-                      "custom": {},
-                      "parent": "ROOT",
-                      "hidden": false,
-                      "nodes": [],
-                      "linkedNodes": {}
-                    }
-                  };
+              // 如果编辑器为空，且有 AI 生成的 HTML 内容，则进行同步
+              if (isBasicallyEmpty && htmlContent) {
+                const initialData = {
+                  "ROOT": {
+                    "type": { "resolvedName": "BuilderContainer" },
+                    "isCanvas": true,
+                    "props": { "className": "min-h-screen w-full bg-background" },
+                    "displayName": "Page",
+                    "custom": {},
+                    "hidden": false,
+                    "nodes": ["node-ai-content"],
+                    "linkedNodes": {},
+                    "parent": null
+                  },
+                  "node-ai-content": {
+                    "type": { "resolvedName": "CustomHTML" },
+                    "isCanvas": false,
+                    "props": { "code": htmlContent, "className": "w-full" },
+                    "displayName": "AI Generated Content",
+                    "custom": {},
+                    "parent": "ROOT",
+                    "hidden": false,
+                    "nodes": [],
+                    "linkedNodes": {}
+                  }
+                };
 
-                  // We need to use actions.deserialize to load the data into the editor
-                  // But actions.deserialize might not be available directly here if we are not in a context where we can write?
-                  // Wait, useEditor gives us `actions`.
-                  // However, we are toggling the mode which mounts/unmounts components.
-                  // If we are NOT in builder mode, the Editor might not be fully active or writable in the same way?
-                  // Actually StudioPage renders Editor always, just hides/shows panels.
-                  // So the Editor state IS active.
-
+                try {
                   actions.deserialize(initialData);
                   toast.success(t('syncedFromAI'));
+                } catch (err) {
+                  console.error("Failed to sync AI content:", err);
+                  // 不阻断模式切换
                 }
               }
             }
