@@ -189,7 +189,7 @@ export function Toolbar() {
                   setIsRefining(true);
                   const result = await convertHtmlToBuilder(htmlContent || '', selectedModel);
                   if (result.success) {
-                    setBuilderData(result.data);
+                    setBuilderData(result.data || null);
                     toast.success(t('refineSuccess'));
                   } else {
                     toast.error(t('refineError') + ': ' + result.error);
