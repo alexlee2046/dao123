@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStudioStore } from '@/lib/store';
 import { generateSitePlan, generateDesignSystem } from '@/app/actions/ai';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export type AgentStep = 'idle' | 'architect' | 'designer' | 'builder' | 'complete';
 
@@ -18,6 +19,8 @@ export function useAgentOrchestrator() {
     const [currentStep, setCurrentStep] = useState<AgentStep>('idle');
     const [progress, setProgress] = useState(0);
     const [statusMessage, setStatusMessage] = useState('');
+
+    const t = useTranslations('common');
 
     const startGeneration = async (prompt: string) => {
         try {
@@ -109,7 +112,15 @@ export function useAgentOrchestrator() {
 
         } catch (error: any) {
             console.error('Generation Error:', error);
-            toast.error(`生成失败: ${error.message}`);
+            let errorMessage = error.message;
+
+            if (errorMessage.includes('Insufficient credits')) {
+                errorMessage = t('insufficientCredits');
+            } else if (errorMessage.includes('User not authenticated')) {
+                errorMessage = t('unauthorized');
+            }
+
+            toast.error(`生成失败: ${errorMessage}`);
             setCurrentStep('idle');
         }
     };

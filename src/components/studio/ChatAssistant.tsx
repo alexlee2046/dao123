@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import type { UIMessage as Message } from '@ai-sdk/react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -89,15 +90,36 @@ export function ChatAssistant() {
         return null;
     };
 
-    const { messages, append, isLoading, stop } = useChat({
+    // Configure transport with API endpoint and body parameters
+    const transport = useMemo(() => new DefaultChatTransport({
         api: '/api/chat',
         body: {
             model: selectedModel,
             currentHtml: htmlContent,
             mode,
         },
-        onFinish: (message: any) => {
-            const content = message.content || '';
+    }), [selectedModel, htmlContent, mode]);
+
+    const { messages, sendMessage, stop, status, error } = useChat({
+        transport,
+        onError: (err) => {
+            console.error('Chat error:', err);
+            toast.error(err.message || t('chatPanel.serviceError'));
+        },
+        onFinish: ({ message }: any) => {
+            // 提取消息内容 - 新 SDK 中内容可能在 parts 中
+            let content = '';
+            if (message.content) {
+                content = message.content;
+            } else if (message.parts) {
+                content = message.parts
+                    .filter((part: any) => part.type === 'text')
+                    .map((part: any) => part.text)
+                    .join('');
+            }
+
+            if (!content) return;
+
             if (content.includes('<!-- page:')) {
                 const pages: Page[] = [];
                 const pageRegex = /<!-- page: (.*?) -->([\s\S]*?)(?=<!-- page: |$)/g;
@@ -113,25 +135,12 @@ export function ChatAssistant() {
                     return;
                 }
             }
-
             const extractedHtml = extractHtml(content);
             if (extractedHtml) setHtmlContent(extractedHtml);
         },
-        onError: (error: any) => {
-            console.error('Chat API Error:', error);
-            toast.error(error.message || t('chatPanel.serviceError'));
-        },
-    } as any) as any;
+    });
 
-    useEffect(() => {
-        const lastMessage = messages[messages.length - 1] as any;
-        if (lastMessage && lastMessage.role === 'assistant') {
-            const content = lastMessage.content;
-            if (content.includes('<!-- page:')) return;
-            const extractedHtml = extractHtml(content);
-            if (extractedHtml) setHtmlContent(extractedHtml);
-        }
-    }, [messages, setHtmlContent]);
+    const isLoading = status === 'streaming' || status === 'submitted';
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -163,10 +172,14 @@ export function ChatAssistant() {
             messageContent += `\n\n${t('chatPanel.availableAssets')}：\n${assetInfo}`;
         }
 
-        await append({
-            role: 'user',
-            content: messageContent,
-        });
+        try {
+            await sendMessage({
+                text: messageContent,
+            });
+        } catch (error: any) {
+            toast.error(error.message || t('chatPanel.serviceError'));
+            console.error('sendMessage error:', error);
+        }
 
         setLocalInput('');
     };

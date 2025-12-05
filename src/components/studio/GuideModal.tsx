@@ -304,7 +304,7 @@ ${t('prompt.instruction')}`;
                                     onChange={e => setData({ ...data, targetAudience: e.target.value })}
                                     className="bg-muted/30"
                                 />
-                                <p className="text-xs text-muted-foreground">AI 将根据受众调整文案的难易程度和吸引力。</p>
+                                <p className="text-xs text-muted-foreground">{t('audienceHint')}</p>
                             </div>
 
                             <div className="space-y-3">
@@ -334,7 +334,7 @@ ${t('prompt.instruction')}`;
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="flex items-center justify-between">
                                 <Label>{t('labels.sections')}</Label>
-                                <span className="text-xs text-muted-foreground">已选 {data.sections.length} 个</span>
+                                <span className="text-xs text-muted-foreground">{t('selectedCount', { count: data.sections.length })}</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 {SECTIONS.map(s => (
@@ -354,7 +354,7 @@ ${t('prompt.instruction')}`;
                                 ))}
                             </div>
                             <p className="text-xs text-muted-foreground text-center pt-2">
-                                * 没选中的板块 AI 也会根据常识自动补充，不用担心。
+                                {t('sectionsHint')}
                             </p>
                         </div>
                     )}

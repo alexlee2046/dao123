@@ -210,9 +210,16 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
     };
 
     const handleVercelDeploy = async () => {
-        // 部署到 Vercel
-        // DISABLED FOR NOW
-        return;
+        if (!projectId || !subdomain) return;
+
+        const url = getVercelDeployUrl({
+            templateRepo: 'dao123-inc/dao123-template', // Placeholder
+            subdomain: normalizeSubdomain(subdomain),
+            projectId: projectId
+        });
+
+        window.open(url, '_blank');
+        setStep('deploying');
     };
 
     const handleCopy = () => {
@@ -251,7 +258,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                             <Alert variant="default" className="bg-yellow-50 border-yellow-200">
                                 <AlertCircle className="h-4 w-4 text-yellow-600" />
                                 <AlertDescription className="text-yellow-800">
-                                    You need to save your project to generate a unique ID for publishing.
+                                    {t('saveRequiredAlert')}
                                 </AlertDescription>
                             </Alert>
                         </div>
@@ -352,7 +359,7 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                                 id="subdomain"
                                                 value={subdomain}
                                                 onChange={(e) => setSubdomain(e.target.value)}
-                                                placeholder="my-awesome-site"
+                                                placeholder={t('subdomainPlaceholder')}
                                                 className={subdomainError ? 'border-red-500' : ''}
                                             />
                                             <span className="text-sm text-muted-foreground whitespace-nowrap">
@@ -413,18 +420,21 @@ export function PublishModal({ children, pageCount = 1 }: { children: React.Reac
                                         <div className="relative group">
                                             <Button
                                                 variant="outline"
-                                                className="w-full opacity-60 cursor-not-allowed"
-                                                disabled={true}
+                                                className="w-full"
+                                                onClick={handleVercelDeploy}
+                                                disabled={!isAvailable || !!subdomainError || !subdomain}
                                             >
-                                                <Lock className="mr-2 h-4 w-4" />
-                                                {t('vercelProOnly')}
+                                                <svg className="mr-2 h-3 w-3" viewBox="0 0 1155 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M577.344 0L1154.69 1000H0L577.344 0Z" fill="currentColor" />
+                                                </svg>
+                                                {t('deployToVercel')}
                                             </Button>
                                         </div>
 
                                         <Alert className="bg-muted/50 border-muted">
                                             <Sparkles className="h-4 w-4 text-primary" />
                                             <AlertDescription className="text-xs text-muted-foreground">
-                                                {t('vercelProDesc')}
+                                                {t('vercelDesc')}
                                             </AlertDescription>
                                         </Alert>
                                     </div>

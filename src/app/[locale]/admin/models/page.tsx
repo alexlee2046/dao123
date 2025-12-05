@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import { Plus, Trash2, Edit, Database, Loader2 } from "lucide-react"
 import { getAllModels, createModel, updateModel, deleteModel, bulkImportModels, type ModelInput } from '@/lib/actions/admin-models'
+import { useTranslations } from 'next-intl'
 
 interface Model extends ModelInput {
     created_at?: string
@@ -42,6 +43,8 @@ const RECOMMENDED_MODELS: ModelInput[] = [
 ]
 
 export default function AdminModelsPage() {
+    const t = useTranslations('admin')
+    const tCommon = useTranslations('common')
     const [models, setModels] = useState<Model[]>([])
     const [loading, setLoading] = useState(true)
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -67,7 +70,7 @@ export default function AdminModelsPage() {
             const data = await getAllModels()
             setModels(data)
         } catch (error: any) {
-            toast.error(error.message || '加载模型失败')
+            toast.error(error.message || t('loadModelsFailed'))
         } finally {
             setLoading(false)
         }
@@ -76,12 +79,12 @@ export default function AdminModelsPage() {
     const handleCreate = async () => {
         try {
             await createModel(formData)
-            toast.success('模型创建成功')
+            toast.success(t('modelCreated'))
             setDialogOpen(false)
             resetForm()
             loadModels()
         } catch (error: any) {
-            toast.error(error.message || '创建失败')
+            toast.error(error.message || t('loadFailed'))
         }
     }
 
@@ -89,44 +92,44 @@ export default function AdminModelsPage() {
         if (!editingModel) return
         try {
             await updateModel(editingModel.id, formData)
-            toast.success('模型更新成功')
+            toast.success(t('modelUpdated'))
             setDialogOpen(false)
             resetForm()
             loadModels()
         } catch (error: any) {
-            toast.error(error.message || '更新失败')
+            toast.error(error.message || t('loadFailed'))
         }
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('确定要删除这个模型吗?')) return
+        if (!confirm(t('confirmDeleteModel'))) return
         try {
             await deleteModel(id)
-            toast.success('模型删除成功')
+            toast.success(t('modelDeleted'))
             loadModels()
         } catch (error: any) {
-            toast.error(error.message || '删除失败')
+            toast.error(error.message || t('loadFailed'))
         }
     }
 
     const handleToggleEnabled = async (model: Model) => {
         try {
             await updateModel(model.id, { enabled: !model.enabled })
-            toast.success('状态更新成功')
+            toast.success(t('statusUpdated'))
             loadModels()
         } catch (error: any) {
-            toast.error(error.message || '更新失败')
+            toast.error(error.message || t('loadFailed'))
         }
     }
 
     const handleBulkImport = async () => {
-        if (!confirm(`确定要导入 ${RECOMMENDED_MODELS.length} 个推荐模型吗? 这会覆盖已存在的模型配置。`)) return
+        if (!confirm(t('confirmImportModels', { count: RECOMMENDED_MODELS.length }))) return
         try {
             await bulkImportModels(RECOMMENDED_MODELS)
-            toast.success('批量导入成功')
+            toast.success(t('bulkImportSuccess'))
             loadModels()
         } catch (error: any) {
-            toast.error(error.message || '导入失败')
+            toast.error(error.message || t('loadFailed'))
         }
     }
 
@@ -164,26 +167,26 @@ export default function AdminModelsPage() {
         <div className="w-full max-w-7xl mx-auto py-10 px-6">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">模型管理</h1>
-                    <p className="text-muted-foreground mt-1">管理AI模型配置和启用状态</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('models')}</h1>
+                    <p className="text-muted-foreground mt-1">{t('modelsDesc')}</p>
                 </div>
                 <div className="flex gap-3">
                     <Button variant="outline" onClick={handleBulkImport}>
                         <Database className="h-4 w-4 mr-2" />
-                        导入推荐模型
+                        {t('importRecommended')}
                     </Button>
                     <Button onClick={openCreateDialog}>
                         <Plus className="h-4 w-4 mr-2" />
-                        添加模型
+                        {t('addModel')}
                     </Button>
                 </div>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>已配置模型</CardTitle>
+                    <CardTitle>{t('configuredModels')}</CardTitle>
                     <CardDescription>
-                        共 {models.length} 个模型 · {models.filter(m => m.enabled).length} 个已启用
+                        {t('modelsCount', { total: models.length, enabled: models.filter(m => m.enabled).length })}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -195,13 +198,13 @@ export default function AdminModelsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>模型ID</TableHead>
-                                    <TableHead>名称</TableHead>
-                                    <TableHead>提供商</TableHead>
-                                    <TableHead>类型</TableHead>
-                                    <TableHead>免费</TableHead>
-                                    <TableHead>状态</TableHead>
-                                    <TableHead className="text-right">操作</TableHead>
+                                    <TableHead>{t('table.modelId')}</TableHead>
+                                    <TableHead>{t('table.name')}</TableHead>
+                                    <TableHead>{t('table.provider')}</TableHead>
+                                    <TableHead>{t('table.type')}</TableHead>
+                                    <TableHead>{t('table.free')}</TableHead>
+                                    <TableHead>{t('table.status')}</TableHead>
+                                    <TableHead className="text-right">{t('table.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -265,45 +268,45 @@ export default function AdminModelsPage() {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
-                        <DialogTitle>{editingModel ? '编辑模型' : '添加新模型'}</DialogTitle>
+                        <DialogTitle>{editingModel ? t('form.editModelTitle') : t('form.addNewModel')}</DialogTitle>
                         <DialogDescription>
-                            {editingModel ? '修改模型配置信息' : '添加一个新的AI模型到系统'}
+                            {editingModel ? t('form.editModelDesc') : t('form.addNewModelDesc')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="id">模型ID *</Label>
+                            <Label htmlFor="id">{t('form.modelId')} *</Label>
                             <Input
                                 id="id"
                                 value={formData.id}
                                 onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                                placeholder="例如: openai/gpt-4o"
+                                placeholder={t('form.modelIdPlaceholder')}
                                 disabled={!!editingModel}
                             />
                             <p className="text-xs text-muted-foreground">
-                                OpenRouter格式: provider/model-name
+                                {t('form.modelIdHint')}
                             </p>
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="name">显示名称 *</Label>
+                            <Label htmlFor="name">{t('form.displayName')} *</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="例如: GPT-4o"
+                                placeholder={t('form.displayNamePlaceholder')}
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="provider">提供商 *</Label>
+                            <Label htmlFor="provider">{t('form.provider')} *</Label>
                             <Input
                                 id="provider"
                                 value={formData.provider}
                                 onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                                placeholder="例如: OpenAI"
+                                placeholder={t('form.providerPlaceholder')}
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="type">类型 *</Label>
+                            <Label htmlFor="type">{t('form.type')} *</Label>
                             <Select value={formData.type} onValueChange={(value: any) => setFormData({ ...formData, type: value })}>
                                 <SelectTrigger>
                                     <SelectValue />
@@ -316,7 +319,7 @@ export default function AdminModelsPage() {
                             </Select>
                         </div>
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="is_free">免费模型</Label>
+                            <Label htmlFor="is_free">{t('form.freeModel')}</Label>
                             <Switch
                                 id="is_free"
                                 checked={formData.is_free}
@@ -324,7 +327,7 @@ export default function AdminModelsPage() {
                             />
                         </div>
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="enabled">启用状态</Label>
+                            <Label htmlFor="enabled">{t('form.enabledStatus')}</Label>
                             <Switch
                                 id="enabled"
                                 checked={formData.enabled}
@@ -334,10 +337,10 @@ export default function AdminModelsPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                            取消
+                            {tCommon('cancel')}
                         </Button>
                         <Button onClick={editingModel ? handleUpdate : handleCreate}>
-                            {editingModel ? '更新' : '创建'}
+                            {editingModel ? t('form.update') : t('form.create')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

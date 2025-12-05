@@ -15,8 +15,10 @@ import { toast } from "sonner"
 import { Loader2, Trash2, ExternalLink } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 
 export default function AdminAssetsPage() {
+    const t = useTranslations('admin')
     const [assets, setAssets] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -30,19 +32,19 @@ export default function AdminAssetsPage() {
             const data = await getAllAssets()
             setAssets(data || [])
         } catch (error) {
-            toast.error("加载素材失败")
+            toast.error(t('loadAssetsFailed'))
         } finally {
             setLoading(false)
         }
     }
 
     const handleDelete = async (id: string, url: string) => {
-        if (!confirm("确定要删除这个素材吗？此操作不可撤销。")) return
+        if (!confirm(t('confirmDeleteAsset'))) return
 
         try {
             setDeletingId(id)
             await adminDeleteAsset(id, url)
-            toast.success("素材已删除")
+            toast.success(t('assetDeleted'))
             loadAssets()
         } catch (error: any) {
             toast.error(error.message)
@@ -54,20 +56,20 @@ export default function AdminAssetsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">素材管理</h2>
-                <p className="text-muted-foreground">查看和管理用户上传。</p>
+                <h2 className="text-3xl font-bold tracking-tight">{t('assets')}</h2>
+                <p className="text-muted-foreground">{t('assetsDesc')}</p>
             </div>
 
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>预览</TableHead>
-                            <TableHead>名称</TableHead>
-                            <TableHead>类型</TableHead>
-                            <TableHead>用户</TableHead>
-                            <TableHead>创建时间</TableHead>
-                            <TableHead>操作</TableHead>
+                            <TableHead>{t('table.preview')}</TableHead>
+                            <TableHead>{t('table.name')}</TableHead>
+                            <TableHead>{t('table.type')}</TableHead>
+                            <TableHead>{t('table.user')}</TableHead>
+                            <TableHead>{t('table.createdAt')}</TableHead>
+                            <TableHead>{t('table.actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

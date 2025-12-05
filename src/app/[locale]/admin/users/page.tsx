@@ -15,8 +15,11 @@ import {
 import { toast } from "sonner"
 import { Loader2, Save } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
+import { useTranslations } from 'next-intl'
 
 export default function AdminUsersPage() {
+    const t = useTranslations('admin')
+    const tCommon = useTranslations('common')
     const [users, setUsers] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -31,7 +34,7 @@ export default function AdminUsersPage() {
             const data = await getUsers()
             setUsers(data || [])
         } catch (error) {
-            toast.error("加载用户失败")
+            toast.error(t('loadUsersFailed'))
         } finally {
             setLoading(false)
         }
@@ -40,7 +43,7 @@ export default function AdminUsersPage() {
     const handleUpdateCredits = async (userId: string) => {
         try {
             await updateUserCredits(userId, editCredits)
-            toast.success("积分已更新")
+            toast.success(t('creditsUpdated'))
             setEditingId(null)
             loadUsers()
         } catch (error: any) {
@@ -51,19 +54,19 @@ export default function AdminUsersPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">用户管理</h2>
-                <p className="text-muted-foreground">查看用户并管理其积分。</p>
+                <h2 className="text-3xl font-bold tracking-tight">{t('users')}</h2>
+                <p className="text-muted-foreground">{t('usersDesc')}</p>
             </div>
 
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>邮箱</TableHead>
-                            <TableHead>角色</TableHead>
-                            <TableHead>积分</TableHead>
-                            <TableHead>加入时间</TableHead>
-                            <TableHead>操作</TableHead>
+                            <TableHead>{t('table.email')}</TableHead>
+                            <TableHead>{t('table.role')}</TableHead>
+                            <TableHead>{t('table.credits')}</TableHead>
+                            <TableHead>{t('table.joinedAt')}</TableHead>
+                            <TableHead>{t('table.actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -88,7 +91,7 @@ export default function AdminUsersPage() {
                                                 <Save className="h-4 w-4" />
                                             </Button>
                                             <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                                                取消
+                                                {tCommon('cancel')}
                                             </Button>
                                         </div>
                                     ) : (
@@ -103,7 +106,7 @@ export default function AdminUsersPage() {
                                                     setEditCredits(user.credits)
                                                 }}
                                             >
-                                                编辑
+                                                {tCommon('edit')}
                                             </Button>
                                         </div>
                                     )}

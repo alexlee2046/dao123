@@ -1,5 +1,5 @@
 import React from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/link';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Undo, Redo, Share, Play, ArrowLeft, Save, Globe, Sparkles, ChevronRight, Loader2, MessageSquare, Hammer } from "lucide-react";
@@ -10,7 +10,7 @@ import { PublishToCommunityModal } from "@/components/studio/PublishToCommunityM
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEditor } from "@craftjs/core";
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 export function Toolbar() {
   const router = useRouter();
@@ -18,6 +18,7 @@ export function Toolbar() {
   const [saving, setSaving] = React.useState(false);
   const t = useTranslations('studio');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
 
   const { query, actions } = useEditor();
 
@@ -65,7 +66,7 @@ export function Toolbar() {
         }
         toast.success(t('createdAndSaved'));
         // Update URL to include the new project ID
-        window.history.replaceState(null, '', `/studio/${newProject.id}`);
+        window.history.replaceState(null, '', `/${locale}/studio/${newProject.id}`);
       }
     } catch (error: any) {
       console.error(error);
