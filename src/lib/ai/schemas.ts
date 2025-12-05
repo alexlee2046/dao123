@@ -43,7 +43,23 @@ export type SitePlan = z.infer<typeof SitePlanSchema>;
 // 3. Component Schema (Builder Agent)
 // Recursive schema for component tree
 const BaseComponentSchema = z.object({
-    type: z.enum(['BuilderContainer', 'BuilderText', 'BuilderButton', 'BuilderImage', 'CustomHTML']),
+    type: z.enum([
+        'BuilderContainer', 
+        'BuilderText', 
+        'BuilderButton', 
+        'BuilderImage', 
+        'CustomHTML',
+        'BuilderHero',
+        'BuilderCard',
+        'BuilderNavbar',
+        'BuilderFooter',
+        'BuilderRow',
+        'BuilderColumn',
+        'BuilderGrid',
+        'BuilderLink',
+        'BuilderVideo',
+        'BuilderDivider'
+    ]),
     props: z.record(z.any()).describe("Props for the component (className, text, src, etc.)"),
 });
 

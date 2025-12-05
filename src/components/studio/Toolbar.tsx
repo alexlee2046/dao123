@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from '@/components/link';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Undo, Redo, Share, Play, ArrowLeft, Save, Globe, Sparkles, ChevronRight, Loader2, MessageSquare, Hammer, FileCode } from "lucide-react";
+import { Undo, Redo, Share, Play, ArrowLeft, Save, Globe, Sparkles, ChevronRight, Loader2, MessageSquare, Hammer, FileCode, Wand2 } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { PublishModal } from "@/components/studio/PublishModal";
 import { ShareModal } from "@/components/studio/ShareModal";
@@ -13,11 +13,13 @@ import { motion } from "framer-motion";
 import { useEditor } from "@craftjs/core";
 import { useTranslations, useLocale } from 'next-intl';
 import { ModeToggle } from "@/components/mode-toggle";
+import { convertHtmlToBuilder } from "@/app/actions/ai-transform";
 
 export function Toolbar() {
   const router = useRouter();
   const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData } = useStudioStore();
   const [saving, setSaving] = React.useState(false);
+  const [isRefining, setIsRefining] = React.useState(false);
   const t = useTranslations('studio');
   const tCommon = useTranslations('common');
   const locale = useLocale();
@@ -35,10 +37,18 @@ export function Toolbar() {
       // Get Builder Data if in builder mode (or always if we want to sync)
       // Note: query.serialize() returns a JSON string
       let builderContent = null;
-      try {
-        builderContent = query.serialize();
-      } catch (e) {
-        // Ignore if editor is not active or empty
+      if (isBuilderMode) {
+        try {
+          builderContent = query.serialize();
+          // Update store with latest data
+          setBuilderData(builderContent);
+        } catch (e) {
+          // Ignore if editor is not active or empty
+          console.warn("Failed to serialize builder data:", e);
+        }
+      } else {
+        // If not in builder mode, use existing data from store to avoid overwriting with empty state
+        builderContent = builderData;
       }
 
       // Parse it back to object because our API expects object for JSONB column
@@ -133,6 +143,44 @@ export function Toolbar() {
             Import
           </Button>
         </ImportCodeModal>
+
+        {isBuilderMode && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              if (!htmlContent) {
+                toast.error(t('emptyContentError'));
+                return;
+              }
+              
+              if (!confirm("This will use AI to reconstruct the builder components from the original HTML. Current changes in the builder might be lost. Continue?")) {
+                  return;
+              }
+
+              try {
+                setIsRefining(true);
+                const result = await convertHtmlToBuilder(htmlContent as string);
+                if (result.success) {
+                  setBuilderData(result.data);
+                  toast.success(t('refineSuccess'));
+                } else {
+                  toast.error(t('refineError') + ': ' + result.error);
+                }
+              } catch (e: any) {
+                toast.error(e.message);
+              } finally {
+                setIsRefining(false);
+              }
+            }}
+            disabled={isRefining}
+            className="h-8 rounded-full px-3 text-xs font-medium border border-transparent hover:border-border/50 text-purple-500 hover:text-purple-600"
+            title={t('refineStructure')}
+          >
+            {isRefining ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5 mr-1.5" />}
+            {isRefining ? t('refining') : t('refineStructure')}
+          </Button>
+        )}
 
         <Button
           variant={isBuilderMode ? "secondary" : "ghost"}

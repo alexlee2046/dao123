@@ -18,7 +18,7 @@ export const BuilderCanvas = () => {
 
                 // 检查是否有 ROOT 节点
                 if (!data.ROOT) {
-                    console.warn("Builder data missing ROOT node, using default");
+                    console.debug("Builder data missing ROOT node, using default");
                     return;
                 }
 
