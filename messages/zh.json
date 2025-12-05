@@ -549,7 +549,14 @@
         "themeSystem": "跟随系统",
         "profileUpdated": "个人资料已更新",
         "passwordUpdated": "密码已更新",
-        "errorUpdating": "更新失败"
+        "errorUpdating": "更新失败",
+        "dangerZone": "危险区域",
+        "deleteAccount": "删除账户",
+        "deleteAccountDesc": "永久删除您的账户和所有内容。",
+        "confirmDeleteAccount": "确定要删除您的账户吗？此操作不可撤销。",
+        "accountDeleted": "账户已删除",
+        "uploading": "上传中...",
+        "uploadSuccess": "上传成功"
     },
     "admin": {
         "title": "管理中心",

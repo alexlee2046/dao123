@@ -527,7 +527,14 @@
         "themeSystem": "System",
         "profileUpdated": "Profile updated",
         "passwordUpdated": "Password updated",
-        "errorUpdating": "Error updating"
+        "errorUpdating": "Error updating",
+        "dangerZone": "Danger Zone",
+        "deleteAccount": "Delete Account",
+        "deleteAccountDesc": "Permanently delete your account and all of your content.",
+        "confirmDeleteAccount": "Are you sure you want to delete your account? This action cannot be undone.",
+        "accountDeleted": "Account deleted",
+        "uploading": "Uploading...",
+        "uploadSuccess": "Upload successful"
     },
     "admin": {
         "title": "Admin Center",

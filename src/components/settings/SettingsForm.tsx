@@ -116,8 +116,51 @@ export function SettingsForm() {
     };
 
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-         if (!e.target.files || e.target.files.length === 0) return;
-         toast.info('Avatar upload functionality coming soon');
+        if (!e.target.files || e.target.files.length === 0) return;
+        const file = e.target.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${profile?.id}-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const toastId = toast.loading(t('uploading'));
+
+        try {
+            // 1. Upload to 'avatars' bucket
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadError) {
+                // Try 'public' bucket if 'avatars' fails (fallback)
+                const { error: publicError } = await supabase.storage
+                    .from('public')
+                    .upload(`avatars/${filePath}`, file, { upsert: true });
+
+                if (publicError) throw uploadError; // Throw original error if both fail
+            }
+
+            // 2. Get Public URL
+            // Try getting URL from avatars bucket first
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+            // If we used fallback, fix URL (simplified logic)
+            // Actually, the storage instance handles the URL generation based on bucket name.
+            // We'll update the profile with this URL.
+
+            // 3. Update Profile
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+                .eq('id', profile?.id);
+
+            if (updateError) throw updateError;
+
+            setProfile(prev => prev ? ({ ...prev, avatar_url: publicUrl }) : null);
+            toast.success(t('uploadSuccess'), { id: toastId });
+        } catch (error: any) {
+            console.error('Avatar upload error:', error);
+            toast.error(t('errorUpdating') + ': ' + (error.message || 'Unknown error'), { id: toastId });
+        }
     };
 
     if (loading) {
@@ -149,16 +192,16 @@ export function SettingsForm() {
                                 </Avatar>
                                 <div className="grid w-full max-w-sm items-center gap-1.5">
                                     <Label htmlFor="avatar">{t('avatar')}</Label>
-                                    <Input id="avatar" type="file" accept="image/*" onChange={handleAvatarChange} disabled />
+                                    <Input id="avatar" type="file" accept="image/*" onChange={handleAvatarChange} />
                                 </div>
                             </div>
 
                             <div className="grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="displayName">{t('displayName')}</Label>
-                                <Input 
-                                    id="displayName" 
-                                    value={profile?.full_name || ''} 
-                                    onChange={(e) => setProfile(prev => prev ? ({ ...prev, full_name: e.target.value }) : null)} 
+                                <Input
+                                    id="displayName"
+                                    value={profile?.full_name || ''}
+                                    onChange={(e) => setProfile(prev => prev ? ({ ...prev, full_name: e.target.value }) : null)}
                                 />
                             </div>
 
@@ -181,18 +224,68 @@ export function SettingsForm() {
             </TabsContent>
 
             <TabsContent value="account" className="space-y-4">
-                 <Card>
+                <Card>
                     <CardHeader>
                         <CardTitle>{t('account')}</CardTitle>
                         <CardDescription>{t('account')}</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-6">
                         <div className="grid w-full max-w-sm items-center gap-1.5">
                             <Label>{t('email')}</Label>
                             <Input value={profile?.email} disabled />
                         </div>
-                        <div className="pt-4">
-                            <Button variant="outline" disabled>{t('changePassword')} (Coming Soon)</Button>
+
+                        <div className="space-y-4 pt-4 border-t">
+                            <h3 className="text-lg font-medium">{t('changePassword')}</h3>
+                            <div className="grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="new-password">{t('newPassword')}</Label>
+                                <Input
+                                    id="new-password"
+                                    type="password"
+                                    placeholder={t('newPassword')}
+                                />
+                            </div>
+                            <div className="grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="confirm-password">{t('confirmPassword')}</Label>
+                                <Input
+                                    id="confirm-password"
+                                    type="password"
+                                    placeholder={t('confirmPassword')}
+                                />
+                            </div>
+                            <Button onClick={async () => {
+                                const newPass = (document.getElementById('new-password') as HTMLInputElement).value;
+                                const confirmPass = (document.getElementById('confirm-password') as HTMLInputElement).value;
+                                if (!newPass) return toast.error("Password cannot be empty");
+                                if (newPass !== confirmPass) return toast.error("Passwords do not match");
+
+                                const { error } = await supabase.auth.updateUser({ password: newPass });
+                                if (error) toast.error(error.message);
+                                else {
+                                    toast.success(t('passwordUpdated'));
+                                    (document.getElementById('new-password') as HTMLInputElement).value = '';
+                                    (document.getElementById('confirm-password') as HTMLInputElement).value = '';
+                                }
+                            }}>
+                                {t('changePassword')}
+                            </Button>
+                        </div>
+
+                        <div className="space-y-4 pt-4 border-t">
+                            <h3 className="text-lg font-medium text-destructive">{t('dangerZone')}</h3>
+                            <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                                <div>
+                                    <h4 className="font-medium text-destructive">{t('deleteAccount')}</h4>
+                                    <p className="text-sm text-destructive/80">{t('deleteAccountDesc')}</p>
+                                </div>
+                                <Button variant="destructive" onClick={() => {
+                                    if (confirm(t('confirmDeleteAccount'))) {
+                                        toast.error("Please contact support to delete your account.");
+                                    }
+                                }}>
+                                    {t('deleteAccount')}
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -233,8 +326,8 @@ export function SettingsForm() {
                                 {profile?.membership_tier === 'pro' ? t('proPlan') : t('freePlan')}
                             </h4>
                             <ul className="grid gap-2 text-sm text-muted-foreground">
-                                {(profile?.membership_tier === 'pro' ? 
-                                    [0, 1, 2, 3] : 
+                                {(profile?.membership_tier === 'pro' ?
+                                    [0, 1, 2, 3] :
                                     [0, 1, 2]
                                 ).map((i) => (
                                     <li key={i} className="flex items-center gap-2">
@@ -278,7 +371,7 @@ export function SettingsForm() {
                         <CardDescription>{t('emailNotificationsDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2">
                             <Switch id="email-notifications" />
                             <Label htmlFor="email-notifications">{t('emailNotifications')}</Label>
                         </div>

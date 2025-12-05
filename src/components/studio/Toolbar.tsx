@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEditor } from "@craftjs/core";
 import { useTranslations, useLocale } from 'next-intl';
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function Toolbar() {
   const router = useRouter();
@@ -237,6 +238,9 @@ export function Toolbar() {
             {t('publishOnline')}
           </Button>
         </PublishModal>
+
+        <div className="h-4 w-px bg-border/50 mx-1" />
+        <ModeToggle />
       </div>
     </div>
   );
