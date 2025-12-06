@@ -86,7 +86,7 @@ export async function convertHtmlToBuilder(html: string, model: string = 'anthro
         - Analyze the HTML structure and map it to the most appropriate components.
         - Use a HYBRID APPROACH:
           1. **High-Level Mode**: Use strict components like BuilderHero, BuilderNavbar, BuilderCard for standard sections. This ensures ease of editing.
-          2. **Atomic Mode**: Use BuilderContainer (div), BuilderRow, BuilderColumn, BuilderText, BuilderImage with Tailwind classes (`className`) to build COMPLETELY CUSTOM layouts if the standard components don't fit.
+          2. **Atomic Mode**: Use BuilderContainer (div), BuilderRow, BuilderColumn, BuilderText, BuilderImage with Tailwind classes (\`className\`) to build COMPLETELY CUSTOM layouts if the standard components don't fit.
         - Preserve all text content, images, and essential styling (converted to props).
 
         Available Components & Props:
@@ -109,8 +109,8 @@ export async function convertHtmlToBuilder(html: string, model: string = 'anthro
         Rules:
         1. **Prioritize High-Level Components** (Hero, Navbar, Footer) when the design matches standard patterns.
         2. **Use Atomic Components** (Container, Row, Column) for unique layouts. Do NOT force a unique design into a restrictive component (e.g. don't try to make a complex feature grid using just BuilderCard if it needs custom icons/layout). Build it manually with atomic components instead.
-        3. **Tailwind Classes**: You have FULL FREEDOM to use any Tailwind class in `className` prop for `BuilderContainer`, `BuilderText`, etc. Use this for gradients, shadows, complex positioning, etc.
-        4. **Animations**: You can add animations to atoms using the `animation` prop (e.g. { type: 'fadeInUp', duration: 0.5, delay: 0.2 }).
+        3. **Tailwind Classes**: You have FULL FREEDOM to use any Tailwind class in \`className\` prop for \`BuilderContainer\`, \`BuilderText\`, etc. Use this for gradients, shadows, complex positioning, etc.
+        4. **Animations**: You can add animations to atoms using the \`animation\` prop (e.g. { type: 'fadeInUp', duration: 0.5, delay: 0.2 }).
         5. Return a SINGLE ComponentNode that wraps the entire content.
         `;
 

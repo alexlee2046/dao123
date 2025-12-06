@@ -166,8 +166,8 @@ export async function streamSectionGeneration(
     1. **Standard Sections**: Use high-level components (BuilderHero, BuilderNavbar) when the request matches standard layouts. This is best for editability.
     2. **Custom Designs**: Use ATOMIC components (BuilderContainer, BuilderRow, BuilderColumn) with Tailwind classes for unique layouts.
        - You can build ANYTHING using BuilderContainer + Tailwind classes.
-       - Feel free to use gradients, shadows, borders, absolute positioning via `className`.
-       - Add animations via `animation` prop on atoms.
+       - Feel free to use gradients, shadows, borders, absolute positioning via \`className\`.
+       - Add animations via \`animation\` prop on atoms.
     
     Output a single JSON object matching the ComponentSchema.
     The root element MUST be a BuilderContainer.
@@ -227,8 +227,8 @@ export async function generateSection(
     1. **Standard Sections**: Use high-level components (BuilderHero, BuilderNavbar) when the request matches standard layouts. This is best for editability.
     2. **Custom Designs**: Use ATOMIC components (BuilderContainer, BuilderRow, BuilderColumn) with Tailwind classes for unique layouts.
        - You can build ANYTHING using BuilderContainer + Tailwind classes.
-       - Feel free to use gradients, shadows, borders, absolute positioning via `className`.
-       - Add animations via `animation` prop on atoms.
+       - Feel free to use gradients, shadows, borders, absolute positioning via \`className\`.
+       - Add animations via \`animation\` prop on atoms.
     
     Output a single JSON object matching the ComponentSchema.
     The root element MUST be a BuilderContainer.
