@@ -2,7 +2,6 @@
 
 import { generateObject } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { ComponentSchema, ComponentNode } from '@/lib/ai/schemas';
 import { convertToCraftJson } from '@/lib/ai/transformer';
 import { calculateCost, calculateUserCost, getEffectiveTier } from '@/lib/pricing';
@@ -11,14 +10,6 @@ import { deductCredits } from '@/lib/actions/credits';
 
 // Initialize providers
 function getProvider(modelName: string, apiKey?: string) {
-    if (modelName.startsWith('google/')) {
-        const cleanName = modelName.replace('google/', '');
-        const google = createGoogleGenerativeAI({
-            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-        });
-        return google(cleanName);
-    }
-
     const openRouter = createOpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey: apiKey || process.env.OPENROUTER_API_KEY,
@@ -63,43 +54,68 @@ export async function convertHtmlToBuilder(html: string, model: string = 'anthro
             await deductAgentCredits(cost, model, `AI Transformation: HTML to Builder (${model})`);
         }
 
+        // Resolve API key (User key -> DB key -> Env)
+        let resolvedApiKey = apiKey;
+        if (!resolvedApiKey) {
+            const supabase = await createClient();
+            try {
+                const { data: dbSetting } = await supabase
+                    .from('system_settings')
+                    .select('value')
+                    .eq('key', 'OPENROUTER_API_KEY')
+                    .single();
+                if (dbSetting?.value) {
+                    resolvedApiKey = dbSetting.value as string;
+                }
+            } catch {}
+            if (!resolvedApiKey) {
+                resolvedApiKey = process.env.OPENROUTER_API_KEY as string | undefined;
+            }
+        }
+
+        // Friendly error if key is missing
+        if (!resolvedApiKey) {
+            return { success: false, error: `OpenRouter API Key 未配置。请在设置中添加，或在本次操作中传入个人 API Key。` };
+        }
+
         const systemPrompt = `
         You are an expert React Component Builder using Craft.js.
         Your task is to convert the provided HTML/Tailwind code into a semantic Component Tree for our visual builder.
 
         Goal: 
-        - Analyze the HTML structure and map it to the most appropriate high-level components.
-        - Do NOT just wrap everything in BuilderContainer. Use BuilderHero, BuilderCard, BuilderNavbar, etc. where appropriate.
+        - Analyze the HTML structure and map it to the most appropriate components.
+        - Use a HYBRID APPROACH:
+          1. **High-Level Mode**: Use strict components like BuilderHero, BuilderNavbar, BuilderCard for standard sections. This ensures ease of editing.
+          2. **Atomic Mode**: Use BuilderContainer (div), BuilderRow, BuilderColumn, BuilderText, BuilderImage with Tailwind classes (`className`) to build COMPLETELY CUSTOM layouts if the standard components don't fit.
         - Preserve all text content, images, and essential styling (converted to props).
 
         Available Components & Props:
-        - BuilderContainer: { className, children } (Default wrapper, use for generic divs)
-        - BuilderText: { text, tag (h1-h6, p, span), className }
-        - BuilderButton: { text, href, variant, className }
-        - BuilderImage: { src, alt, className }
-        - BuilderHero: { title, description, buttonText, imageSrc, className } (Detect Hero sections)
-        - BuilderCard: { title, description, buttonText, imageSrc, className } (Detect Cards)
-        - BuilderNavbar: { logoText, links: [{text, href}], className } (Detect Navbars)
-        - BuilderFooter: { text, className } (Detect Footers)
-        - BuilderRow: { className, children } (Flex row)
-        - BuilderColumn: { className, children } (Flex col)
+        - BuilderContainer: { className, children } (Default wrapper, use for generic divs. Can use ANY Tailwind class for background, spacing, border, etc.)
+        - BuilderText: { text, tag (h1-h6, p, span), className, animation }
+        - BuilderButton: { text, href, variant (default, outline, ghost, link), size, className, animation }
+        - BuilderImage: { src, alt, objectFit, className, animation }
+        - BuilderHero: { title, subtitle, description, buttonText, buttonHref, secondaryButtonText, secondaryButtonHref, className }
+        - BuilderCard: { title, description, buttonText, buttonHref, imageSrc, variant, className }
+        - BuilderNavbar: { logoText, items: [{label, href}], ctaText, ctaHref, variant, className }
+        - BuilderFooter: { logoText, description, footerColumns: [{title, links: [{label, href}]}], className }
+        - BuilderRow: { gap, justify, align, wrap, className, children } (Flex row)
+        - BuilderColumn: { gap, justify, align, className, children } (Flex col)
         - BuilderGrid: { columns, gap, className, children } (Grid layouts)
         - BuilderLink: { text, href, target, className }
         - BuilderVideo: { src, className }
-        - BuilderDivider: { className }
+        - BuilderDivider: { orientation, className }
         - CustomHTML: { code, className } (Only use as last resort for complex SVGs or scripts)
 
         Rules:
-        1. If you see a <nav>, use BuilderNavbar.
-        2. If you see a hero section (large text, CTA, maybe image), use BuilderHero.
-        3. If you see a grid of cards, use BuilderGrid with BuilderCard children.
-        4. For standard text, use BuilderText.
-        5. Extract Tailwind classes into 'className' prop.
-        6. Return a SINGLE ComponentNode that wraps the entire content (usually a BuilderContainer or BuilderColumn).
+        1. **Prioritize High-Level Components** (Hero, Navbar, Footer) when the design matches standard patterns.
+        2. **Use Atomic Components** (Container, Row, Column) for unique layouts. Do NOT force a unique design into a restrictive component (e.g. don't try to make a complex feature grid using just BuilderCard if it needs custom icons/layout). Build it manually with atomic components instead.
+        3. **Tailwind Classes**: You have FULL FREEDOM to use any Tailwind class in `className` prop for `BuilderContainer`, `BuilderText`, etc. Use this for gradients, shadows, complex positioning, etc.
+        4. **Animations**: You can add animations to atoms using the `animation` prop (e.g. { type: 'fadeInUp', duration: 0.5, delay: 0.2 }).
+        5. Return a SINGLE ComponentNode that wraps the entire content.
         `;
 
         const { object } = await generateObject({
-            model: getProvider(model, apiKey),
+            model: getProvider(model, resolvedApiKey),
             schema: ComponentSchema,
             system: systemPrompt,
             prompt: `Convert this HTML to Builder JSON:\n\n${html.substring(0, 20000)}`, // Limit length to avoid context overflow

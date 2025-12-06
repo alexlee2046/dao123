@@ -17,20 +17,12 @@ type CraftJson = Record<string, CraftNode>;
 
 export function convertToCraftJson(componentTree: ComponentNode): string {
     const nodes: CraftJson = {};
-
-    // Create Root Node (Canvas)
-    // We assume the top level component from AI is a Container that acts as the section wrapper
-    // But Craft.js needs a ROOT node. 
-    // If we are appending to an existing page, we might need to handle this differently.
-    // For now, let's assume we are generating a FULL page or a single section that we want to load.
-    // If we load a single section, we might want to wrap it in a ROOT Canvas.
-
     const rootId = 'ROOT';
 
     nodes[rootId] = {
         type: { resolvedName: 'BuilderContainer' },
         isCanvas: true,
-        props: { className: 'w-full min-h-screen bg-white p-8 flex flex-col gap-4' }, // Default root props
+        props: { className: 'w-full min-h-screen bg-white p-8 flex flex-col gap-4' },
         displayName: 'BuilderContainer',
         custom: {},
         hidden: false,
@@ -38,16 +30,12 @@ export function convertToCraftJson(componentTree: ComponentNode): string {
         linkedNodes: {},
     };
 
-    // Helper to traverse and add nodes
     function traverse(node: ComponentNode, parentId: string) {
-        const id = nanoid(10); // Generate short ID
-
-        // Add ID to parent's nodes
+        const id = nanoid(10);
         if (nodes[parentId]) {
             nodes[parentId].nodes.push(id);
         }
 
-        // Create the node
         nodes[id] = {
             type: { resolvedName: node.type },
             props: node.props || {},
@@ -59,26 +47,15 @@ export function convertToCraftJson(componentTree: ComponentNode): string {
             parent: parentId,
         };
 
-        // Recursively add children
         if (node.children && node.children.length > 0) {
             node.children.forEach(child => traverse(child, id));
         }
     }
 
-    // If the input tree is a list of sections (from our loop), we should add them all to ROOT.
-    // But the transformer input is a single ComponentNode (root of the tree).
-    // If we have multiple sections, we should probably wrap them in a parent Container before calling this,
-    // OR we modify this to accept an array.
-
-    // Let's assume the AI returns a single "Section" component which is a BuilderContainer.
-    // We will add this "Section" as a child of ROOT.
-
     traverse(componentTree, rootId);
-
     return JSON.stringify(nodes);
 }
 
-// Function to merge multiple sections into one Craft JSON
 export function mergeSectionsToCraftJson(sections: ComponentNode[]): string {
     const nodes: CraftJson = {};
     const rootId = 'ROOT';
@@ -115,6 +92,73 @@ export function mergeSectionsToCraftJson(sections: ComponentNode[]): string {
     }
 
     sections.forEach(section => traverse(section, rootId));
-
     return JSON.stringify(nodes);
+}
+
+export function componentNodeToHtml(node: ComponentNode): string {
+    const { type, props, children } = node;
+    
+    // Mapping Builder components to HTML tags
+    let tagName = 'div';
+    
+    if (type === 'BuilderText') {
+        tagName = props.tag || 'p';
+    } else if (type === 'BuilderButton') {
+        tagName = 'a';
+    } else if (type === 'BuilderImage') {
+        tagName = 'img';
+    } else if (type === 'BuilderNavbar') {
+        tagName = 'nav';
+    } else if (type === 'BuilderFooter') {
+        tagName = 'footer';
+    } else if (type === 'BuilderLink') {
+        tagName = 'a';
+    } else if (type === 'CustomHTML') {
+        // Special case: return raw code wrapped in div if needed, or just the code
+        // But props.code is what we want. 
+        // For simplicity, we wrap in a div.
+        return `<div class="${props.className || ''}">${props.code || ''}</div>`;
+    }
+
+    // Construct attributes
+    const attributes: string[] = [];
+    if ('className' in props && props.className) attributes.push(`class="${props.className}"`);
+    if ('href' in props && props.href) attributes.push(`href="${props.href}"`);
+    if ('src' in props && props.src) attributes.push(`src="${props.src}"`);
+    if ('alt' in props && props.alt) attributes.push(`alt="${props.alt}"`);
+    
+    const attrStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+    
+    // Self-closing tags
+    if (tagName === 'img' || tagName === 'br' || tagName === 'hr') {
+        return `<${tagName}${attrStr} />`;
+    }
+    
+    // Children content
+    let childrenHtml = '';
+    if ('text' in props && props.text) {
+        childrenHtml += props.text;
+    }
+    
+    if (children && children.length > 0) {
+        childrenHtml += children.map(componentNodeToHtml).join('');
+    }
+    
+    return `<${tagName}${attrStr}>${childrenHtml}</${tagName}>`;
+}
+
+export function sectionsToHtml(sections: ComponentNode[]): string {
+    const bodyContent = sections.map(componentNodeToHtml).join('\n');
+    
+    return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+${bodyContent}
+</body>
+</html>`;
 }

@@ -161,45 +161,10 @@ export const SettingsPanel = () => {
     const isDividerComponent = componentName.includes('Divider');
     const isCustomHTML = componentName.includes('CustomHTML') || componentName.includes('Custom HTML');
 
-    const header = (
-        <div className="p-4 border-b bg-muted/30">
-            <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-md">
-                <Button
-                    variant={previewDevice === 'desktop' ? 'default' : 'ghost'}
-                    size="sm"
-                    className="h-8 flex-1"
-                    onClick={() => setPreviewDevice('desktop')}
-                >
-                    <Monitor className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant={previewDevice === 'tablet' ? 'default' : 'ghost'}
-                    size="sm"
-                    className="h-8 flex-1"
-                    onClick={() => setPreviewDevice('tablet')}
-                >
-                    <Tablet className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant={previewDevice === 'mobile' ? 'default' : 'ghost'}
-                    size="sm"
-                    className="h-8 flex-1"
-                    onClick={() => setPreviewDevice('mobile')}
-                >
-                    <Smartphone className="h-4 w-4" />
-                </Button>
-            </div>
-            <div className="mt-2 text-xs text-center text-muted-foreground">
-                {previewDevice === 'desktop' ? '桌面端 (Desktop)' :
-                    previewDevice === 'tablet' ? '平板 (Tablet)' : '移动端 (Mobile)'}
-                {/* {t('mode')} */}
-            </div>
-        </div>
-    );
+    // header removed - moved to Toolbar
 
     return (
         <div className="h-full flex flex-col">
-            {header}
             <ScrollArea className="flex-1">
                 <div className="p-4 space-y-4">
                     {/* 标题栏 */}

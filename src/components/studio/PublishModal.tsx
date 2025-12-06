@@ -29,11 +29,12 @@ import {
 import { useStudioStore } from "@/lib/store";
 import { toast } from "sonner";
 
-export function PublishModal({ children, pageCount = 1 }: { children: React.ReactNode, pageCount?: number }) {
+export function PublishModal({ children }: { children: React.ReactNode }) {
     const t = useTranslations('publish');
     const params = useParams();
     const router = useRouter();
-    const { currentProject } = useStudioStore();
+    const { currentProject, pages } = useStudioStore();
+    const pageCount = pages.length;
 
     // Determine the valid project ID. 
     // If params.siteId is 'new' or starts with 'new:', it's not a valid DB ID yet.

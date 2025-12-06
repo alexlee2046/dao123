@@ -146,104 +146,50 @@ export function LivePreview() {
 
     return (
         <div className="flex flex-col h-full bg-muted/30 relative">
-            {/* Preview Toolbar */}
-            <div className="h-10 border-b border-border/50 bg-background/50 flex items-center justify-between gap-2 px-4 backdrop-blur-sm sticky top-0 z-10">
-                <div className="flex items-center gap-2">
-                    {pages.length > 1 && (
-                        <Select value={currentPage} onValueChange={setCurrentPage}>
-                            <SelectTrigger className="h-7 w-[180px] text-xs bg-background/50 border-border/50 focus:ring-0">
-                                <SelectValue placeholder={t('selectPage')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {pages.map((page) => (
-                                    <SelectItem key={page.path} value={page.path} className="text-xs">
-                                        {page.path}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5 border border-border/50">
-                    <Button
-                        variant={previewDevice === 'desktop' ? "secondary" : "ghost"}
-                        size="icon"
-                        className="h-7 w-7 rounded-md"
-                        onClick={() => setPreviewDevice('desktop')}
-                        title={t('desktopView')}
-                    >
-                        <Monitor className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                        variant={previewDevice === 'tablet' ? "secondary" : "ghost"}
-                        size="icon"
-                        className="h-7 w-7 rounded-md"
-                        onClick={() => setPreviewDevice('tablet')}
-                        title="Tablet"
-                    >
-                        <Tablet className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                        variant={previewDevice === 'mobile' ? "secondary" : "ghost"}
-                        size="icon"
-                        className="h-7 w-7 rounded-md"
-                        onClick={() => setPreviewDevice('mobile')}
-                        title={t('mobileView')}
-                    >
-                        <Smartphone className="h-3.5 w-3.5" />
-                    </Button>
-                </div>
-
-                <div className="flex items-center gap-1">
+            {/* Top Bar removed - merged into Toolbar */}
+            
+            <div className="flex-1 relative overflow-hidden">
+                {/* Floating Actions */}
+                <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-background/50 backdrop-blur-sm p-1 rounded-lg border border-border/20 shadow-sm opacity-0 hover:opacity-100 transition-opacity duration-200">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        className="h-7 w-7 rounded-md hover:bg-background"
                         onClick={handleRefresh}
                         title={t('refresh')}
                     >
                         <RefreshCw className="h-3.5 w-3.5" />
                     </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-md hover:bg-background"
+                        asChild
+                        title={t('openInNewTab')}
+                    >
+                        <a href={`/preview/${htmlContent ? 'custom' : 'demo'}`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                    </Button>
                 </div>
-            </div>
 
-            {/* Preview Canvas */}
-            <div className="flex-1 overflow-auto bg-dot-pattern bg-zinc-50/50 dark:bg-zinc-950/50 relative">
-                <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none opacity-50 fixed"></div>
-
-                <div className="min-h-full flex items-center justify-center p-4">
-                    <div
+                <div className="absolute inset-0 flex items-center justify-center p-8">
+                    <div 
                         className={cn(
-                            "bg-white shadow-2xl transition-all duration-500 ease-in-out relative z-10 overflow-hidden shrink-0",
-                            previewDevice === 'mobile'
-                                ? "w-[375px] h-[667px] rounded-[40px] border-[8px] border-zinc-800 ring-1 ring-black/5"
-                                : previewDevice === 'tablet'
-                                    ? "w-[768px] h-[1024px] rounded-[20px] border-[8px] border-zinc-800 ring-1 ring-black/5"
-                                    : cn(
-                                        "w-full rounded-lg border border-border/50 ring-1 ring-black/5 h-[calc(100vh-136px)]"
-                                    )
+                            "bg-white shadow-2xl transition-all duration-300 overflow-hidden flex flex-col",
+                            previewDevice === 'mobile' ? "w-[375px] h-[667px] rounded-[2rem] border-8 border-gray-800" : 
+                            previewDevice === 'tablet' ? "w-[768px] h-[1024px] rounded-[1.5rem] border-8 border-gray-800" : 
+                            "w-full h-full rounded-none border-0"
                         )}
                     >
-                        {previewDevice === 'mobile' && (
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-zinc-800 rounded-b-xl z-20"></div>
-                        )}
-
                         {isBuilderMode ? (
-                            <div className={cn(
-                                "w-full bg-white",
-                                previewDevice !== 'desktop'
-                                    ? "h-full overflow-y-auto rounded-[32px]"
-                                    : "h-[calc(100vh-136px)] overflow-y-auto rounded-lg"
-                            )}>
                             <BuilderCanvas />
-                            </div>
                         ) : (
                             <iframe
                                 ref={iframeRef}
-                                className={cn("w-full h-full border-0 bg-white", previewDevice === 'mobile' ? "rounded-[32px]" : "rounded-lg")}
-                                title="Preview"
+                                className="w-full h-full border-0 bg-white"
                                 sandbox="allow-scripts allow-same-origin allow-forms"
+                                title="Preview"
                             />
                         )}
                     </div>

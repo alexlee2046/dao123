@@ -33,40 +33,258 @@ export const SectionPlanSchema = z.object({
 });
 
 export const SitePlanSchema = z.object({
-    pageTitle: z.string(),
-    seoDescription: z.string(),
-    sections: z.array(SectionPlanSchema),
+    siteName: z.string().describe("Name of the website"),
+    pages: z.array(z.object({
+        path: z.string().describe("File path, e.g., 'index.html', 'about.html'"),
+        title: z.string(),
+        seoDescription: z.string(),
+        sections: z.array(SectionPlanSchema)
+    })).describe("List of pages to generate. Must include index.html")
 });
 
 export type SitePlan = z.infer<typeof SitePlanSchema>;
 
 // 3. Component Schema (Builder Agent)
-// Recursive schema for component tree
-const BaseComponentSchema = z.object({
-    type: z.enum([
-        'BuilderContainer', 
-        'BuilderText', 
-        'BuilderButton', 
-        'BuilderImage', 
-        'CustomHTML',
-        'BuilderHero',
-        'BuilderCard',
-        'BuilderNavbar',
-        'BuilderFooter',
-        'BuilderRow',
-        'BuilderColumn',
-        'BuilderGrid',
-        'BuilderLink',
-        'BuilderVideo',
-        'BuilderDivider'
-    ]),
-    props: z.record(z.any()).describe("Props for the component (className, text, src, etc.)"),
+
+// Common Style Props (subset of BuilderStyleProps)
+const BuilderStyleSchema = z.object({
+    className: z.string().optional().describe("Tailwind classes"),
+    padding: z.object({
+        top: z.string(),
+        right: z.string(),
+        bottom: z.string(),
+        left: z.string()
+    }).optional(),
+    margin: z.object({
+        top: z.string(),
+        right: z.string(),
+        bottom: z.string(),
+        left: z.string()
+    }).optional(),
+    width: z.string().optional(),
+    height: z.string().optional(),
+    minHeight: z.string().optional(),
+    backgroundColor: z.string().optional(),
+    backgroundImage: z.string().optional(),
+    color: z.string().optional(),
+    borderRadius: z.string().optional(),
+    borderWidth: z.string().optional(),
+    borderStyle: z.string().optional(),
+    borderColor: z.string().optional(),
+    boxShadow: z.string().optional(),
+    textAlign: z.enum(['left', 'center', 'right', 'justify']).optional(),
+    fontSize: z.string().optional(),
+    fontWeight: z.string().optional(),
+    lineHeight: z.string().optional(),
+    textDecoration: z.enum(['none', 'underline', 'line-through', 'overline']).optional(),
+    
+    // Animation
+    animation: z.object({
+        type: z.enum(['none', 'fadeIn', 'fadeInUp', 'fadeInDown', 'fadeInLeft', 'fadeInRight', 'zoomIn', 'bounce', 'pulse']),
+        duration: z.number(),
+        delay: z.number(),
+        infinite: z.boolean().optional()
+    }).optional(),
 });
 
-export type ComponentNode = z.infer<typeof BaseComponentSchema> & {
-    children?: ComponentNode[];
-};
-
-export const ComponentSchema: z.ZodType<ComponentNode> = BaseComponentSchema.extend({
-    children: z.lazy(() => z.array(ComponentSchema).optional()),
+// Atom Schemas
+const BuilderTextSchema = z.object({
+    type: z.literal('BuilderText'),
+    props: BuilderStyleSchema.extend({
+        text: z.string(),
+        tag: z.enum(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span']).optional().default('p'),
+    }),
+    children: z.undefined().optional()
 });
+
+const BuilderButtonSchema = z.object({
+    type: z.literal('BuilderButton'),
+    props: BuilderStyleSchema.extend({
+        text: z.string(),
+        href: z.string().optional(),
+        variant: z.enum(['default', 'destructive', 'outline', 'secondary', 'ghost', 'link']).optional().default('default'),
+        size: z.enum(['default', 'sm', 'lg', 'icon']).optional().default('default'),
+    }),
+    children: z.undefined().optional()
+});
+
+const BuilderImageSchema = z.object({
+    type: z.literal('BuilderImage'),
+    props: BuilderStyleSchema.extend({
+        src: z.string(),
+        alt: z.string(),
+        objectFit: z.enum(['contain', 'cover', 'fill', 'none', 'scale-down']).optional().default('cover'),
+    }),
+    children: z.undefined().optional()
+});
+
+const BuilderLinkSchema = z.object({
+    type: z.literal('BuilderLink'),
+    props: BuilderStyleSchema.extend({
+        text: z.string(),
+        href: z.string(),
+        target: z.enum(['_self', '_blank']).optional().default('_self'),
+        textDecoration: z.enum(['none', 'underline', 'line-through', 'overline']).optional().default('none'),
+    }),
+    children: z.undefined().optional()
+});
+
+const BuilderVideoSchema = z.object({
+    type: z.literal('BuilderVideo'),
+    props: BuilderStyleSchema.extend({
+        src: z.string(),
+        poster: z.string().optional(),
+        controls: z.boolean().optional().default(true),
+        autoplay: z.boolean().optional().default(false),
+        loop: z.boolean().optional().default(false),
+        muted: z.boolean().optional().default(false),
+    }),
+    children: z.undefined().optional()
+});
+
+const BuilderDividerSchema = z.object({
+    type: z.literal('BuilderDivider'),
+    props: BuilderStyleSchema.extend({
+        orientation: z.enum(['horizontal', 'vertical']).optional().default('horizontal'),
+        thickness: z.string().optional().default('1px'),
+        color: z.string().optional().default('#e5e7eb'),
+    }),
+    children: z.undefined().optional()
+});
+
+const CustomHTMLSchema = z.object({
+    type: z.literal('CustomHTML'),
+    props: BuilderStyleSchema.extend({
+        code: z.string(),
+    }),
+    children: z.undefined().optional()
+});
+
+// Recursive definition helper
+const ComponentSchemaProxy: z.ZodType<any> = z.lazy(() => ComponentSchema);
+const NodeArraySchema = z.array(ComponentSchemaProxy).optional();
+
+// Layout Schemas
+const BuilderContainerSchema = z.object({
+    type: z.literal('BuilderContainer'),
+    props: BuilderStyleSchema,
+    children: NodeArraySchema
+});
+
+const BuilderRowSchema = z.object({
+    type: z.literal('BuilderRow'),
+    props: BuilderStyleSchema.extend({
+        gap: z.string().optional().default('16px'),
+        justify: z.enum(['start', 'center', 'end', 'between', 'around', 'evenly']).optional().default('start'),
+        align: z.enum(['start', 'center', 'end', 'stretch', 'baseline']).optional().default('center'),
+        wrap: z.boolean().optional().default(true),
+    }),
+    children: NodeArraySchema
+});
+
+const BuilderColumnSchema = z.object({
+    type: z.literal('BuilderColumn'),
+    props: BuilderStyleSchema.extend({
+        gap: z.string().optional().default('16px'),
+        justify: z.enum(['start', 'center', 'end', 'between', 'around', 'evenly']).optional().default('start'),
+        align: z.enum(['start', 'center', 'end', 'stretch']).optional().default('stretch'),
+    }),
+    children: NodeArraySchema
+});
+
+const BuilderGridSchema = z.object({
+    type: z.literal('BuilderGrid'),
+    props: BuilderStyleSchema.extend({
+        columns: z.number().optional().default(3),
+        gap: z.string().optional().default('16px'),
+    }),
+    children: NodeArraySchema
+});
+
+// Block Schemas
+const BuilderHeroSchema = z.object({
+    type: z.literal('BuilderHero'),
+    props: BuilderStyleSchema.extend({
+        title: z.string().optional(),
+        subtitle: z.string().optional(),
+        description: z.string().optional(),
+        buttonText: z.string().optional(),
+        buttonHref: z.string().optional(),
+        secondaryButtonText: z.string().optional(),
+        secondaryButtonHref: z.string().optional(),
+        showSecondaryButton: z.boolean().optional().default(true),
+    }),
+    children: z.undefined().optional()
+});
+
+const BuilderCardSchema = z.object({
+    type: z.literal('BuilderCard'),
+    props: BuilderStyleSchema.extend({
+        imageSrc: z.string().optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        buttonText: z.string().optional(),
+        buttonHref: z.string().optional(),
+        showImage: z.boolean().optional().default(true),
+        showButton: z.boolean().optional().default(true),
+        variant: z.enum(['default', 'bordered', 'elevated']).optional().default('default'),
+    }),
+    children: z.undefined().optional()
+});
+
+const BuilderNavbarSchema = z.object({
+    type: z.literal('BuilderNavbar'),
+    props: BuilderStyleSchema.extend({
+        logo: z.string().optional(),
+        logoText: z.string().optional(),
+        items: z.array(z.object({
+            label: z.string(),
+            href: z.string()
+        })).optional(),
+        ctaText: z.string().optional(),
+        ctaHref: z.string().optional(),
+        showCta: z.boolean().optional().default(true),
+        variant: z.enum(['light', 'dark', 'transparent']).optional().default('light'),
+        sticky: z.boolean().optional().default(true),
+    }),
+    children: z.undefined().optional()
+});
+
+const BuilderFooterSchema = z.object({
+    type: z.literal('BuilderFooter'),
+    props: BuilderStyleSchema.extend({
+        logoText: z.string().optional(),
+        description: z.string().optional(),
+        footerColumns: z.array(z.object({
+            title: z.string(),
+            links: z.array(z.object({
+                label: z.string(),
+                href: z.string()
+            }))
+        })).optional(),
+        copyright: z.string().optional(),
+        showSocialLinks: z.boolean().optional().default(true),
+        variant: z.enum(['light', 'dark']).optional().default('dark'),
+    }),
+    children: z.undefined().optional()
+});
+
+export const ComponentSchema = z.discriminatedUnion('type', [
+    BuilderTextSchema,
+    BuilderButtonSchema,
+    BuilderImageSchema,
+    BuilderLinkSchema,
+    BuilderVideoSchema,
+    BuilderDividerSchema,
+    CustomHTMLSchema,
+    BuilderContainerSchema,
+    BuilderRowSchema,
+    BuilderColumnSchema,
+    BuilderGridSchema,
+    BuilderHeroSchema,
+    BuilderCardSchema,
+    BuilderNavbarSchema,
+    BuilderFooterSchema
+]);
+
+export type ComponentNode = z.infer<typeof ComponentSchema>;

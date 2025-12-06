@@ -18,6 +18,7 @@ interface Message {
 export interface Page {
   path: string;
   content: string;
+  content_json?: string; // Builder JSON data
 }
 
 interface StudioState {
@@ -75,14 +76,6 @@ interface StudioState {
   toggleBuilderMode: () => void;
   builderData: string | null; // JSON string for Craft.js
   setBuilderData: (data: string | null) => void;
-
-  // Agent Models
-  architectModel: string;
-  designerModel: string;
-  builderModel: string;
-  setArchitectModel: (model: string) => void;
-  setDesignerModel: (model: string) => void;
-  setBuilderModel: (model: string) => void;
 }
 
 export const useStudioStore = create<StudioState>((set) => {
@@ -127,11 +120,13 @@ export const useStudioStore = create<StudioState>((set) => {
       const indexPage = pages.find(p => p.path === 'index.html') || pages[0];
       const newCurrentPage = indexPage ? indexPage.path : 'index.html';
       const newHtmlContent = indexPage ? indexPage.content : '';
+      const newBuilderData = indexPage ? indexPage.content_json || null : null;
 
       return {
         pages,
         currentPage: newCurrentPage,
         htmlContent: newHtmlContent,
+        builderData: newBuilderData,
         past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
         future: []
       };
@@ -142,7 +137,8 @@ export const useStudioStore = create<StudioState>((set) => {
       if (!page) return state;
       return {
         currentPage: path,
-        htmlContent: page.content
+        htmlContent: page.content,
+        builderData: page.content_json || null
       };
     }),
 
@@ -212,14 +208,15 @@ export const useStudioStore = create<StudioState>((set) => {
     isBuilderMode: false,
     toggleBuilderMode: () => set((state) => ({ isBuilderMode: !state.isBuilderMode })),
     builderData: null,
-    setBuilderData: (data) => set({ builderData: data }),
-
-    // Agent Models
-    architectModel: 'anthropic/claude-3.5-sonnet',
-    designerModel: 'anthropic/claude-3.5-sonnet',
-    builderModel: 'google/gemini-2.0-flash-exp:free', // Default to efficient model
-    setArchitectModel: (model) => set({ architectModel: model }),
-    setDesignerModel: (model) => set({ designerModel: model }),
-    setBuilderModel: (model) => set({ builderModel: model }),
+    setBuilderData: (data) => set((state) => {
+        // Also update the current page's content_json
+        const newPages = state.pages.map(p =>
+            p.path === state.currentPage ? { ...p, content_json: data || undefined } : p
+        );
+        return {
+            builderData: data,
+            pages: newPages
+        };
+    }),
   };
 });

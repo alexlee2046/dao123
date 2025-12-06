@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-// Helper to check admin status
+// Helper to check admin status and return Admin Client (Service Role)
 async function requireAdmin() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -20,7 +20,8 @@ async function requireAdmin() {
         throw new Error('禁止访问：需要管理员权限')
     }
 
-    return supabase
+    // Return service role client to bypass RLS for admin actions
+    return createAdminClient()
 }
 
 export async function getSystemSettings() {
@@ -87,7 +88,7 @@ export async function getAdminStats() {
         .select('amount')
         .eq('type', 'purchase') // Assuming 'purchase' is credit purchase or consumption
 
-    const totalCredits = transactions?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0
+    const totalCredits = transactions?.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0) || 0
 
     return {
         usersCount,
@@ -134,7 +135,7 @@ export async function getAdminChartData() {
     }
 
     // Fill user data
-    users?.forEach(user => {
+    users?.forEach((user: any) => {
         const dateStr = new Date(user.created_at).toISOString().split('T')[0]
         if (dateMap.has(dateStr)) {
             const entry = dateMap.get(dateStr)
@@ -143,7 +144,7 @@ export async function getAdminChartData() {
     })
 
     // Fill transaction data
-    transactions?.forEach(tx => {
+    transactions?.forEach((tx: any) => {
         const dateStr = new Date(tx.created_at).toISOString().split('T')[0]
         if (dateMap.has(dateStr)) {
             const entry = dateMap.get(dateStr)

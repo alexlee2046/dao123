@@ -220,6 +220,13 @@
         "share": "分享",
         "publishOnline": "发布上线",
         "generatedBy": "由 Dao123 生成",
+        "pageManager": "页面管理",
+        "pageManagerDesc": "管理项目中的页面",
+        "pageExists": "页面已存在",
+        "pageCreated": "页面已创建",
+        "pageDeleted": "页面已删除",
+        "cannotDeleteIndex": "无法删除首页",
+        "current": "当前",
         "loadFailed": "加载项目失败",
         "syncedFromAI": "已从 AI 内容同步",
         "assetsManager": {

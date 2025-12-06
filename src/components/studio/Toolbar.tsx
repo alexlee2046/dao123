@@ -2,12 +2,13 @@ import React, { useEffect } from 'react';
 import { Link } from '@/components/link';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Undo, Redo, Share, Play, ArrowLeft, Save, Globe, Sparkles, ChevronRight, Loader2, MessageSquare, Hammer, FileCode, Wand2 } from "lucide-react";
+import { Undo, Redo, Share, Play, ArrowLeft, Save, Globe, Sparkles, ChevronRight, Loader2, MessageSquare, Hammer, FileCode, Wand2, Layers, Monitor, Tablet, Smartphone, Plus } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { PublishModal } from "@/components/studio/PublishModal";
 import { ShareModal } from "@/components/studio/ShareModal";
 import { PublishToCommunityModal } from "@/components/studio/PublishToCommunityModal";
 import { ImportCodeModal } from "@/components/studio/ImportCodeModal";
+import { PageManager } from "@/components/studio/PageManager";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEditor } from "@craftjs/core";
@@ -25,7 +26,7 @@ import {
 
 export function Toolbar() {
   const router = useRouter();
-  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData, selectedModel, setSelectedModel, openRouterApiKey } = useStudioStore();
+  const { undo, redo, past, future, currentProject, setCurrentProject, htmlContent, pages, currentPage, setCurrentPage, captureScreenshot, isBuilderMode, toggleBuilderMode, setBuilderData, builderData, selectedModel, setSelectedModel, openRouterApiKey, previewDevice, setPreviewDevice } = useStudioStore();
   const [saving, setSaving] = React.useState(false);
   const [isRefining, setIsRefining] = React.useState(false);
   const [models, setModels] = React.useState<Model[]>([]);
@@ -103,6 +104,7 @@ export function Toolbar() {
 
   return (
     <div className="h-14 border-b border-border/40 bg-background/60 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50 transition-all duration-300">
+      {/* Left Section: Back, Project Info, Page Selector */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" asChild title={t('returnToDashboard')} className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
           <Link href="/dashboard">
@@ -111,12 +113,33 @@ export function Toolbar() {
         </Button>
 
         <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted/30 border border-border/20">
-          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-            <Sparkles className="h-3 w-3" />
-          </div>
-          <span className="font-semibold text-sm tracking-tight">{t('workshop')}</span>
+          <span className="font-semibold text-sm tracking-tight ml-1">{currentProject?.name || t('untitledProject')}</span>
           <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
-          <span className="text-xs text-muted-foreground max-w-[150px] truncate">{currentProject?.name || t('untitledProject')}</span>
+          
+          {/* Page Selector */}
+          <Select value={currentPage} onValueChange={setCurrentPage}>
+            <SelectTrigger className="h-6 min-w-[100px] max-w-[160px] text-xs border-0 bg-transparent p-0 px-1 hover:bg-background/50 rounded-sm focus:ring-0 shadow-none">
+              <SelectValue placeholder={t('selectPage')} />
+            </SelectTrigger>
+            <SelectContent>
+              {pages.map((page) => (
+                <SelectItem key={page.path} value={page.path} className="text-xs">
+                  {page.path}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <PageManager>
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t('pageManager')}
+              className="h-5 w-5 rounded-full hover:bg-background/80 ml-1"
+            >
+              <Layers className="h-3 w-3 text-muted-foreground" />
+            </Button>
+          </PageManager>
         </div>
 
         <div className="h-4 w-px bg-border/50 mx-1" />
@@ -145,6 +168,41 @@ export function Toolbar() {
         </div>
       </div>
 
+      {/* Center Section: Device Toggles */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 bg-muted/30 rounded-full p-1 border border-border/20">
+        <Button
+          variant={previewDevice === 'desktop' ? "secondary" : "ghost"}
+          size="sm"
+          className={`h-7 px-3 rounded-full text-xs ${previewDevice === 'desktop' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+          onClick={() => setPreviewDevice('desktop')}
+          title="Desktop"
+        >
+          <Monitor className="h-3.5 w-3.5 mr-1.5" />
+          Desktop
+        </Button>
+        <Button
+          variant={previewDevice === 'tablet' ? "secondary" : "ghost"}
+          size="sm"
+          className={`h-7 px-3 rounded-full text-xs ${previewDevice === 'tablet' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+          onClick={() => setPreviewDevice('tablet')}
+          title="Tablet"
+        >
+          <Tablet className="h-3.5 w-3.5 mr-1.5" />
+          Tablet
+        </Button>
+        <Button
+          variant={previewDevice === 'mobile' ? "secondary" : "ghost"}
+          size="sm"
+          className={`h-7 px-3 rounded-full text-xs ${previewDevice === 'mobile' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+          onClick={() => setPreviewDevice('mobile')}
+          title="Mobile"
+        >
+          <Smartphone className="h-3.5 w-3.5 mr-1.5" />
+          Mobile
+        </Button>
+      </div>
+
+      {/* Right Section: Actions */}
       <div className="flex items-center gap-2">
         <ImportCodeModal>
           <Button

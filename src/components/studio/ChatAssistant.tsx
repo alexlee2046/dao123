@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2, MessageSquare, Layout, X, Settings2 } from "lucide-react";
+import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2, X } from "lucide-react";
 import {
     Select,
     SelectContent,
@@ -14,11 +14,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { useStudioStore, type Page } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -46,12 +41,6 @@ export function ChatAssistant() {
         selectedModel,
         addAsset,
         setSelectedModel,
-        architectModel,
-        setArchitectModel,
-        designerModel,
-        setDesignerModel,
-        builderModel,
-        setBuilderModel,
     } = useStudioStore();
 
     const { startGeneration, currentStep, progress, statusMessage } = useAgentOrchestrator();
@@ -59,7 +48,6 @@ export function ChatAssistant() {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [localInput, setLocalInput] = useState('');
     const [models, setModels] = useState<Model[]>([]);
-    const [mode, setMode] = useState<'guide' | 'direct'>('direct');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
     // 本地聊天素材状态 - 只显示用户在聊天中上传的素材
@@ -93,7 +81,6 @@ export function ChatAssistant() {
     // 使用 refs 来存储动态值，确保每次请求时获取最新值
     const selectedModelRef = useRef(selectedModel);
     const htmlContentRef = useRef(htmlContent);
-    const modeRef = useRef(mode);
 
     // 更新 refs
     useEffect(() => {
@@ -102,9 +89,6 @@ export function ChatAssistant() {
     useEffect(() => {
         htmlContentRef.current = htmlContent;
     }, [htmlContent]);
-    useEffect(() => {
-        modeRef.current = mode;
-    }, [mode]);
 
     // Configure transport with API endpoint and dynamic body parameters
     const transport = useMemo(() => new DefaultChatTransport({
@@ -112,7 +96,7 @@ export function ChatAssistant() {
         body: () => ({
             model: selectedModelRef.current,
             currentHtml: htmlContentRef.current,
-            mode: modeRef.current,
+            mode: 'direct', // Default to direct mode
         }),
     }), []);
 
@@ -158,11 +142,6 @@ export function ChatAssistant() {
 
     const isLoading = status === 'streaming' || status === 'submitted';
 
-    // 当模式改变时，清空消息历史，避免格式冲突
-    useEffect(() => {
-        setMessages([]);
-    }, [mode, setMessages]);
-
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -172,21 +151,6 @@ export function ChatAssistant() {
     const handleSend = async (contentOverride?: string) => {
         const contentToSend = typeof contentOverride === 'string' ? contentOverride : localInput;
         if (!contentToSend.trim()) return;
-
-        // Check if we should use the Agentic Builder Workflow
-        // Trigger if mode is 'direct' (Generate) and user asks for a full site or uses keywords
-        // For now, let's add a toggle or just check a keyword like "build site" or if we are in builder mode?
-        // Let's assume if the user clicks "生成" (Generate mode) we try to use the new flow if enabled.
-
-        // TEMPORARY: Disable auto-trigger of Agentic Workflow until it is fully stable and configured.
-        // Users reported accidental switching and 500 errors.
-        /*
-        if (mode === 'direct' && (contentToSend.includes('网站') || contentToSend.includes('page') || contentToSend.includes('site'))) {
-            await startGeneration(contentToSend);
-            setLocalInput('');
-            return;
-        }
-        */
 
         let messageContent = contentToSend;
         if (chatAssets.length > 0) {
@@ -282,83 +246,7 @@ export function ChatAssistant() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Settings2 className="h-4 w-4" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                            <div className="grid gap-4">
-                                <div className="space-y-2">
-                                    <h4 className="font-medium leading-none">{t('chatPanel.modelSettings')}</h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        {t('chatPanel.modelSettingsDesc')}
-                                    </p>
-                                </div>
-                                <div className="grid gap-3">
-                                    <div className="grid grid-cols-3 items-center gap-4">
-                                        <Label htmlFor="architect" className="text-xs">{t('chatPanel.architect')}</Label>
-                                        <Select value={architectModel} onValueChange={setArchitectModel}>
-                                            <SelectTrigger id="architect" className="col-span-2 h-8">
-                                                <SelectValue placeholder={t('chatPanel.selectModel')} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {models.map(m => (
-                                                    <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid grid-cols-3 items-center gap-4">
-                                        <Label htmlFor="designer" className="text-xs">{t('chatPanel.designer')}</Label>
-                                        <Select value={designerModel} onValueChange={setDesignerModel}>
-                                            <SelectTrigger id="designer" className="col-span-2 h-8">
-                                                <SelectValue placeholder={t('chatPanel.selectModel')} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {models.map(m => (
-                                                    <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid grid-cols-3 items-center gap-4">
-                                        <Label htmlFor="builder" className="text-xs">{t('chatPanel.builder')}</Label>
-                                        <Select value={builderModel} onValueChange={setBuilderModel}>
-                                            <SelectTrigger id="builder" className="col-span-2 h-8">
-                                                <SelectValue placeholder={t('chatPanel.selectModel')} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {models.map(m => (
-                                                    <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-
-                    <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/50">
-                        <button
-                            onClick={() => setMode('guide')}
-                            className={cn("px-2 py-1 text-[10px] font-medium rounded-md transition-all flex items-center gap-1", mode === 'guide' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}
-                        >
-                            <MessageSquare className="h-3 w-3" />
-                            {t('chatPanel.modeGuide')}
-                        </button>
-                        <button
-                            onClick={() => setMode('direct')}
-                            className={cn("px-2 py-1 text-[10px] font-medium rounded-md transition-all flex items-center gap-1", mode === 'direct' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}
-                        >
-                            <Layout className="h-3 w-3" />
-                            {t('chatPanel.modeDirect')}
-                        </button>
-                    </div>
-                </div>
+                {/* Model Selection is now in Footer or can be moved here if desired, but removing the complex Popover */}
             </div>
 
             {/* Messages Area */}
