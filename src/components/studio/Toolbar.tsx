@@ -375,7 +375,7 @@ export function Toolbar() {
           </Button>
         </ShareModal>
 
-        <PublishModal pageCount={pages.length}>
+        <PublishModal>
           <Button size="sm" className="h-8 rounded-full px-4 text-xs shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 border-0">
             <Play className="h-3.5 w-3.5 mr-1.5 fill-current" />
             {t('publishOnline')}
