@@ -95,7 +95,7 @@ export function ChatAssistant() {
             console.error('Chat error:', err);
             toast.error(err.message || t('chatPanel.serviceError'));
         },
-        onFinish: ({ message }: any) => {
+        onFinish: async ({ message }: any) => {
             // 提取消息内容 - 新 SDK 中内容可能在 parts 中
             let content = '';
             if (message.content) {
@@ -109,22 +109,52 @@ export function ChatAssistant() {
 
             if (!content) return;
 
+            // Log raw content for client-side debugging
+            console.log('[ChatAssistant] Raw AI response length:', content.length);
 
-            const newPages = parseMultiPageResponse(content);
-
-            if (newPages.length > 0) {
-                // Merge with existing pages
-                const currentPages = useStudioStore.getState().pages;
-                const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
-
-                newPages.forEach(p => {
-                    mergedPagesMap.set(p.path, p);
+            try {
+                // Call backend API for robust parsing
+                const response = await fetch('/api/parse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
                 });
 
-                setPages(Array.from(mergedPagesMap.values()));
-                return;
+                if (!response.ok) {
+                    throw new Error('Parsing failed');
+                }
+
+                const { pages } = await response.json();
+
+                if (pages && pages.length > 0) {
+                    // Merge with existing pages
+                    const currentPages = useStudioStore.getState().pages;
+                    const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
+
+                    pages.forEach((p: Page) => {
+                        mergedPagesMap.set(p.path, p);
+                    });
+
+                    setPages(Array.from(mergedPagesMap.values()));
+                    toast.success(t('chatPanel.previewUpdated'));
+                    return;
+                }
+            } catch (error) {
+                console.error('[ChatAssistant] Parsing API error, falling back to client parser:', error);
+                // Fallback to client-side parser if API fails
+                const newPages = parseMultiPageResponse(content);
+                if (newPages.length > 0) {
+                    const currentPages = useStudioStore.getState().pages;
+                    const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
+                    newPages.forEach(p => {
+                        mergedPagesMap.set(p.path, p);
+                    });
+                    setPages(Array.from(mergedPagesMap.values()));
+                    return;
+                }
             }
 
+            // Legacy single page fallback (if no pages found by either method)
             const extractedHtml = extractHtml(content);
             if (extractedHtml) setHtmlContent(extractedHtml);
         },
