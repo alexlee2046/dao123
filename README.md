@@ -1,127 +1,171 @@
-# Dao123 - AI 驱动的 CMS SaaS 平台
+<p align="center">
+  <img src="/public/logo.svg" alt="Dao123 Logo" width="120" />
+</p>
 
-一个面向小白用户的 AI 网站构建平台，灵感来自 Google Stitch。通过简单的自然语言对话，即可秒级生成多页面响应式网站。
+<h1 align="center">Dao123</h1>
 
-<img src="/public/logo.svg" alt="Dao123 Logo" width="120" />
+<p align="center">
+  <strong>AI-Powered Website Builder & CMS Platform</strong>
+</p>
 
-## 🌟 核心特性
+<p align="center">
+  <a href="./README_EN.md">English</a> ·
+  <a href="#%EF%B8%8F-快速开始">快速开始</a> ·
+  <a href="#-核心特性">核心特性</a> ·
+  <a href="#-技术栈">技术栈</a> ·
+  <a href="#-部署指南">部署</a>
+</p>
 
-### 🤖 智能构建系统
-- **对话式生成**: 集成 Vercel AI SDK + OpenRouter，同步支持最新模型（DeepSeek V3.2, Gemini 3 Pro 等）。
-  > **实测推荐**: Gemini 3 Pro 表现最佳。
-- **所见即所得 (WYSIWYG)**: 实时预览，支持拖拽编辑 (@craftjs/core)。
-- **多页面规划**: AI 自动规划站点结构 (首页, 关于, 联系等)。
-- **素材感知**: 自动识别并使用用户上传的图片素材。
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5-blue?logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind-4-38B2AC?logo=tailwind-css" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase" alt="Supabase" />
+  <img src="https://img.shields.io/badge/AI-Vercel_SDK-000?logo=vercel" alt="Vercel AI SDK" />
+</p>
 
-### 🛠️ 强大的编辑器 (Studio)
-- **三栏布局**: AI 聊天 / 实时画布 / 素材管理。
-- **响应式设计**: 一键切换桌面/移动端预览。
-- **历史记录**: 完整的撤销/重做支持。
-- **智能重写**: 选中组件即可让 AI 优化文案或样式。
+---
 
-### 🚀 发布与商业化
-- **一键发布**: 支持子域名分配与自动化部署。
-- **商业化集成**: 内置 Stripe 支付集成（Credits 系统）。
-- **国际化**: 支持多语言 (Next-intl)。
+面向普通用户的 **AI 网站生成器**，灵感源自 Google Stitch。通过简单的自然语言对话，秒级生成专业级多页面响应式网站。零代码基础即可创建个人主页、作品集、落地页。
+
+> 💡 **实测推荐**: Gemini 2.5 Pro / DeepSeek V3 表现最佳
+
+## ✨ 核心特性
+
+### 🤖 AI 驱动生成
+- **对话式创建** - 描述你的需求，AI 自动生成完整网站
+- **智能多页规划** - 自动生成首页、关于、产品、联系等页面结构  
+- **素材感知** - 上传图片，AI 智能识别并应用到合适位置
+- **多模型支持** - 集成 OpenRouter，同步支持 Gemini、DeepSeek、GPT-4o 等最新模型
+
+### 🎨 可视化编辑器
+- **所见即所得** - 拖拽式编辑，实时预览效果
+- **响应式设计** - 一键切换桌面/平板/手机视图
+- **组件系统** - 丰富的预设组件：Hero、特性展示、定价表、FAQ 等
+- **样式微调** - AI 生成后可手动调整颜色、字体、间距
+
+### 🚀 一键发布
+- **子域名分配** - 自动分配 `yoursite.dao123.com` 域名
+- **自定义域名** - 支持绑定自有域名
+- **SEO 友好** - 自动生成 meta 标签、sitemap
+
+### 💼 商业化就绪
+- **用户系统** - 完整的注册、登录、个人中心
+- **积分系统** - 内置 Stripe 支付，按量计费
+- **社区展示** - 用户作品公开展示，互相学习
+
+## 🎯 适用场景
+
+| 场景 | 示例 |
+|------|------|
+| 个人品牌 | 个人主页、简历网站、作品集 |
+| 小型企业 | 公司官网、产品介绍页 |
+| 营销推广 | 活动落地页、产品发布页 |
+| 创作者经济 | 知识付费页面、课程介绍 |
+
+## 🛠️ 技术栈
+
+| 分类 | 技术 |
+|------|------|
+| **框架** | Next.js 16 (App Router) |
+| **语言** | TypeScript 5 |
+| **UI** | React 19 + Tailwind CSS 4 |
+| **组件** | Shadcn UI (Radix Primitives) |
+| **编辑器** | @craftjs/core (拖拽可视化) |
+| **AI** | Vercel AI SDK + OpenRouter |
+| **后端** | Supabase (PostgreSQL + Auth) |
+| **支付** | Stripe |
+| **状态管理** | Zustand |
+| **国际化** | next-intl |
 
 ## 📁 项目结构
 
 ```
 src/
 ├── app/                  # Next.js App Router
-│   ├── (app)/            # 仪表盘与设置 (Dashboard)
+│   ├── (app)/            # 用户仪表盘
 │   ├── (marketing)/      # 营销落地页
-│   └── studio/           # 核心编辑器 (全屏模式)
+│   └── studio/           # AI 编辑器 (核心)
 ├── components/
-│   ├── studio/           # 编辑器核心组件 (Canvas, Toolbar)
-│   └── ui/               # Shadcn UI 组件库
+│   ├── studio/           # 编辑器组件 (Canvas, Toolbar, Chat)
+│   ├── builder/          # 页面构建组件 (Hero, Features, Pricing...)
+│   └── ui/               # Shadcn UI 基础组件
 ├── lib/
-│   ├── ai/               # AI Prompt与逻辑
-│   ├── supabase/         # 数据库与认证客户端
-│   └── store.ts          # Zustand 全局状态
+│   ├── ai/               # AI Prompt 工程
+│   ├── supabase/         # 数据库客户端
+│   └── store.ts          # Zustand 状态管理
 └── public/               # 静态资源
 ```
 
-## 🎨 技术栈
+## ⚡️ 快速开始
 
-本项目使用最新的现代前端技术栈构建：
-
-- **核心框架**: [Next.js 16](https://nextjs.org) (App Router)
-- **语言**: TypeScript
-- **UI 框架**: [React 19](https://react.dev)
-- **样式**: [Tailwind CSS v4](https://tailwindcss.com)
-- **组件库**: [Shadcn UI](https://ui.shadcn.com) (Radix Primitives)
-- **编辑器核心**: @craftjs/core
-- **AI SDK**: Vercel AI SDK
-- **后端/数据库**: [Supabase](https://supabase.com) (PostgreSQL, Auth, Realtime)
-- **支付**: Stripe
-- **状态管理**: Zustand
-- **国际化**: next-intl
-
-## 🚀 部署指南
-
-本项目支持一键部署到 Vercel，并使用 Supabase 作为后端。
-
-### 1. 环境准备
+### 环境要求
 - Node.js 20+
-- Git
 - Supabase 账号
-- Vercel 账号
+- OpenRouter API Key (或其他 AI 服务)
 
-### 2. 克隆项目
+### 本地运行
+
 ```bash
+# 克隆项目
 git clone https://github.com/alexlee2046/dao123.git
 cd dao123
+
+# 安装依赖
 npm install
+
+# 配置环境变量
+cp .env.example .env.local
+# 编辑 .env.local 填入必要配置
+
+# 启动开发服务器
+npm run dev
 ```
 
-### 3. 配置 Supabase
-1. 创建一个新的 Supabase 项目。
-2. 获取 Project URL 和 API Keys (Anon Key, Service Role Key)。
-3. 在 Supabase SQL Editor 中运行数据库迁移脚本（位于 `migrations/` 目录，或使用 CLI）。
-4. 启用 Authentication (Email/Password, OAuth)。
+访问 http://localhost:3006 开始使用。
 
-### 4. 配置环境变量
-复制 `.env.example` 到 `.env.local` 并填入以下信息：
+### 环境变量
 
 ```env
-# App
+# 应用
 NEXT_PUBLIC_APP_URL=http://localhost:3006
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# OpenRouter (AI)
+# AI (OpenRouter)
 OPENROUTER_API_KEY=your_openrouter_key
 
-# Stripe (Optional)
+# Stripe (可选)
 STRIPE_SECRET_KEY=...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...
-STRIPE_WEBHOOK_SECRET=...
 ```
 
-### 5. 本地启动
-```bash
-npm run dev
-# 访问 http://localhost:3006
-```
+## 🚀 部署指南
 
-### 6. 部署到 Vercel
-1. 安装 Vercel CLI: `npm i -g vercel`
-2. 链接项目: `vercel link`
-3. 配置环境变量: 使用项目根目录下的 `setup_vercel_env.sh` (需先赋予执行权限) 或手动在 Vercel Dashboard 添加。
-4. 部署: `vercel deploy --prod`
+### Vercel 部署 (推荐)
+
+1. Fork 本项目到你的 GitHub
+2. 在 [Vercel](https://vercel.com) 导入项目
+3. 配置环境变量
+4. 点击 Deploy
+
+### Supabase 配置
+
+1. 创建 [Supabase](https://supabase.com) 项目
+2. 运行 `migrations/` 中的 SQL 脚本
+3. 启用 Email + OAuth 认证
 
 ## 📞 联系方式
 
-如有任何问题、商业合作或建议，请联系：
-
-*   **Email**: alexlee20118@gmail.com
+- **Email**: alexlee20118@gmail.com
+- **Issues**: [GitHub Issues](https://github.com/alexlee2046/dao123/issues)
 
 ## 📄 许可证
 
 **PolyForm Noncommercial License 1.0.0**
 
-本项目仅供非商业用途学习与研究。如需商业使用，请通过邮箱联系作者授权。
+本项目仅供非商业用途学习与研究。商业使用请联系作者获取授权。

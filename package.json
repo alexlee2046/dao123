@@ -1,7 +1,31 @@
 {
   "name": "dao123",
   "version": "0.1.0",
+  "description": "AI-powered no-code website builder. Create professional multi-page websites in seconds using natural language. Built with Next.js 16, React 19, and Supabase.",
+  "keywords": [
+    "ai-website-builder",
+    "website-generator",
+    "no-code",
+    "nextjs",
+    "react",
+    "ai",
+    "cms",
+    "website-builder",
+    "landing-page",
+    "portfolio",
+    "supabase",
+    "typescript",
+    "tailwindcss"
+  ],
   "author": "alexlee2046",
+  "homepage": "https://github.com/alexlee2046/dao123#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexlee2046/dao123.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexlee2046/dao123/issues"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev -p 3006",
