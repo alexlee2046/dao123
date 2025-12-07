@@ -231,6 +231,10 @@
         "pageDeleted": "页面已删除",
         "cannotDeleteIndex": "无法删除首页",
         "current": "当前",
+        "invalidPageName": "页面名称无效：不能包含特殊字符",
+        "pageNameTooLong": "页面名称过长（最大50个字符）",
+        "createEmptyPage": "创建空白页面",
+        "cloneCurrentPage": "复制当前页面",
         "loadFailed": "加载项目失败",
         "syncedFromAI": "已从 AI 内容同步",
         "assetsManager": {

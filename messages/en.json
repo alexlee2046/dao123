@@ -231,6 +231,10 @@
         "pageDeleted": "Page deleted",
         "cannotDeleteIndex": "Cannot delete index page",
         "current": "Current",
+        "invalidPageName": "Invalid page name: no special characters allowed",
+        "pageNameTooLong": "Page name too long (max 50 characters)",
+        "createEmptyPage": "Create empty page",
+        "cloneCurrentPage": "Clone current page",
         "loadFailed": "Failed to load project",
         "syncedFromAI": "Synced from AI content",
         "assetsManager": {

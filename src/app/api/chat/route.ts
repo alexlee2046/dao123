@@ -28,30 +28,96 @@ export async function POST(req: Request) {
         console.log(`[Chat API] User: ${user.id}, Model: ${model}, Base Cost: ${baseCost}, Mode: ${mode}`);
 
         // 3. Check and Deduct Credits (using Admin Client for security)
-        const adminSupabase = createSupabaseClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        let adminSupabase = null;
+        let profile = null;
 
-        // Get current credits
-        const { data: profile, error: profileError } = await adminSupabase
-            .from('profiles')
-            .select('credits, membership_tier, membership_expires_at')
-            .eq('id', user.id)
-            .single();
-
-        if (profileError) {
-            console.error('[Chat API] Profile fetch error:', profileError);
-            return new Response(
-                JSON.stringify({
-                    error: '无法获取用户信息',
-                    details: profileError.message
-                }),
-                { status: 500, headers: { 'Content-Type': 'application/json' } }
+        if (serviceRoleKey) {
+            adminSupabase = createSupabaseClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                serviceRoleKey
             );
+
+            // Get current credits
+            const { data: p, error: profileError } = await adminSupabase
+                .from('profiles')
+                .select('credits, membership_tier, membership_expires_at')
+                .eq('id', user.id)
+                .single();
+
+            if (profileError) {
+                console.error('[Chat API] Profile fetch error:', profileError);
+                return new Response(
+                    JSON.stringify({
+                        error: '无法获取用户信息',
+                        details: profileError.message
+                    }),
+                    { status: 500, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+            profile = p;
+        } else {
+            console.warn('[Chat API] SUPABASE_SERVICE_ROLE_KEY missing. Skipping credit checks.');
         }
 
-        if (!profile) {
+        if (profile) {
+            const effectiveTier = getEffectiveTier(profile);
+            const actualCost = calculateUserCost(baseCost, model || 'anthropic/claude-3.5-sonnet', effectiveTier);
+            console.log(`[Chat API] User Tier: ${effectiveTier} (Raw: ${profile.membership_tier}), Actual Cost: ${actualCost}`);
+
+            if (actualCost < 0) {
+                return new Response(
+                    JSON.stringify({
+                        error: `您的会员等级 (${effectiveTier === 'pro' ? '专业版' : '免费版'}) 无法使用此高级模型，请升级会员。`
+                    }),
+                    { status: 403, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+
+            console.log(`[Chat API] User credits: ${profile.credits}, Required: ${actualCost}`);
+
+            if (profile.credits < actualCost) {
+                return new Response(
+                    JSON.stringify({
+                        error: `积分不足 (当前: ${profile.credits}, 需要: ${actualCost})`
+                    }),
+                    { status: 402, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+
+            // Deduct credits
+            if (adminSupabase) {
+                const { error: updateError } = await adminSupabase
+                    .from('profiles')
+                    .update({ credits: profile.credits - actualCost })
+                    .eq('id', user.id);
+
+                if (updateError) {
+                    console.error('[Chat API] Credit deduction failed:', updateError);
+                    return new Response(
+                        JSON.stringify({
+                            error: '扣除积分失败',
+                            details: updateError.message
+                        }),
+                        { status: 500, headers: { 'Content-Type': 'application/json' } }
+                    );
+                }
+                console.log(`[Chat API] Credits deducted successfully. New balance: ${profile.credits - actualCost}`);
+
+                // Record transaction (async, don't block)
+                if (actualCost > 0) {
+                    adminSupabase.from('transactions').insert({
+                        user_id: user.id,
+                        amount: -actualCost,
+                        type: 'usage',
+                        description: `Chat generation (${model})`
+                    }).then(({ error }) => {
+                        if (error) console.error('Failed to record transaction:', error);
+                    });
+                }
+            }
+        } else if (serviceRoleKey) {
+            // profile undefined but key exists means profile wasn't found in DB
             console.error('[Chat API] Profile not found for user:', user.id);
             return new Response(
                 JSON.stringify({ error: '用户配置不存在，请联系管理员' }),
@@ -59,76 +125,23 @@ export async function POST(req: Request) {
             );
         }
 
-        const effectiveTier = getEffectiveTier(profile);
-        const actualCost = calculateUserCost(baseCost, model || 'anthropic/claude-3.5-sonnet', effectiveTier);
-        console.log(`[Chat API] User Tier: ${effectiveTier} (Raw: ${profile.membership_tier}), Actual Cost: ${actualCost}`);
-
-        if (actualCost < 0) {
-             return new Response(
-                JSON.stringify({
-                    error: `您的会员等级 (${effectiveTier === 'pro' ? '专业版' : '免费版'}) 无法使用此高级模型，请升级会员。`
-                }),
-                { status: 403, headers: { 'Content-Type': 'application/json' } }
-            );
-        }
-
-        console.log(`[Chat API] User credits: ${profile.credits}, Required: ${actualCost}`);
-
-        if (profile.credits < actualCost) {
-            return new Response(
-                JSON.stringify({
-                    error: `积分不足 (当前: ${profile.credits}, 需要: ${actualCost})`
-                }),
-                { status: 402, headers: { 'Content-Type': 'application/json' } }
-            );
-        }
-
-        // Deduct credits
-        const { error: updateError } = await adminSupabase
-            .from('profiles')
-            .update({ credits: profile.credits - actualCost })
-            .eq('id', user.id);
-
-        if (updateError) {
-            console.error('[Chat API] Credit deduction failed:', updateError);
-            return new Response(
-                JSON.stringify({
-                    error: '扣除积分失败',
-                    details: updateError.message
-                }),
-                { status: 500, headers: { 'Content-Type': 'application/json' } }
-            );
-        }
-
-        console.log(`[Chat API] Credits deducted successfully. New balance: ${profile.credits - actualCost}`);
-
-        // Record transaction (async, don't block)
-        if (actualCost > 0) {
-            adminSupabase.from('transactions').insert({
-                user_id: user.id,
-                amount: -actualCost,
-                type: 'usage',
-                description: `Chat generation (${model})`
-            }).then(({ error }) => {
-                if (error) console.error('Failed to record transaction:', error);
-            });
-        }
-
         // 4. Get API Key
-        const { data: setting, error: settingError } = await adminSupabase
-            .from('system_settings')
-            .select('value')
-            .eq('key', 'OPENROUTER_API_KEY')
-            .single();
+        let apiKey = process.env.OPENROUTER_API_KEY;
 
-        if (settingError && settingError.code !== 'PGRST116') {
-            // PGRST116 = no rows returned, which is ok (we'll use env var)
-            console.error('[Chat API] Error fetching API key from database:', settingError);
+        if (adminSupabase) {
+            const { data: setting, error: settingError } = await adminSupabase
+                .from('system_settings')
+                .select('value')
+                .eq('key', 'OPENROUTER_API_KEY')
+                .single();
+
+            if (settingError && settingError.code !== 'PGRST116') {
+                console.error('[Chat API] Error fetching API key from database:', settingError);
+            }
+
+            if (setting?.value) apiKey = setting.value;
         }
 
-        const apiKey = setting?.value || process.env.OPENROUTER_API_KEY;
-
-        console.log('[Chat API] API Key source:', setting?.value ? 'database' : 'environment');
         console.log('[Chat API] API Key available:', !!apiKey);
 
         if (!apiKey) {

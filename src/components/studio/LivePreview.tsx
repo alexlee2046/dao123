@@ -31,6 +31,7 @@ export function LivePreview() {
 
                 if (targetPage) {
                     setCurrentPage(targetPage.path);
+                    toast.success(`已切换到: ${targetPage.path}`);
                 } else {
                     const newPath = normalizedPath.endsWith('.html') ? normalizedPath : `${normalizedPath}.html`;
                     const skeleton = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <script src=\"https://cdn.tailwindcss.com\"></script>\n</head>\n<body class=\"bg-white min-h-screen p-8\">\n    <div class=\"max-w-3xl mx-auto\">\n        <h1 class=\"text-2xl font-bold mb-2\">${newPath}</h1>\n        <p class=\"text-sm text-muted-foreground\">该页面尚未生成，使用左侧聊天让 AI 生成内容。</p>\n    </div>\n</body>\n</html>`;

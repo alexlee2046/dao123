@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import { extractHtml, parseMultiPageResponse } from '@/lib/page-parser';
 import type { UIMessage as Message } from '@ai-sdk/react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,22 +67,6 @@ export function ChatAssistant() {
         }
     }, [models, selectedModel, setSelectedModel]);
 
-    const extractHtml = (content: string) => {
-        const markdownMatch = content.match(/```html\s*([\s\S]*?)(```|$)/);
-        if (markdownMatch) return markdownMatch[1];
-
-        const start = content.indexOf('<!DOCTYPE html>');
-        const start2 = content.indexOf('<html');
-        const startIndex = start !== -1 ? start : start2;
-
-        if (startIndex !== -1) return content.substring(startIndex);
-        return null;
-    };
-
-    const cleanPageContent = (html: string) => {
-        return html.replace(/```html\s*/gi, '').replace(/```\s*/g, '');
-    };
-
     // 使用 refs 来存储动态值，确保每次请求时获取最新值
     const selectedModelRef = useRef(selectedModel);
     const htmlContentRef = useRef(htmlContent);
@@ -124,32 +109,22 @@ export function ChatAssistant() {
 
             if (!content) return;
 
-            if (content.includes('<!-- page:')) {
-                const newPages: Page[] = [];
-                const pageRegex = /<!-- page: (.*?) -->([\s\S]*?)(?=<!-- page: |$)/g;
-                let match;
-                while ((match = pageRegex.exec(content)) !== null) {
-                    const pathRaw = match[1].trim();
-                    const path = pathRaw.endsWith('.html') ? pathRaw : `${pathRaw}.html`;
-                    const pageHtml = cleanPageContent(match[2].trim());
-                    newPages.push({
-                        path,
-                        content: pageHtml
-                    });
-                }
-                if (newPages.length > 0) {
-                    // Merge with existing pages
-                    const currentPages = useStudioStore.getState().pages;
-                    const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
-                    
-                    newPages.forEach(p => {
-                        mergedPagesMap.set(p.path, p);
-                    });
-                    
-                    setPages(Array.from(mergedPagesMap.values()));
-                    return;
-                }
+
+            const newPages = parseMultiPageResponse(content);
+
+            if (newPages.length > 0) {
+                // Merge with existing pages
+                const currentPages = useStudioStore.getState().pages;
+                const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
+
+                newPages.forEach(p => {
+                    mergedPagesMap.set(p.path, p);
+                });
+
+                setPages(Array.from(mergedPagesMap.values()));
+                return;
             }
+
             const extractedHtml = extractHtml(content);
             if (extractedHtml) setHtmlContent(extractedHtml);
         },

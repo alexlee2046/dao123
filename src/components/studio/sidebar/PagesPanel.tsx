@@ -2,17 +2,48 @@ import React from 'react';
 import { useStudioStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Plus, Trash2, Check, X } from 'lucide-react';
+import { FileText, Plus, Trash2, Check, X, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+
+// 验证页面名称的函数
+const validatePageName = (name: string): { valid: boolean; error?: string } => {
+    // 检查非法字符（只允许字母、数字、下划线、连字符和点）
+    const invalidCharsRegex = /[^a-zA-Z0-9_\-\.]/
+    if (invalidCharsRegex.test(name)) {
+        return { valid: false, error: 'invalidPageName' }
+    }
+    // 检查长度
+    if (name.length > 50) {
+        return { valid: false, error: 'pageNameTooLong' }
+    }
+    return { valid: true }
+}
+
+// 空白 HTML 模板
+const emptyHtmlTemplate = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold text-gray-800">New Page</h1>
+      <p class="text-gray-600 mt-4">Start editing this page...</p>
+    </div>
+  </body>
+</html>
+`
 
 export const PagesPanel = () => {
     const t = useTranslations('studio');
     const { pages, setPages, currentPage, setCurrentPage, htmlContent, builderData } = useStudioStore();
     const [isCreating, setIsCreating] = React.useState(false);
     const [newPageName, setNewPageName] = React.useState('');
+    const [cloneCurrent, setCloneCurrent] = React.useState(false);
 
     const handleCreate = () => {
         const path = newPageName.trim();
@@ -20,9 +51,16 @@ export const PagesPanel = () => {
             setIsCreating(false);
             return;
         }
-        
+
+        // 验证页面名称
+        const validation = validatePageName(path.replace('.html', ''));
+        if (!validation.valid) {
+            toast.error(t(validation.error as any));
+            return;
+        }
+
         const finalPath = path.endsWith('.html') ? path : `${path}.html`;
-        
+
         if (pages.some(p => p.path === finalPath)) {
             toast.error(t('pageExists'));
             return;
@@ -30,20 +68,24 @@ export const PagesPanel = () => {
 
         const newPage = {
             path: finalPath,
-            content: htmlContent, // Clone current content as a template
-            content_json: builderData || undefined
+            content: cloneCurrent ? htmlContent : emptyHtmlTemplate,
+            content_json: cloneCurrent ? (builderData || undefined) : undefined
         };
 
         setPages([...pages, newPage]);
         setCurrentPage(finalPath);
         setIsCreating(false);
         setNewPageName('');
+        setCloneCurrent(false);
         toast.success(t('pageCreated'));
     };
 
     const handleDelete = (e: React.MouseEvent, path: string) => {
         e.stopPropagation();
-        if (path === 'index.html') return;
+        if (path === 'index.html') {
+            toast.error(t('cannotDeleteIndex'));
+            return;
+        }
         if (confirm(t('confirmDeletePage'))) {
             const newPages = pages.filter(p => p.path !== path);
             setPages(newPages);
@@ -60,12 +102,12 @@ export const PagesPanel = () => {
                     <Plus className="h-3.5 w-3.5" />
                 </Button>
             </div>
-            
+
             {isCreating && (
                 <div className="p-2 border-b bg-muted/10 animate-in slide-in-from-top-2 duration-200">
-                    <div className="flex gap-1 items-center">
-                        <Input 
-                            value={newPageName} 
+                    <div className="flex gap-1 items-center mb-2">
+                        <Input
+                            value={newPageName}
                             onChange={e => setNewPageName(e.target.value)}
                             placeholder="page-name"
                             className="h-7 text-xs flex-1 bg-background"
@@ -82,19 +124,31 @@ export const PagesPanel = () => {
                             <X className="h-3.5 w-3.5" />
                         </Button>
                     </div>
+                    <button
+                        className={cn(
+                            "flex items-center gap-1.5 text-xs px-2 py-1 rounded transition-colors w-full",
+                            cloneCurrent
+                                ? "text-primary bg-primary/5"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                        onClick={() => setCloneCurrent(!cloneCurrent)}
+                    >
+                        <Copy className="h-3 w-3" />
+                        <span>{cloneCurrent ? t('cloneCurrentPage') : t('createEmptyPage')}</span>
+                    </button>
                 </div>
             )}
 
             <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
                     {pages.map(page => (
-                        <div 
+                        <div
                             key={page.path}
                             onClick={() => setCurrentPage(page.path)}
                             className={cn(
                                 "flex items-center justify-between px-3 py-2 rounded-md cursor-pointer text-sm group transition-all border",
-                                currentPage === page.path 
-                                    ? "bg-primary/5 border-primary/20 text-primary font-medium shadow-sm" 
+                                currentPage === page.path
+                                    ? "bg-primary/5 border-primary/20 text-primary font-medium shadow-sm"
                                     : "border-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                             )}
                         >
@@ -102,7 +156,7 @@ export const PagesPanel = () => {
                                 <FileText className={cn("h-3.5 w-3.5", currentPage === page.path ? "opacity-100" : "opacity-70")} />
                                 <span className="truncate" title={page.path}>{page.path}</span>
                             </div>
-                            
+
                             {page.path !== 'index.html' && (
                                 <Button
                                     variant="ghost"
