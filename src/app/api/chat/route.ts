@@ -157,6 +157,7 @@ export async function POST(req: Request) {
         const openRouter = createOpenAI({
             apiKey: apiKey,
             baseURL: 'https://openrouter.ai/api/v1',
+            name: 'openrouter',
             headers: {
                 'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.dao123.me',
                 'X-Title': 'dao123',

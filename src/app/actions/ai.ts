@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/server';
 const openRouter = createOpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
     apiKey: process.env.OPENROUTER_API_KEY,
+    name: 'openrouter',
 });
 
 const google = createGoogleGenerativeAI({
