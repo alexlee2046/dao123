@@ -150,7 +150,8 @@
             "desc": "看看其他人使用 dao123 创造了什么。",
             "viewMore": "查看更多",
             "project": "项目 {i}",
-            "byUser": "由用户创建"
+            "byUser": "由用户创建",
+            "byUserDynamic": "by {user}"
         },
         "cta": {
             "ready": "准备好开始了吗？",
@@ -170,7 +171,7 @@
             "about": "关于我们",
             "privacy": "隐私政策",
             "terms": "服务条款",
-            "copyright": "© 2025 dao123 Inc. 保留所有权利。"
+            "copyright": "© 2025 alexlee2046. 保留所有权利。"
         }
     },
     "projects": {

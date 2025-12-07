@@ -166,7 +166,8 @@
             "desc": "See what others have created with dao123.",
             "viewMore": "View More",
             "project": "Project {i}",
-            "byUser": "Created by User"
+            "byUser": "Created by User",
+            "byUserDynamic": "by {user}"
         },
         "cta": {
             "ready": "Ready to get started?",
@@ -186,7 +187,7 @@
             "about": "About Us",
             "privacy": "Privacy Policy",
             "terms": "Terms of Service",
-            "copyright": "© 2025 dao123 Inc. All rights reserved."
+            "copyright": "© 2025 alexlee2046. All rights reserved."
         }
     },
     "studio": {

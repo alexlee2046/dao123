@@ -1,6 +1,7 @@
 {
   "name": "dao123",
   "version": "0.1.0",
+  "author": "alexlee2046",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3006",

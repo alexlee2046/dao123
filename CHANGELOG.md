@@ -1,5 +1,12 @@
 # 更新日志
 
+## [2025-12-08] - 首页与品牌信息更新
+
+
+- 国际化文件 (`messages/en.json`, `messages/zh.json`): 更新版权信息
+
+---
+
 ## [2025-12-05] - Vercel 一键部署与子域名功能
 
 ### ✨ 新增功能
@@ -206,4 +213,4 @@ getVercelDeployUrl(config): string
 
 **版本**: 1.0.0  
 **日期**: 2025-12-05  
-**作者**: Antigravity AI
+**作者**: alexlee2046

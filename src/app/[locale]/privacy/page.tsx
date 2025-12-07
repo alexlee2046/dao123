@@ -11,7 +11,7 @@ export default function PrivacyPage() {
 
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground">
-             <header className="px-6 lg:px-10 h-16 flex items-center border-b border-border/40 backdrop-blur-md bg-background/70 sticky top-0 z-50">
+            <header className="px-6 lg:px-10 h-16 flex items-center border-b border-border/40 backdrop-blur-md bg-background/70 sticky top-0 z-50">
                 <Link className="flex items-center justify-center gap-2 group" href="/">
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                         <Code2 className="h-5 w-5" />
@@ -29,19 +29,19 @@ export default function PrivacyPage() {
                 </Button>
 
                 <h1 className="text-4xl font-bold mb-8">{t('footer.privacy')}</h1>
-                
+
                 <div className="prose prose-slate dark:prose-invert max-w-none">
                     <p className="text-muted-foreground mb-8">Last updated: {new Date().toLocaleDateString()}</p>
-                    
+
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
                         <p className="text-muted-foreground leading-relaxed">
-                            Welcome to dao123. We respect your privacy and are committed to protecting your personal data. 
-                            This privacy policy will inform you as to how we look after your personal data when you visit our website 
+                            Welcome to dao123. We respect your privacy and are committed to protecting your personal data.
+                            This privacy policy will inform you as to how we look after your personal data when you visit our website
                             and tell you about your privacy rights and how the law protects you.
                         </p>
                     </section>
-                    
+
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">2. Data We Collect</h2>
                         <p className="text-muted-foreground leading-relaxed mb-4">
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
                             <li><strong>Technical Data</strong> includes internet protocol (IP) address, your login data, browser type and version, time zone setting and location, browser plug-in types and versions, operating system and platform and other technology on the devices you use to access this website.</li>
                         </ul>
                     </section>
-                    
+
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">3. How We Use Your Data</h2>
                         <p className="text-muted-foreground leading-relaxed">
@@ -65,14 +65,14 @@ export default function PrivacyPage() {
                             <li>Where we need to comply with a legal or regulatory obligation.</li>
                         </ul>
                     </section>
-                    
+
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">4. Data Security</h2>
                         <p className="text-muted-foreground leading-relaxed">
                             We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know.
                         </p>
                     </section>
-                    
+
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4">5. Contact Us</h2>
                         <p className="text-muted-foreground leading-relaxed">
@@ -81,9 +81,9 @@ export default function PrivacyPage() {
                     </section>
                 </div>
             </main>
-            
+
             <footer className="py-8 border-t border-border/40 bg-background text-center text-sm text-muted-foreground">
-                <p>© {new Date().getFullYear()} dao123 Inc. All rights reserved.</p>
+                <p>© {new Date().getFullYear()} alexlee2046. All rights reserved.</p>
             </footer>
         </div>
     );

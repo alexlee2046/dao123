@@ -70,7 +70,7 @@ src/
 
 ### 2. 克隆项目
 ```bash
-git clone https://github.com/your-repo/dao123.git
+git clone https://github.com/alexlee2046/dao123.git
 cd dao123
 npm install
 ```

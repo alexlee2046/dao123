@@ -70,6 +70,57 @@ export async function getCommunityProjects() {
     }
 }
 
+/**
+ * Get featured community projects for homepage display
+ * Returns the latest 3 public projects that have a preview image
+ */
+export async function getFeaturedCommunityProjects(limit: number = 3) {
+    try {
+        const supabase = await createClient()
+
+        const { data, error } = await supabase
+            .from('projects')
+            .select(`
+              id,
+              name,
+              description,
+              preview_image,
+              published_at,
+              profiles:user_id(email),
+              ratings(score)
+            `)
+            .eq('is_public', true)
+            .not('preview_image', 'is', null)  // Only projects with preview images
+            .neq('preview_image', '')           // Exclude empty strings
+            .order('published_at', { ascending: false })
+            .limit(limit)
+
+        console.log('[getFeaturedCommunityProjects] Query result:', {
+            count: data?.length || 0,
+            error: error?.message,
+        });
+
+        if (error) {
+            console.error("Supabase error fetching featured projects:", error);
+            return [];
+        }
+
+        if (!data) return [];
+
+        // Map user info
+        return data.map((project: any) => ({
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            preview_image: project.preview_image,
+            user: project.profiles,
+        }));
+    } catch (e) {
+        console.error("Failed to get featured projects:", e);
+        return [];
+    }
+}
+
 export async function publishProject(id: string, price: number) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
