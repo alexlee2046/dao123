@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export interface Comment {
@@ -22,7 +22,8 @@ export interface Rating {
 }
 
 export async function getCommunityProjects() {
-    const supabase = await createClient()
+    // Use admin client to bypass RLS for public data access
+    const supabase = createAdminClient()
 
     try {
         // Note: Cannot directly join auth.users, use profiles table instead
@@ -76,7 +77,8 @@ export async function getCommunityProjects() {
  */
 export async function getFeaturedCommunityProjects(limit: number = 3) {
     try {
-        const supabase = await createClient()
+        // Use admin client to bypass RLS for public homepage display
+        const supabase = createAdminClient()
 
         const { data, error } = await supabase
             .from('projects')
