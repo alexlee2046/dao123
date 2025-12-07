@@ -65,9 +65,20 @@ export function createAdminClient() {
 export function createAnonClient() {
     const { createClient } = require('@supabase/supabase-js')
 
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    console.log('[createAnonClient] URL exists:', !!url)
+    console.log('[createAnonClient] Key exists:', !!key)
+
+    if (!url || !key) {
+        console.error('[createAnonClient] Missing Supabase configuration!', { url: !!url, key: !!key })
+        throw new Error('Supabase configuration not available')
+    }
+
     return createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        url,
+        key,
         {
             auth: {
                 autoRefreshToken: false,
