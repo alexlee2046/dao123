@@ -26,8 +26,8 @@ export default function LandingPage() {
             {/* Header */}
             <header className="px-6 lg:px-10 h-16 flex items-center border-b border-border/40 backdrop-blur-md bg-background/70 sticky top-0 z-50">
                 <Link className="flex items-center justify-center gap-2 group" href="/">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                        <Code2 className="h-5 w-5" />
+                    <div className="h-8 w-8 relative flex items-center justify-center">
+                        <img src="/logo.svg" alt="Dao123 Logo" className="h-5 w-5" />
                     </div>
                     <span className="font-bold text-xl tracking-tight">dao123</span>
                 </Link>
@@ -327,8 +327,8 @@ export default function LandingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                         <div className="md:col-span-2">
                             <Link className="flex items-center gap-2 mb-4" href="/">
-                                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-                                    <Code2 className="h-5 w-5" />
+                                <div className="h-8 w-8 relative flex items-center justify-center">
+                                    <img src="/logo.svg" alt="Dao123 Logo" className="h-5 w-5" />
                                 </div>
                                 <span className="font-bold text-xl tracking-tight">dao123</span>
                             </Link>

@@ -88,8 +88,8 @@ export default function LoginPage() {
 
                 {/* Logo Area */}
                 <div className="relative z-10 flex items-center gap-2 text-lg font-medium">
-                    <div className="h-8 w-8 rounded-lg bg-white/10 backdrop-blur flex items-center justify-center">
-                        <Atom className="h-5 w-5" />
+                    <div className="h-8 w-8 relative flex items-center justify-center">
+                        <img src="/logo.svg" alt="Dao123 Logo" className="h-5 w-5" />
                     </div>
                     <span>Dao 123</span>
                 </div>
@@ -179,9 +179,9 @@ export default function LoginPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Button 
-                            variant="outline" 
-                            className="h-10 bg-background hover:bg-accent hover:text-accent-foreground border-input" 
+                        <Button
+                            variant="outline"
+                            className="h-10 bg-background hover:bg-accent hover:text-accent-foreground border-input"
                             onClick={handleGoogleLogin}
                             disabled={loading}
                         >
