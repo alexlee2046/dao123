@@ -2,12 +2,13 @@
 
 一个面向小白用户的 AI 网站构建平台，灵感来自 Google Stitch。通过简单的自然语言对话，即可秒级生成多页面响应式网站。
 
-![Dao123 Logo](/public/logo.svg)
+<img src="/public/logo.svg" alt="Dao123 Logo" width="120" />
 
 ## 🌟 核心特性
 
 ### 🤖 智能构建系统
-- **对话式生成**: 集成 Vercel AI SDK + OpenRouter，支持 Claude 3.5 Sonnet、GPT-4o 等模型。
+- **对话式生成**: 集成 Vercel AI SDK + OpenRouter，同步支持最新模型（DeepSeek V3.2, Gemini 3 Pro 等）。
+  > **实测推荐**: Gemini 3 Pro 表现最佳。
 - **所见即所得 (WYSIWYG)**: 实时预览，支持拖拽编辑 (@craftjs/core)。
 - **多页面规划**: AI 自动规划站点结构 (首页, 关于, 联系等)。
 - **素材感知**: 自动识别并使用用户上传的图片素材。
