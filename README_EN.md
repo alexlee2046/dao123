@@ -29,7 +29,7 @@
 
 **No-code AI website generator** inspired by Google Stitch. Build professional multi-page responsive websites in seconds through natural language conversations. Perfect for portfolios, landing pages, and business websites.
 
-> 💡 **Recommended AI Models**: Gemini 2.5 Pro / DeepSeek V3 for best results
+> 💡 **Recommended AI Models**: Gemini 3 Pro / DeepSeek V3 for best results
 
 ## ✨ Features
 
