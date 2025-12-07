@@ -39,7 +39,7 @@ node scripts/migrate-subdomain.js
 npm run dev
 
 # 打开浏览器访问
-# http://localhost:3000/studio/new
+# http://localhost:3006/studio/new
 ```
 
 测试流程：
@@ -260,7 +260,7 @@ SELECT * FROM deployment_history;
 
 ```bash
 # 测试子域名可用性检查
-curl -X POST http://localhost:3000/api/subdomain/check \
+curl -X POST http://localhost:3006/api/subdomain/check \
   -H "Content-Type: application/json" \
   -d '{"subdomain": "my-test-site"}'
 

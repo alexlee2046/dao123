@@ -28,7 +28,7 @@ npm run dev
 
 ```bash
 # 访问编辑器
-open http://localhost:3000/studio/new
+open http://localhost:3006/studio/new
 
 # 点击发布按钮 → 输入子域名 → 查看验证反馈
 ```
@@ -80,7 +80,7 @@ npm run start
 ### 检查子域名可用性
 
 ```bash
-curl -X POST http://localhost:3000/api/subdomain/check \
+curl -X POST http://localhost:3006/api/subdomain/check \
   -H "Content-Type: application/json" \
   -d '{"subdomain":"my-test-site"}'
 ```

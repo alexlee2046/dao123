@@ -55,10 +55,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <Separator />
 
                 {/* Content Preview */}
-                <div className="aspect-video bg-muted rounded-lg border flex items-center justify-center relative overflow-hidden">
+                <div className="h-[70vh] bg-muted rounded-lg border flex items-center justify-center relative overflow-hidden">
                     <iframe
                         srcDoc={previewContent}
-                        className="w-full h-full pointer-events-none scale-75 origin-top-left w-[133%] h-[133%]"
+                        className="w-full h-full pointer-events-none"
                         title="Preview"
                     />
                     {!hasAccess && (

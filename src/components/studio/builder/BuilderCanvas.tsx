@@ -40,9 +40,9 @@ export const BuilderCanvas = () => {
     }, [builderData, actions]);
 
     return (
-        <div className="w-full min-h-full bg-white">
+        <div className="w-full h-full bg-white flex flex-col">
             <Frame>
-                <Element is={BuilderContainer} canvas className="w-full p-8 bg-white min-h-screen">
+                <Element is={BuilderContainer} canvas className="w-full flex-1 bg-white min-h-full">
                     <BuilderText text={t('canvasWelcome')} tag="h1" className="text-4xl font-bold mb-4" />
                     <BuilderText text={t('canvasInstruction')} className="text-lg text-gray-600" />
                 </Element>

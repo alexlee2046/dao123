@@ -78,6 +78,10 @@ export function ChatAssistant() {
         return null;
     };
 
+    const cleanPageContent = (html: string) => {
+        return html.replace(/```html\s*/gi, '').replace(/```\s*/g, '');
+    };
+
     // 使用 refs 来存储动态值，确保每次请求时获取最新值
     const selectedModelRef = useRef(selectedModel);
     const htmlContentRef = useRef(htmlContent);
@@ -121,17 +125,28 @@ export function ChatAssistant() {
             if (!content) return;
 
             if (content.includes('<!-- page:')) {
-                const pages: Page[] = [];
+                const newPages: Page[] = [];
                 const pageRegex = /<!-- page: (.*?) -->([\s\S]*?)(?=<!-- page: |$)/g;
                 let match;
                 while ((match = pageRegex.exec(content)) !== null) {
-                    pages.push({
-                        path: match[1].trim(),
-                        content: match[2].trim()
+                    const pathRaw = match[1].trim();
+                    const path = pathRaw.endsWith('.html') ? pathRaw : `${pathRaw}.html`;
+                    const pageHtml = cleanPageContent(match[2].trim());
+                    newPages.push({
+                        path,
+                        content: pageHtml
                     });
                 }
-                if (pages.length > 0) {
-                    setPages(pages);
+                if (newPages.length > 0) {
+                    // Merge with existing pages
+                    const currentPages = useStudioStore.getState().pages;
+                    const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
+                    
+                    newPages.forEach(p => {
+                        mergedPagesMap.set(p.path, p);
+                    });
+                    
+                    setPages(Array.from(mergedPagesMap.values()));
                     return;
                 }
             }

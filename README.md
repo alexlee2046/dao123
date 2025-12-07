@@ -65,7 +65,7 @@ npm install
 npm run dev
 \`\`\`
 
-访问 [http://localhost:3000](http://localhost:3000) 查看应用。
+访问 [http://localhost:3006](http://localhost:3006) 查看应用。
 
 ### 构建生产版本
 \`\`\`bash
@@ -213,7 +213,7 @@ src/
 ### 快速开始
 1. `npm install` - 安装依赖
 2. `npm run dev` - 启动开发服务器
-3. 访问 http://localhost:3000/settings - 配置 OpenRouter API Key
+3. 访问 http://localhost:3006/settings - 配置 OpenRouter API Key
 4. 开始创建！🎉
 
 ## 🤝 贡献

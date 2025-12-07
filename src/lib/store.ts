@@ -117,10 +117,15 @@ export const useStudioStore = create<StudioState>((set) => {
     }),
 
     setPages: (pages) => set((state) => {
+      // Try to keep current page if it exists in new pages
+      const currentStillExists = pages.find(p => p.path === state.currentPage);
       const indexPage = pages.find(p => p.path === 'index.html') || pages[0];
-      const newCurrentPage = indexPage ? indexPage.path : 'index.html';
-      const newHtmlContent = indexPage ? indexPage.content : '';
-      const newBuilderData = indexPage ? indexPage.content_json || null : null;
+      
+      const newCurrentPage = currentStillExists ? state.currentPage : (indexPage ? indexPage.path : 'index.html');
+      const pageForContent = currentStillExists || indexPage;
+      
+      const newHtmlContent = pageForContent ? pageForContent.content : '';
+      const newBuilderData = pageForContent ? pageForContent.content_json || null : null;
 
       return {
         pages,

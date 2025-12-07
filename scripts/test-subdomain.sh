@@ -23,7 +23,7 @@ test_subdomain() {
     echo -n "测试: $description ... "
     
     # 调用 API
-    result=$(curl -s -X POST http://localhost:3000/api/subdomain/check \
+    result=$(curl -s -X POST http://localhost:3006/api/subdomain/check \
         -H "Content-Type: application/json" \
         -d "{\"subdomain\":\"$subdomain\"}")
     
@@ -40,7 +40,7 @@ test_subdomain() {
 
 # 检查开发服务器是否运行
 echo "检查开发服务器状态..."
-if ! curl -s http://localhost:3000 > /dev/null; then
+if ! curl -s http://localhost:3006 > /dev/null; then
     echo -e "${RED}✗ 开发服务器未运行${NC}"
     echo ""
     echo "请先启动开发服务器："

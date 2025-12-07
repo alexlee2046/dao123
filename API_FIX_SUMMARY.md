@@ -36,7 +36,7 @@ images: {
 ### 诊断API
 访问以下URL查看系统状态：
 ```
-http://localhost:3000/api/diagnostics
+http://localhost:3006/api/diagnostics
 ```
 
 这将返回：
@@ -62,7 +62,7 @@ http://localhost:3000/api/diagnostics
    - 终端中的服务器日志（带`[Chat API]`前缀）
 
 ### 检查配置
-1. 访问 http://localhost:3000/api/diagnostics
+1. 访问 http://localhost:3006/api/diagnostics
 2. 检查返回的JSON数据
 3. 确认：
    - `environment.hasOpenRouterKey` 或数据库中有API密钥
@@ -77,7 +77,7 @@ http://localhost:3000/api/diagnostics
 #### API密钥未配置
 错误: `OpenRouter API密钥未配置`
 解决: 
-1. 访问 http://localhost:3000/admin/settings
+1. 访问 http://localhost:3006/admin/settings
 2. 配置OpenRouter API Key
 
 #### 用户配置不存在

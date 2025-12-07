@@ -60,7 +60,12 @@ export const htmlToCraftData = (html: string): string => {
     };
 
     // Recursively process DOM nodes
-    const processNode = (domNode: Element, parentId: string) => {
+    const processNode = (domNode: Element, parentId: string, depth: number = 0) => {
+        if (depth > 50) {
+            console.warn('Max recursion depth reached in htmlToCraftData');
+            return;
+        }
+
         try {
             const nodeId = createId();
             const tagName = domNode.tagName ? domNode.tagName.toLowerCase() : 'div';
@@ -205,7 +210,7 @@ export const htmlToCraftData = (html: string): string => {
 
             // Recursively process children
             if (shouldProcessChildren) {
-                Array.from(domNode.children).forEach(child => processNode(child, nodeId));
+                Array.from(domNode.children).forEach(child => processNode(child, nodeId, depth + 1));
             }
 
         } catch (e) {
@@ -215,7 +220,7 @@ export const htmlToCraftData = (html: string): string => {
 
     // Start processing from body children
     try {
-        Array.from(body.children).forEach(child => processNode(child, 'ROOT'));
+        Array.from(body.children).forEach(child => processNode(child, 'ROOT', 0));
     } catch (e) {
         console.error("Error in htmlToCraftData main loop:", e);
     }

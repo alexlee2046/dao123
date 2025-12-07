@@ -18,7 +18,6 @@ import { createClient } from "@/lib/supabase/client"
 import { getAssets, saveAssetRecord, deleteAsset, type Asset } from "@/lib/actions/assets"
 import { toast } from "sonner"
 import Image from 'next/image'
-import { useStudioStore } from "@/lib/store"
 import { useTranslations } from 'next-intl'
 
 export function AssetLibrary({ children }: { children: React.ReactNode }) {
@@ -27,9 +26,8 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
     const [assets, setAssets] = useState<Asset[]>([])
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-
-    const { openRouterApiKey } = useStudioStore()
 
     useEffect(() => {
         if (isOpen) {
@@ -54,11 +52,13 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
         const file = e.target.files?.[0]
         if (!file) return
 
+        let uploadedPath: string | null = null
+        const supabase = createClient()
+
         try {
             setUploading(true)
-            const supabase = createClient()
 
-            const fileExt = file.name.split('.').pop()
+            const fileExt = file.name.split('.').pop()?.toLowerCase()
             const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
             const filePath = `${fileName}`
 
@@ -67,6 +67,7 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                 .upload(filePath, file)
 
             if (uploadError) throw uploadError
+            uploadedPath = filePath
 
             const { data: { publicUrl } } = supabase.storage
                 .from('assets')
@@ -89,6 +90,11 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
         } catch (error: any) {
             console.error(error)
             toast.error(t('assetsManager.uploadFailed') + error.message)
+            
+            // Cleanup orphaned file if upload succeeded but DB save failed
+            if (uploadedPath) {
+                await supabase.storage.from('assets').remove([uploadedPath])
+            }
         } finally {
             setUploading(false)
             if (fileInputRef.current) fileInputRef.current.value = ''
@@ -97,6 +103,7 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
 
     const handleDelete = async (asset: Asset) => {
         try {
+            setDeletingId(asset.id)
             // Extract path from URL for storage deletion
             // URL format: .../storage/v1/object/public/assets/filename.ext
             const path = asset.url.split('/').pop()
@@ -108,6 +115,8 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
         } catch (error: any) {
             console.error(error)
             toast.error(t('assetsManager.deleteFailed') + error.message)
+        } finally {
+            setDeletingId(null)
         }
     }
 
@@ -198,8 +207,19 @@ export function AssetLibrary({ children }: { children: React.ReactNode }) {
                                                                     <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => handleCopyUrl(asset.url)} title={t('assetsManager.copyLink')}>
                                                                         <Copy className="h-4 w-4" />
                                                                     </Button>
-                                                                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDelete(asset)} title={t('assetsManager.delete')}>
-                                                                        <Trash2 className="h-4 w-4" />
+                                                                    <Button 
+                                                                        size="icon" 
+                                                                        variant="destructive" 
+                                                                        className="h-8 w-8" 
+                                                                        onClick={() => handleDelete(asset)} 
+                                                                        title={t('assetsManager.delete')}
+                                                                        disabled={deletingId === asset.id}
+                                                                    >
+                                                                        {deletingId === asset.id ? (
+                                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                                        ) : (
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        )}
                                                                     </Button>
                                                                 </div>
                                                             </div>

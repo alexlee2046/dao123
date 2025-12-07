@@ -102,6 +102,37 @@ export function Toolbar() {
     }
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+      
+      if (isCmdOrCtrl) {
+        switch (e.key.toLowerCase()) {
+          case 's':
+            e.preventDefault();
+            handleSave();
+            break;
+          case 'z':
+            e.preventDefault();
+            if (e.shiftKey) {
+              redo();
+            } else {
+              undo();
+            }
+            break;
+          case 'b':
+            e.preventDefault();
+            toggleBuilderMode();
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave, undo, redo, toggleBuilderMode]);
+
   return (
     <div className="h-14 border-b border-border/40 bg-background/60 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50 transition-all duration-300">
       {/* Left Section: Back, Project Info, Page Selector */}
@@ -148,7 +179,7 @@ export function Toolbar() {
           <Button
             variant="ghost"
             size="icon"
-            title={t('undo')}
+            title={`${t('undo')} (Cmd+Z)`}
             onClick={undo}
             disabled={past.length === 0}
             className="h-8 w-8 rounded-full hover:bg-muted"
@@ -158,7 +189,7 @@ export function Toolbar() {
           <Button
             variant="ghost"
             size="icon"
-            title={t('redo')}
+            title={`${t('redo')} (Cmd+Shift+Z)`}
             onClick={redo}
             disabled={future.length === 0}
             className="h-8 w-8 rounded-full hover:bg-muted"
@@ -172,33 +203,30 @@ export function Toolbar() {
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 bg-muted/30 rounded-full p-1 border border-border/20">
         <Button
           variant={previewDevice === 'desktop' ? "secondary" : "ghost"}
-          size="sm"
-          className={`h-7 px-3 rounded-full text-xs ${previewDevice === 'desktop' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+          size="icon"
+          className={`h-7 w-7 rounded-full ${previewDevice === 'desktop' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
           onClick={() => setPreviewDevice('desktop')}
           title="Desktop"
         >
-          <Monitor className="h-3.5 w-3.5 mr-1.5" />
-          Desktop
+          <Monitor className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant={previewDevice === 'tablet' ? "secondary" : "ghost"}
-          size="sm"
-          className={`h-7 px-3 rounded-full text-xs ${previewDevice === 'tablet' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+          size="icon"
+          className={`h-7 w-7 rounded-full ${previewDevice === 'tablet' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
           onClick={() => setPreviewDevice('tablet')}
           title="Tablet"
         >
-          <Tablet className="h-3.5 w-3.5 mr-1.5" />
-          Tablet
+          <Tablet className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant={previewDevice === 'mobile' ? "secondary" : "ghost"}
-          size="sm"
-          className={`h-7 px-3 rounded-full text-xs ${previewDevice === 'mobile' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+          size="icon"
+          className={`h-7 w-7 rounded-full ${previewDevice === 'mobile' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
           onClick={() => setPreviewDevice('mobile')}
           title="Mobile"
         >
-          <Smartphone className="h-3.5 w-3.5 mr-1.5" />
-          Mobile
+          <Smartphone className="h-3.5 w-3.5" />
         </Button>
       </div>
 
@@ -271,6 +299,7 @@ export function Toolbar() {
         <Button
           variant={isBuilderMode ? "secondary" : "ghost"}
           size="sm"
+          title={`${isBuilderMode ? t('aiChat') : t('manualEdit')} (Cmd+B)`}
           onClick={async () => {
             if (!isBuilderMode) {
               // 如果编辑器是空的，且我们有 HTML 内容，尝试将其转换为 Builder 数据
@@ -355,6 +384,7 @@ export function Toolbar() {
           size="sm"
           onClick={handleSave}
           disabled={saving}
+          title={`${tCommon('save')} (Cmd+S)`}
           className="h-8 rounded-full px-4 text-xs font-medium hover:bg-primary/5 hover:text-primary"
         >
           {saving ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-2" />}

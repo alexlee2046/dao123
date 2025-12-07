@@ -59,7 +59,7 @@
 
 ### 步骤 2: 配置 API Key
 1. 启动应用: `npm run dev`
-2. 访问 http://localhost:3000
+2. 访问 http://localhost:3006
 3. 点击侧边栏的 "设置"
 4. 在 "OpenRouter API 配置" 部分：
    - 粘贴你的 API Key

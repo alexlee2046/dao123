@@ -87,7 +87,7 @@
 npm run dev
 
 # 3. 测试功能
-# 访问 http://localhost:3000/studio/new
+# 访问 http://localhost:3006/studio/new
 # 点击发布按钮
 ```
 

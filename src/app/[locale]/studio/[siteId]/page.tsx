@@ -44,6 +44,11 @@ import { CustomHTML } from '@/components/builder/special/CustomHTML';
 
 import { useTranslations } from 'next-intl';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LayersPanel } from "@/components/studio/sidebar/LayersPanel";
+import { PagesPanel } from "@/components/studio/sidebar/PagesPanel";
+import { Layers, Box, FileText } from "lucide-react";
+
 export default function StudioPage() {
     const t = useTranslations('studio');
     const params = useParams();
@@ -110,7 +115,31 @@ export default function StudioPage() {
                 <div className="flex-1 overflow-hidden">
                     <ResizablePanelGroup direction="horizontal">
                         <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-                            {isBuilderMode ? <Toolbox /> : <ChatAssistant />}
+                            {isBuilderMode ? (
+                                <div className="h-full flex flex-col bg-background border-r">
+                                    <Tabs defaultValue="components" className="flex-1 flex flex-col h-full">
+                                        <div className="px-2 pt-2 border-b bg-muted/30">
+                                            <TabsList className="w-full grid grid-cols-3 h-9 mb-2">
+                                                <TabsTrigger value="components" className="text-xs px-0" title={t('toolbox')}><Box className="w-3.5 h-3.5 mr-1.5"/>Tools</TabsTrigger>
+                                                <TabsTrigger value="layers" className="text-xs px-0" title={t('layers')}><Layers className="w-3.5 h-3.5 mr-1.5"/>Layers</TabsTrigger>
+                                                <TabsTrigger value="pages" className="text-xs px-0" title={t('pages')}><FileText className="w-3.5 h-3.5 mr-1.5"/>Pages</TabsTrigger>
+                                            </TabsList>
+                                        </div>
+                                        
+                                        <TabsContent value="components" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
+                                            <Toolbox />
+                                        </TabsContent>
+                                        
+                                        <TabsContent value="layers" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
+                                            <LayersPanel />
+                                        </TabsContent>
+
+                                        <TabsContent value="pages" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
+                                            <PagesPanel />
+                                        </TabsContent>
+                                    </Tabs>
+                                </div>
+                            ) : <ChatAssistant />}
                         </ResizablePanel>
 
                         <ResizableHandle />

@@ -1,6 +1,6 @@
 // Using global fetch available in Node.js 18+
 
-const BASE_URL = 'http://127.0.0.1:3000';
+const BASE_URL = 'http://127.0.0.1:3006';
 
 const routes = [
     { path: '/', name: 'Home (Marketing)' },

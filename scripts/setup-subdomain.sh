@@ -66,7 +66,7 @@ if [ "$all_files_exist" = true ]; then
     echo ""
     echo "下一步："
     echo "1. 启动开发服务器: npm run dev"
-    echo "2. 访问编辑器: http://localhost:3000/studio/new"
+    echo "2. 访问编辑器: http://localhost:3006/studio/new"
     echo "3. 点击发布按钮测试子域名功能"
     echo ""
     echo "📚 更多信息请查看:"

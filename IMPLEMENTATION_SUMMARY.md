@@ -75,7 +75,7 @@ node scripts/migrate-subdomain.js
 npm run dev
 
 # 访问编辑器
-open http://localhost:3000/studio/new
+open http://localhost:3006/studio/new
 ```
 
 测试流程：

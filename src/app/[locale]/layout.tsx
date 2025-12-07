@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
     const { locale } = await params;
@@ -48,6 +49,9 @@ export default async function LocaleLayout({
                         enableSystem
                         disableTransitionOnChange
                     >
+                        <div className="fixed top-3 right-3 z-50">
+                            <ModeToggle />
+                        </div>
                         {children}
                         <Toaster />
                     </ThemeProvider>

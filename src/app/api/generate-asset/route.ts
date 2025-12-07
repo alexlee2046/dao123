@@ -87,7 +87,7 @@ export async function POST(req: Request) {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${apiKey}`,
-                    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+                    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3006",
                     "X-Title": "Dao123 Studio",
                     "Content-Type": "application/json"
                 },
