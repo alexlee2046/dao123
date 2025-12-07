@@ -55,6 +55,11 @@ interface StyleAccumulator {
     fontSize?: string;
     fontWeight?: string;
     textDecoration?: 'none' | 'underline' | 'line-through' | 'overline';
+    backgroundImage?: string;
+    boxShadow?: string;
+    borderWidth?: string;
+    borderColor?: string;
+    borderStyle?: string;
     // Helper to track specificity
     _paddingSpecificity: { top: number; right: number; bottom: number; left: number };
     _marginSpecificity: { top: number; right: number; bottom: number; left: number };
@@ -173,12 +178,64 @@ const parseSingleClass = (cls: string, acc: StyleAccumulator) => {
     if (cls === 'line-through') { acc.textDecoration = 'line-through'; return true; }
     if (cls === 'no-underline') { acc.textDecoration = 'none'; return true; }
 
+    // Background Image
+    const bgImageMatch = cls.match(/^bg-\[url\(['"]?(.+?)['"]?\)?\]$/);
+    if (bgImageMatch) {
+        acc.backgroundImage = `url(${bgImageMatch[1]})`;
+        return true;
+    }
+
     // Background Color (Simplified)
     if (cls.startsWith('bg-')) {
         const suffix = cls.replace('bg-', '');
         if (suffix === 'white') { acc.backgroundColor = '#ffffff'; return true; }
         if (suffix === 'black') { acc.backgroundColor = '#000000'; return true; }
         if (suffix === 'transparent') { acc.backgroundColor = 'transparent'; return true; }
+    }
+
+    // Box Shadow
+    if (cls.startsWith('shadow')) {
+        const suffix = cls === 'shadow' ? 'DEFAULT' : cls.replace('shadow-', '');
+        const shadowMap: Record<string, string> = {
+            'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+            'DEFAULT': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+            'md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+            'lg': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+            'xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+            '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+            'none': 'none'
+        };
+        if (shadowMap[suffix]) {
+            acc.boxShadow = shadowMap[suffix];
+            return true;
+        }
+    }
+
+    // Border
+    if (cls.startsWith('border')) {
+        if (cls === 'border') {
+            acc.borderWidth = '1px';
+            return true;
+        }
+        
+        const suffix = cls.replace('border-', '');
+        
+        // Width
+        if (/^(\d+|px)$/.test(suffix)) {
+             acc.borderWidth = suffix === 'px' ? '1px' : `${suffix}px`;
+             return true;
+        }
+        
+        // Style
+        if (['solid', 'dashed', 'dotted', 'double', 'none'].includes(suffix)) {
+            acc.borderStyle = suffix;
+            return true;
+        }
+        
+        // Color (Simplified)
+        if (suffix === 'white') { acc.borderColor = '#ffffff'; return true; }
+        if (suffix === 'black') { acc.borderColor = '#000000'; return true; }
+        if (suffix === 'transparent') { acc.borderColor = 'transparent'; return true; }
     }
 
     // Border Radius
@@ -223,6 +280,11 @@ const accumulatorToProps = (acc: StyleAccumulator): Partial<BuilderStyleProps> =
     if (acc.fontSize) props.fontSize = acc.fontSize;
     if (acc.fontWeight) props.fontWeight = acc.fontWeight;
     if (acc.textDecoration) props.textDecoration = acc.textDecoration;
+    if (acc.backgroundImage) props.backgroundImage = acc.backgroundImage;
+    if (acc.boxShadow) props.boxShadow = acc.boxShadow;
+    if (acc.borderWidth) props.borderWidth = acc.borderWidth;
+    if (acc.borderColor) props.borderColor = acc.borderColor;
+    if (acc.borderStyle) props.borderStyle = acc.borderStyle;
 
     return props;
 };

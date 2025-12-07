@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="butt" stroke-linejoin="miter">
+  <!-- Tech Refinement: Sharp corners (miter), Flat caps (butt), Tech feel -->
+  
+  <!-- Outer D Shape -->
+  <!-- Left corner is sharp 90deg. Curve matches the tech aesthetic -->
+  <path d="M32 20 V80 H50 A30 30 0 0 0 50 20 H32 Z" />
+  
+  <!-- Three Inner Lines -->
+  <!-- Flat caps for precision look -->
+  
+  <!-- Line 1 -->
+  <line x1="48" y1="36" x2="70" y2="36" />
+  
+  <!-- Line 2 -->
+  <line x1="48" y1="50" x2="70" y2="50" />
+  
+  <!-- Line 3 -->
+  <line x1="48" y1="64" x2="70" y2="64" />
+</svg>

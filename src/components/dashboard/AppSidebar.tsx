@@ -13,8 +13,7 @@ import {
     Settings,
     LogOut,
     CreditCard,
-    Cpu,
-    Code2
+    Cpu
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getCredits } from "@/lib/actions/credits"
@@ -92,8 +91,8 @@ export function AppSidebar({ className }: { className?: string }) {
     return (
         <div className={cn("w-64 bg-card border-r flex flex-col h-full", className)}>
             <div className="p-6 border-b flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                    <Code2 className="h-5 w-5" />
+                <div className="h-8 w-8 relative flex items-center justify-center">
+                    <img src="/logo.svg" alt="Dao123 Logo" className="h-8 w-8 text-primary" />
                 </div>
                 <span className="font-bold text-xl tracking-tight">dao123</span>
             </div>

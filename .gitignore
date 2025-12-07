@@ -40,3 +40,19 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# secrets / sensitive scripts
+setup_vercel_env.sh
+setup_vercel_env_2.sh
+
+# documentation / process artifacts
+*_REPORT.md
+*SUMMARY.md
+*_GUIDE.md
+COST_ANALYSIS_REPORT.md
+
+# testing / logs
+playwright-report/
+test-results/
+deploy_status.txt
+uploaded_image_*.png
