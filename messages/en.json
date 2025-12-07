@@ -49,6 +49,8 @@
         "signupButton": "Sign Up",
         "loginWithGoogle": "Login with Google",
         "signupWithGoogle": "Sign Up with Google",
+        "loginWithGitHub": "Login with GitHub",
+        "signupWithGitHub": "Sign Up with GitHub",
         "welcomeBack": "Welcome Back",
         "enterEmailDesc": "Enter your email to login to the platform",
         "loginSuccess": "Login successful",

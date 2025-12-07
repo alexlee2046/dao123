@@ -49,6 +49,8 @@
         "signupButton": "注册",
         "loginWithGoogle": "使用 Google 登录",
         "signupWithGoogle": "使用 Google 注册",
+        "loginWithGitHub": "使用 GitHub 登录",
+        "signupWithGitHub": "使用 GitHub 注册",
         "welcomeBack": "欢迎回来",
         "enterEmailDesc": "输入您的邮箱以登录平台",
         "loginSuccess": "登录成功",
