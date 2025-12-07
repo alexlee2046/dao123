@@ -1,5 +1,4 @@
-import { getProject } from "@/lib/actions/projects";
-import { checkAccess } from "@/lib/actions/community";
+import { getCommunityProject, checkAccess } from "@/lib/actions/community";
 import { ProjectActions } from "@/components/community/ProjectActions";
 import { CommentsSection } from "@/components/community/CommentsSection";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +8,11 @@ import { getTranslations } from 'next-intl/server';
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const project = await getProject(id);
 
-    if (!project || !project.is_public) {
+    // Use the community-specific function that doesn't require auth
+    const project = await getCommunityProject(id);
+
+    if (!project) {
         notFound();
     }
 

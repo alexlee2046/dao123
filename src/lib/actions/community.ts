@@ -236,3 +236,21 @@ export async function checkAccess(projectId: string) {
 
     return !!purchase
 }
+
+export async function getCommunityProject(id: string) {
+    const supabase = createAnonClient()
+
+    const { data: project, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', id)
+        .eq('is_public', true)
+        .single()
+
+    if (error) {
+        console.error("Failed to fetch community project:", error)
+        return null
+    }
+
+    return project
+}
