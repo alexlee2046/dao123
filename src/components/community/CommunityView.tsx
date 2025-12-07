@@ -14,6 +14,7 @@ interface Project {
     id: string;
     name: string;
     description?: string;
+    preview_image?: string; // Add preview_image to interface
     price: number;
     user?: {
         email?: string;
@@ -31,8 +32,8 @@ export function CommunityView({ projects }: CommunityViewProps) {
     const t = useTranslations('community');
     const tCommon = useTranslations('common');
 
-    const filteredProjects = projects.filter(project => 
-        project.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const filteredProjects = projects.filter(project =>
+        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
@@ -99,10 +100,17 @@ export function CommunityView({ projects }: CommunityViewProps) {
                                     </Button>
                                 </div>
 
-                                {/* Placeholder for project preview */}
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 bg-muted/50 group-hover:scale-105 transition-transform duration-500">
-                                    <Sparkles className="h-12 w-12" />
-                                </div>
+                                {project.preview_image ? (
+                                    <img
+                                        src={project.preview_image}
+                                        alt={project.name}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 bg-muted/50 group-hover:scale-105 transition-transform duration-500">
+                                        <Sparkles className="h-12 w-12" />
+                                    </div>
+                                )}
 
                                 {project.price > 0 ? (
                                     <Badge className="absolute top-3 right-3 bg-amber-500/90 hover:bg-amber-600 backdrop-blur-sm shadow-sm">
