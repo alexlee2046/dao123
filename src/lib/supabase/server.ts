@@ -57,3 +57,22 @@ export function createAdminClient() {
         }
     )
 }
+
+/**
+ * Create an anonymous Supabase client for reading public data
+ * This client doesn't use cookies and works for unauthenticated requests
+ */
+export function createAnonClient() {
+    const { createClient } = require('@supabase/supabase-js')
+
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        }
+    )
+}
