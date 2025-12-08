@@ -10,6 +10,7 @@ export interface ModelInput {
     type: 'chat' | 'image' | 'video'
     enabled: boolean
     is_free: boolean
+    cost_per_unit?: number // Credits per usage (optional for create, defaults to 1)
 }
 
 /**
