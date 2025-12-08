@@ -79,20 +79,7 @@ export function Toolbar() {
         }
         toast.success(t('saved'));
       } else {
-        const newProject = await createProject(t('untitledProject'), t('generatedBy'));
-        setCurrentProject(newProject);
-        // Save content immediately after creation
-        await updateProject(newProject.id, {
-          html: htmlContent,
-          pages,
-          content_json: contentJson
-        });
-        if (screenshot) {
-          await updateProjectMetadata(newProject.id, { preview_image: screenshot });
-        }
-        toast.success(t('createdAndSaved'));
-        // Update URL to include the new project ID
-        window.history.replaceState(null, '', `/${locale}/studio/${newProject.id}`);
+        toast.error(t('saveFailed') + ": No active project found.");
       }
     } catch (error: any) {
       console.error(error);
@@ -106,7 +93,7 @@ export function Toolbar() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-      
+
       if (isCmdOrCtrl) {
         switch (e.key.toLowerCase()) {
           case 's':
@@ -146,7 +133,7 @@ export function Toolbar() {
         <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted/30 border border-border/20">
           <span className="font-semibold text-sm tracking-tight ml-1">{currentProject?.name || t('untitledProject')}</span>
           <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
-          
+
           {/* Page Selector */}
           <Select value={currentPage} onValueChange={setCurrentPage}>
             <SelectTrigger className="h-6 min-w-[100px] max-w-[160px] text-xs border-0 bg-transparent p-0 px-1 hover:bg-background/50 rounded-sm focus:ring-0 shadow-none">
@@ -266,9 +253,9 @@ export function Toolbar() {
                   toast.error(t('emptyContentError'));
                   return;
                 }
-                
+
                 if (!confirm("This will use AI to reconstruct the builder components from the original HTML. Current changes in the builder might be lost. Continue?")) {
-                    return;
+                  return;
                 }
 
                 try {
@@ -320,10 +307,17 @@ export function Toolbar() {
                 try {
                   console.log("Auto-converting HTML content to Builder data...");
                   // 动态导入解析器以避免服务端渲染问题（它使用了 DOMParser）
-                  const { htmlToCraftData } = await import('@/lib/builder/htmlInfoCraft');
-                  const craftJson = htmlToCraftData(htmlContent);
-                  console.log("Conversion successful, setting builder data...");
-                  setBuilderData(craftJson);
+                  const { convertHtmlToCraft } = await import('@/app/actions/parser');
+                  const result = await convertHtmlToCraft(htmlContent);
+
+                  if (result.success && result.data) {
+                    console.log("Conversion successful (Zero-Loss Server), setting builder data...");
+                    // Craft.js expects JSON string usually, or valid object. Store handles both but inconsistent.
+                    // Let's stringify to match query.serialize() behavior.
+                    setBuilderData(JSON.stringify(result.data));
+                  } else {
+                    throw new Error(result.error || "Unknown conversion error");
+                  }
                 } catch (e) {
                   console.error("Failed to convert HTML to Builder data:", e);
                   // 降级：仅包裹在 CustomHTML 中

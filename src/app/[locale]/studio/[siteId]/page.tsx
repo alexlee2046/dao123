@@ -12,7 +12,7 @@ import { LivePreview } from "@/components/studio/LivePreview";
 import { AssetManager } from "@/components/studio/AssetManager";
 import { Toolbox } from "@/components/studio/builder/Toolbox";
 import { SettingsPanel } from "@/components/studio/builder/SettingsPanel";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useStudioStore } from "@/lib/store";
 import { getProject } from "@/lib/actions/projects";
 import { toast } from "sonner";
@@ -52,7 +52,15 @@ import { Layers, Box, FileText } from "lucide-react";
 export default function StudioPage() {
     const t = useTranslations('studio');
     const params = useParams();
+    const router = useRouter();
     const siteId = params?.siteId as string;
+
+    useEffect(() => {
+        if (siteId === 'new') {
+            router.replace('/project/create');
+        }
+    }, [siteId, router]);
+
     const { setCurrentProject, setHtmlContent, setPages, isBuilderMode, setBuilderData } = useStudioStore();
 
     useEffect(() => {
@@ -120,16 +128,16 @@ export default function StudioPage() {
                                     <Tabs defaultValue="components" className="flex-1 flex flex-col h-full">
                                         <div className="px-2 pt-2 border-b bg-muted/30">
                                             <TabsList className="w-full grid grid-cols-3 h-9 mb-2">
-                                                <TabsTrigger value="components" className="text-xs px-0" title={t('toolbox')}><Box className="w-3.5 h-3.5 mr-1.5"/>Tools</TabsTrigger>
-                                                <TabsTrigger value="layers" className="text-xs px-0" title={t('layers')}><Layers className="w-3.5 h-3.5 mr-1.5"/>Layers</TabsTrigger>
-                                                <TabsTrigger value="pages" className="text-xs px-0" title={t('pages')}><FileText className="w-3.5 h-3.5 mr-1.5"/>Pages</TabsTrigger>
+                                                <TabsTrigger value="components" className="text-xs px-0" title={t('toolbox')}><Box className="w-3.5 h-3.5 mr-1.5" />Tools</TabsTrigger>
+                                                <TabsTrigger value="layers" className="text-xs px-0" title={t('layers')}><Layers className="w-3.5 h-3.5 mr-1.5" />Layers</TabsTrigger>
+                                                <TabsTrigger value="pages" className="text-xs px-0" title={t('pages')}><FileText className="w-3.5 h-3.5 mr-1.5" />Pages</TabsTrigger>
                                             </TabsList>
                                         </div>
-                                        
+
                                         <TabsContent value="components" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
                                             <Toolbox />
                                         </TabsContent>
-                                        
+
                                         <TabsContent value="layers" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
                                             <LayersPanel />
                                         </TabsContent>

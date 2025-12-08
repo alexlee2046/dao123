@@ -67,7 +67,7 @@ export function DashboardView({ projects }: DashboardViewProps) {
                     </p>
                 </div>
                 <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
-                    <Link href="/studio/new">
+                    <Link href="/project/create">
                         <Plus className="mr-2 h-5 w-5" />
                         {t('startProject')}
                     </Link>
@@ -82,7 +82,7 @@ export function DashboardView({ projects }: DashboardViewProps) {
             >
                 {/* New Site Card - Always first */}
                 <motion.div variants={item}>
-                    <Link href="/studio/new" className="block h-full">
+                    <Link href="/project/create" className="block h-full">
                         <Card className="h-full border-dashed border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all cursor-pointer group flex flex-col items-center justify-center min-h-[280px]">
                             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                                 <Plus className="h-8 w-8 text-primary" />

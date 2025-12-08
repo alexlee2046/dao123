@@ -55,6 +55,8 @@ export function ImportCodeModal({ children }: { children: React.ReactNode }) {
 
             // Update Store
             setBuilderData(craftJson);
+            // Also update the HTML content to keep it in sync for preview
+            useStudioStore.getState().setHtmlContent(htmlToProcess);
 
             // Switch to Builder Mode if not active
             if (!isBuilderMode) {

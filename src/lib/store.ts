@@ -19,6 +19,7 @@ export interface Page {
   path: string;
   content: string;
   content_json?: string; // Builder JSON data
+  status?: 'pending' | 'complete' | 'error';
 }
 
 interface StudioState {
@@ -101,7 +102,7 @@ export const useStudioStore = create<StudioState>((set) => {
 
     setHtmlContent: (content) => set((state) => {
       const newPages = state.pages.map(p =>
-        p.path === state.currentPage ? { ...p, content } : p
+        p.path === state.currentPage ? { ...p, content, content_json: undefined } : p
       );
       // If current page is not in pages (edge case), add it
       if (!newPages.find(p => p.path === state.currentPage)) {
@@ -110,6 +111,7 @@ export const useStudioStore = create<StudioState>((set) => {
 
       return {
         htmlContent: content,
+        builderData: null, // Reset builder data to force re-conversion from new HTML
         pages: newPages,
         past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
         future: []
@@ -120,10 +122,10 @@ export const useStudioStore = create<StudioState>((set) => {
       // Try to keep current page if it exists in new pages
       const currentStillExists = pages.find(p => p.path === state.currentPage);
       const indexPage = pages.find(p => p.path === 'index.html') || pages[0];
-      
+
       const newCurrentPage = currentStillExists ? state.currentPage : (indexPage ? indexPage.path : 'index.html');
       const pageForContent = currentStillExists || indexPage;
-      
+
       const newHtmlContent = pageForContent ? pageForContent.content : '';
       const newBuilderData = pageForContent ? pageForContent.content_json || null : null;
 
@@ -214,14 +216,14 @@ export const useStudioStore = create<StudioState>((set) => {
     toggleBuilderMode: () => set((state) => ({ isBuilderMode: !state.isBuilderMode })),
     builderData: null,
     setBuilderData: (data) => set((state) => {
-        // Also update the current page's content_json
-        const newPages = state.pages.map(p =>
-            p.path === state.currentPage ? { ...p, content_json: data || undefined } : p
-        );
-        return {
-            builderData: data,
-            pages: newPages
-        };
+      // Also update the current page's content_json
+      const newPages = state.pages.map(p =>
+        p.path === state.currentPage ? { ...p, content_json: data || undefined } : p
+      );
+      return {
+        builderData: data,
+        pages: newPages
+      };
     }),
   };
 });
