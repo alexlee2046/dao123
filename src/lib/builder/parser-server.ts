@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import * as cheerio from 'cheerio';
+import { parseTailwindClasses } from './tailwindParser';
 
 // Type definitions for Builder Data (lighter version of Craft.js state)
 export interface BuilderNode {
@@ -29,13 +30,19 @@ export async function parseHtmlToBuilderJson(html: string): Promise<BuilderData>
     const builderData: BuilderData = {};
 
     // Initialize ROOT node (BuilderContainer)
+    // Root usually doesn't need detailed tailwind parsing from body tag unless specified
+    // But let's parse body classes too if present
+    const bodyClass = body.attr('class') || '';
+    const { props: bodyProps, remainingClasses: bodyRemaining } = parseTailwindClasses(bodyClass);
+
     builderData[ROOT_NODE_ID] = {
         id: ROOT_NODE_ID,
         type: { resolvedName: 'BuilderContainer' },
         props: {
-            className: 'w-full min-h-screen bg-white',
+            className: `w-full min-h-screen bg-white ${bodyRemaining}`.trim(),
             padding: { top: '0', bottom: '0', left: '0', right: '0' },
             margin: { top: '0', bottom: '0', left: '0', right: '0' },
+            ...bodyProps
         },
         nodes: [],
         linkedNodes: {},
@@ -85,6 +92,7 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
     if (node.type === 'tag') {
         const el = $(node);
         const tagName = node.name.toLowerCase();
+        const className = el.attr('class') || '';
 
         // -- Special Handling: Scripts/Styles -> Ignore or CustomHTML?
         if (tagName === 'script' || tagName === 'style') {
@@ -92,6 +100,9 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
         }
 
         // -- ATOMIC FALLBACK STRATEGY --
+
+        // Parse Tailwind Classes for atoms
+        const { props: parsedProps, remainingClasses } = parseTailwindClasses(className);
 
         // A. Images
         if (tagName === 'img') {
@@ -102,7 +113,8 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
                 props: {
                     src: el.attr('src') || '',
                     alt: el.attr('alt') || '',
-                    className: el.attr('class') || '',
+                    className: remainingClasses,
+                    ...parsedProps
                 },
                 nodes: [],
                 parent: parentId,
@@ -113,7 +125,6 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
         }
 
         // B. Buttons / Links (that look like buttons)
-        const className = el.attr('class') || '';
         if (tagName === 'button' || (tagName === 'a' && (className.includes('btn') || className.includes('button')))) {
             const id = nanoid();
             builderData[id] = {
@@ -122,8 +133,9 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
                 props: {
                     text: el.text().trim() || 'Button',
                     href: el.attr('href') || '#',
-                    className: className,
+                    className: remainingClasses,
                     variant: 'default',
+                    ...parsedProps
                 },
                 nodes: [],
                 parent: parentId,
@@ -135,9 +147,18 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
 
         // C. Links (Standard text links)
         if (tagName === 'a') {
-            return createContainerNode($, 'BuilderLink', node, parentId, builderData, {
-                href: el.attr('href') || '#'
-            });
+            // NOTE: We pass parsed props to createContainerNode
+            // Also try to extract text if it's simple text link for existing BuilderLink components that rely on 'text' prop
+            const textContent = el.text().trim();
+            const extra: any = {
+                href: el.attr('href') || '#',
+                ...parsedProps,
+                className: remainingClasses
+            };
+            if (textContent) {
+                extra.text = textContent;
+            }
+            return createContainerNode($, 'BuilderLink', node, parentId, builderData, extra);
         }
 
         // D. Text Headers / Paragraphs
@@ -151,7 +172,8 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
                     props: {
                         text: el.text().trim() || '',
                         tagName: tagName,
-                        className: className,
+                        className: remainingClasses,
+                        ...parsedProps
                     },
                     nodes: [],
                     parent: parentId,
@@ -160,7 +182,12 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
                 };
                 return id;
             }
-            return createContainerNode($, 'BuilderContainer', node, parentId, builderData);
+            // Logic for complex text block => Container
+            // We shouldn't lose typography semantics on container, 
+            // but BuilderContainer is generic div.
+            // Ideally we'd have a specific TextBlock container, but for now BuilderContainer is fallback.
+            // parsedProps will carry styles like font-size/weight etc on the container div.
+            return createContainerNode($, 'BuilderContainer', node, parentId, builderData, { ...parsedProps, className: remainingClasses });
         }
 
         // E. Inputs / Forms -> CustomHTML (Too complex for simple atoms)
@@ -179,7 +206,8 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
                         type: { resolvedName: 'BuilderVideo' },
                         props: {
                             url: src,
-                            className: className
+                            className: remainingClasses,
+                            ...parsedProps
                         },
                         nodes: [],
                         parent: parentId,
@@ -193,7 +221,7 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
         }
 
         // G. Default Containers (div, section, main, header, footer, etc.)
-        return createContainerNode($, 'BuilderContainer', node, parentId, builderData);
+        return createContainerNode($, 'BuilderContainer', node, parentId, builderData, { ...parsedProps, className: remainingClasses });
     }
 
     return null;
@@ -209,10 +237,11 @@ function createContainerNode($: ReturnType<typeof cheerio.load>, resolvedName: s
         id,
         type: { resolvedName },
         props: {
-            className: el.attr('class') || '',
+            className: extraProps.className || '', // Ensure we don't overwrite if passed in extraProps
             padding: { top: '0', bottom: '0', left: '0', right: '0' },
             margin: { top: '0', bottom: '0', left: '0', right: '0' },
             ...extraProps
+            // Note: extraProps contains parsed Tailwind styles which will override the default padding/margin above
         },
         nodes: [], // Will fill below
         parent: parentId,

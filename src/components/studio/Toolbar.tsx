@@ -44,6 +44,7 @@ export function Toolbar() {
     try {
       setSaving(true);
       const { updateProject, createProject, updateProjectMetadata } = await import("@/lib/actions/projects");
+      const { generateHtmlFromBuilderData } = await import("@/lib/builder/generator");
 
       // Capture screenshot before saving
       const screenshot = await captureScreenshot();
@@ -68,9 +69,28 @@ export function Toolbar() {
       // Parse it back to object because our API expects object for JSONB column
       const contentJson = builderContent ? JSON.parse(builderContent) : null;
 
+      // SYNC: Generate HTML from the latest Builder JSON to ensure WYSIWYG
+      let finalHtml = htmlContent;
+      if (contentJson) {
+        try {
+          const generatedHtml = generateHtmlFromBuilderData(contentJson);
+          if (generatedHtml) {
+            finalHtml = generatedHtml;
+            // Update local store to reflect the synced HTML immediately
+            // Note: We avoid useStudioStore inside async callback if possible, but here we read it above.
+            // We should probably update the store via the hook methods we have.
+            // However, we are inside component, so we can use the setters from closure if we want, 
+            // but `setHtmlContent` triggers a page update/history push which might be side-effect heavy.
+            // For now, let's just make sure we SAVE it correctly.
+          }
+        } catch (e) {
+          console.error("Failed to generate HTML from Builder Data:", e);
+        }
+      }
+
       if (currentProject?.id) {
         await updateProject(currentProject.id, {
-          html: htmlContent,
+          html: finalHtml, // Use the synchronized HTML
           pages,
           content_json: contentJson
         });

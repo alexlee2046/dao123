@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
 import { extractHtml, parseMultiPageResponse } from '@/lib/page-parser';
 import type { UIMessage as Message } from '@ai-sdk/react';
 import { Button } from "@/components/ui/button";
@@ -93,11 +92,11 @@ export function ChatAssistant() {
         }
     }, [pendingPrompt, models, setPendingPrompt]);
 
-    // 使用 refs 来存储动态值，确保每次请求时获取最新值
+    // Use refs to keep latest state accessible in event handlers if needed, 
+    // but for useChat body we can use the state directly as it re-renders.
     const selectedModelRef = useRef(selectedModel);
     const htmlContentRef = useRef(htmlContent);
 
-    // 更新 refs
     useEffect(() => {
         selectedModelRef.current = selectedModel;
     }, [selectedModel]);
@@ -105,24 +104,18 @@ export function ChatAssistant() {
         htmlContentRef.current = htmlContent;
     }, [htmlContent]);
 
-    // Configure transport with API endpoint and dynamic body parameters
-    const transport = useMemo(() => new DefaultChatTransport({
-        api: '/api/chat',
-        body: () => ({
-            model: selectedModelRef.current,
-            currentHtml: htmlContentRef.current,
-            mode: 'direct', // Default to direct mode
-        }),
-    }), []);
-
-    const { messages, sendMessage, stop, status, error, setMessages } = useChat({
-        transport,
+    const { messages, append, stop, status, error, setMessages } = useChat({
+        body: {
+            model: selectedModel,
+            currentHtml: htmlContent,
+            mode: 'direct',
+        },
         onError: (err) => {
             console.error('Chat error:', err);
             toast.error(err.message || t('chatPanel.serviceError'));
         },
         onFinish: async ({ message }: any) => {
-            // 提取消息内容 - 新 SDK 中内容可能在 parts 中
+            // Extract content - support both text and parts
             let content = '';
             if (message.content) {
                 content = message.content;
@@ -135,6 +128,7 @@ export function ChatAssistant() {
 
             if (!content) return;
 
+            // Log raw content for client-side debugging
             // Log raw content for client-side debugging
             console.log('[ChatAssistant] Raw AI response length:', content.length);
 
@@ -184,7 +178,7 @@ export function ChatAssistant() {
             const extractedHtml = extractHtml(content);
             if (extractedHtml) setHtmlContent(extractedHtml);
         },
-    });
+    } as any) as any;
 
     const isLoading = status === 'streaming' || status === 'submitted' || uploading;
 
@@ -441,8 +435,9 @@ export function ChatAssistant() {
         }
 
         try {
-            await sendMessage({
-                text: messageContent,
+            await append({
+                role: 'user',
+                content: messageContent,
             });
         } catch (error: any) {
             toast.error(error.message || t('chatPanel.serviceError'));

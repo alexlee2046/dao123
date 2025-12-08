@@ -4,6 +4,7 @@ import { BuilderStyleProps, getBuilderStyles, getBuilderClassNames } from '@/lib
 import { useStudioStore } from '@/lib/store';
 
 export interface BuilderLinkProps extends BuilderStyleProps {
+    children?: React.ReactNode;
     text: string;
     href: string;
     target?: '_self' | '_blank';
@@ -12,6 +13,7 @@ export interface BuilderLinkProps extends BuilderStyleProps {
 }
 
 export const BuilderLink = ({
+    children,
     text,
     href = '#',
     target = '_self',
@@ -40,7 +42,7 @@ export const BuilderLink = ({
             className={`${classes} ${selected ? 'outline outline-2 outline-blue-500 z-10 relative' : ''} ${hovered && !selected ? 'outline outline-1 outline-blue-300 z-10 relative' : ''} cursor-pointer`}
             onClick={(e) => enabled && e.preventDefault()}
         >
-            {text}
+            {children || text}
         </a>
     );
 };

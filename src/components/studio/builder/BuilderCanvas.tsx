@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Frame, Element, useEditor } from '@craftjs/core';
 import { BuilderContainer } from '@/components/builder/atoms/BuilderContainer';
 import { BuilderText } from '@/components/builder/atoms/BuilderText';
+import { BuilderFrame } from './BuilderFrame';
 import { useStudioStore } from '@/lib/store';
 import { useTranslations } from 'next-intl';
 
@@ -41,12 +42,14 @@ export const BuilderCanvas = () => {
 
     return (
         <div className="w-full h-full bg-white flex flex-col">
-            <Frame>
-                <Element is={BuilderContainer} canvas className="w-full flex-1 bg-white min-h-full">
-                    <BuilderText text={t('canvasWelcome')} tag="h1" className="text-4xl font-bold mb-4" />
-                    <BuilderText text={t('canvasInstruction')} className="text-lg text-gray-600" />
-                </Element>
-            </Frame>
+            <BuilderFrame>
+                <Frame>
+                    <Element is={BuilderContainer} canvas className="w-full flex-1 bg-white min-h-full">
+                        <BuilderText text={t('canvasWelcome')} tag="h1" className="text-4xl font-bold mb-4" />
+                        <BuilderText text={t('canvasInstruction')} className="text-lg text-gray-600" />
+                    </Element>
+                </Frame>
+            </BuilderFrame>
         </div>
     );
 };
