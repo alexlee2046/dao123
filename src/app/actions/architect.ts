@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { SitePlanSchema } from '@/lib/ai/schemas';
-import { getProvider, deductAgentCredits, getModelCostFromDB } from './ai';
+import { getProvider, deductAgentCredits, getModelDataFromDB } from './ai';
 
 'use server';
 
@@ -8,8 +8,8 @@ export async function generateSitePlan(prompt: string, model: string = 'anthropi
     'use server';
 
     try {
-        const cost = await getModelCostFromDB(model);
-        await deductAgentCredits(cost, model, `Architect Agent: ${model}`);
+        const { cost, is_free } = await getModelDataFromDB(model);
+        await deductAgentCredits(cost, model, `Architect Agent: ${model}`, is_free);
 
         const { object } = await generateObject({
             model: getProvider(model),
