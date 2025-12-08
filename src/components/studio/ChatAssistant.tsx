@@ -288,9 +288,13 @@ export function ChatAssistant() {
                     // Architect Cost: Fixed based on model (System uses Architect Agent model, assume same as selected for now or default)
                     // Builder Cost: Per Page * Cost per Section (Heuristic: 1 section call per page for now)
 
-                    const { getCredits } = await import('@/lib/actions/credits');
-
-                    const balance = await getCredits();
+                    let balance = 0;
+                    try {
+                        const { getCredits } = await import('@/lib/actions/credits');
+                        balance = await getCredits();
+                    } catch (err) {
+                        console.warn("[ChatAssistant] Failed to load credits, proceeding with 0 balance:", err);
+                    }
 
                     // Use cost from Dynamic Models (DB)
                     const selectedModelData = models.find(m => m.id === selectedModel);
@@ -690,6 +694,7 @@ export function ChatAssistant() {
                                 variant={mode === 'chat' ? 'secondary' : 'ghost'}
                                 size="sm"
                                 onClick={() => setMode('chat')}
+                                data-testid="mode-toggle-chat"
                                 className={cn("h-6 text-[10px] px-2 rounded-md", mode === 'chat' ? "bg-background shadow-sm text-primary" : "text-muted-foreground")}
                             >
                                 Default
@@ -698,6 +703,7 @@ export function ChatAssistant() {
                                 variant={mode === 'builder' ? 'secondary' : 'ghost'}
                                 size="sm"
                                 onClick={() => setMode('builder')}
+                                data-testid="mode-toggle-builder"
                                 className={cn("h-6 text-[10px] px-2 rounded-md", mode === 'builder' ? "bg-background shadow-sm text-primary" : "text-muted-foreground")}
                                 title="Generates Builder Component directly (Strategy A)"
                             >
