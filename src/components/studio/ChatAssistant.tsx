@@ -223,7 +223,7 @@ export function ChatAssistant() {
 
                     // 1. Call Architect
                     const { generateSitePlan } = await import('@/app/actions/architect');
-                    const planResult = await generateSitePlan(contentToSend);
+                    const planResult = await generateSitePlan(contentToSend, selectedModel);
 
                     if (isBuildingStopped.current) return; // Check stop
 
@@ -271,12 +271,13 @@ export function ChatAssistant() {
                     // Builder Cost: Per Page * Cost per Section (Heuristic: 1 section call per page for now)
 
                     const { getCredits } = await import('@/lib/actions/credits');
-                    const { calculateCost } = await import('@/lib/pricing');
 
                     const balance = await getCredits();
 
-                    // We need to know which model is being used. `selectedModel` is state.
-                    const builderCostPerUnit = calculateCost('agent_builder', selectedModel);
+                    // Use cost from Dynamic Models (DB)
+                    const selectedModelData = models.find(m => m.id === selectedModel);
+                    const builderCostPerUnit = selectedModelData ? selectedModelData.cost_per_unit : 5; // Default fallback
+
                     const totalBuilderCost = pagesToBuild.length * builderCostPerUnit;
                     const estimatedTotalCost = totalBuilderCost; // Architect already paid/done at this point? 
                     // Wait, Architect was called in Step 1. That cost is ALREADY incurred.
@@ -692,9 +693,16 @@ export function ChatAssistant() {
                             <SelectTrigger className="h-6 text-[10px] border-none bg-transparent focus:ring-0 px-1 text-muted-foreground hover:text-foreground w-auto min-w-[100px] justify-end">
                                 <SelectValue placeholder={models.length > 0 ? t('chatPanel.selectModel') : t('chatPanel.noModelsAvailable')} />
                             </SelectTrigger>
-                            <SelectContent align="end" className="w-[200px]">
+                            <SelectContent align="end" className="w-[300px]">
                                 {models.map(m => (
-                                    <SelectItem key={m.id} value={m.id} className="text-xs">{m.name}</SelectItem>
+                                    <SelectItem key={m.id} value={m.id} className="text-xs flex justify-between w-full">
+                                        <div className="flex justify-between w-full gap-4">
+                                            <span>{m.name}</span>
+                                            <span className="text-muted-foreground opacity-70">
+                                                {m.cost_per_unit > 0 ? `${m.cost_per_unit} 积分` : '免费'}
+                                            </span>
+                                        </div>
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>

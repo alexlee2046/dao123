@@ -8,6 +8,7 @@ export interface Model {
     provider: string
     enabled: boolean
     is_free: boolean
+    cost_per_unit: number // Usage cost in credits
     type: 'chat' | 'image' | 'video'
 }
 
@@ -19,6 +20,8 @@ export async function getModels(type: 'chat' | 'image' | 'video' = 'chat') {
         .select('*')
         .eq('enabled', true)
         .eq('type', type)
+        // Order by cost (cheapest first) then provider
+        .order('cost_per_unit', { ascending: true })
         .order('provider', { ascending: true })
 
     if (error) {

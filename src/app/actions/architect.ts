@@ -1,23 +1,18 @@
+import { generateObject } from 'ai';
+import { SitePlanSchema } from '@/lib/ai/schemas';
+import { getProvider, deductAgentCredits, getModelCostFromDB } from './ai';
+
 'use server';
 
-import { generateObject } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
-import { SitePlanSchema } from '@/lib/ai/schemas';
-import { z } from 'zod';
-
-const openRouter = createOpenAI({
-    apiKey: process.env.OPENROUTER_API_KEY,
-    baseURL: 'https://openrouter.ai/api/v1',
-});
-
-const MODEL_NAME = 'anthropic/claude-3.5-sonnet';
-
-export async function generateSitePlan(prompt: string) {
+export async function generateSitePlan(prompt: string, model: string = 'anthropic/claude-3.5-sonnet') {
     'use server';
 
     try {
+        const cost = await getModelCostFromDB(model);
+        await deductAgentCredits(cost, model, `Architect Agent: ${model}`);
+
         const { object } = await generateObject({
-            model: openRouter(MODEL_NAME),
+            model: getProvider(model),
             schema: SitePlanSchema,
             prompt: `
         You are an expert Information Architect and Product Manager for a website builder.
@@ -40,8 +35,8 @@ export async function generateSitePlan(prompt: string) {
         });
 
         return { success: true, sitePlan: object };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error in generateSitePlan:', error);
-        return { success: false, error: 'Failed to generate site plan' };
+        return { success: false, error: error.message || 'Failed to generate site plan' };
     }
 }

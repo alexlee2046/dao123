@@ -10,7 +10,7 @@ import { calculateCost, calculateUserCost, getEffectiveTier } from '@/lib/pricin
 import { createClient } from '@/lib/supabase/server';
 
 // Initialize providers
-const openRouter = createOpenAI({
+export const openRouter = createOpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
     apiKey: process.env.OPENROUTER_API_KEY,
     name: 'openrouter',
@@ -21,7 +21,7 @@ const google = createGoogleGenerativeAI({
 });
 
 // Helper to get provider based on model string
-function getProvider(modelName: string) {
+export function getProvider(modelName: string) {
     if (modelName.startsWith('google/')) {
         const cleanName = modelName.replace('google/', '');
         return google(cleanName);
@@ -30,10 +30,10 @@ function getProvider(modelName: string) {
 }
 
 // Helper to deduct credits with tier check
-async function deductAgentCredits(baseCost: number, model: string, description: string) {
+export async function deductAgentCredits(baseCost: number, model: string, description: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) throw new Error('User not authenticated');
 
     const { data: profile } = await supabase
@@ -41,17 +41,34 @@ async function deductAgentCredits(baseCost: number, model: string, description: 
         .select('membership_tier, membership_expires_at')
         .eq('id', user.id)
         .single();
-    
+
     const effectiveTier = getEffectiveTier(profile || {});
     const actualCost = calculateUserCost(baseCost, model, effectiveTier);
 
     if (actualCost < 0) {
         throw new Error(`您的会员等级 (${effectiveTier === 'pro' ? '专业版' : '免费版'}) 无法使用此高级模型 (${model})，请升级会员。`);
     }
-    
+
     if (actualCost > 0) {
         await deductCredits(actualCost, description);
     }
+}
+
+// Helper to get model cost from DB
+export async function getModelCostFromDB(modelId: string): Promise<number> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('models')
+        .select('cost_per_unit')
+        .eq('id', modelId)
+        .single();
+
+    if (error || !data) {
+        console.warn(`Model cost not found for ${modelId}, using fallback.`);
+        // Fallback to pricing.ts if not in DB
+        return calculateCost('chat', modelId);
+    }
+    return data.cost_per_unit;
 }
 
 // 1. Architect Agent: Generate Site Plan
@@ -59,7 +76,7 @@ export async function generateSitePlan(prompt: string, model: string) {
     'use server';
 
     try {
-        const cost = calculateCost('agent_architect', model);
+        const cost = await getModelCostFromDB(model);
         await deductAgentCredits(cost, model, `Architect Agent: ${model}`);
 
         const systemPrompt = `
@@ -95,7 +112,7 @@ export async function generateSitePlan(prompt: string, model: string) {
 export async function generateDesignSystem(intent: string, model: string) {
     'use server';
 
-    const cost = calculateCost('agent_designer', model);
+    const cost = await getModelCostFromDB(model);
     await deductAgentCredits(cost, model, `Designer Agent: ${model}`);
 
     const systemPrompt = `
@@ -132,7 +149,7 @@ export async function streamSectionGeneration(
 
     // Note: Streaming makes it harder to deduct credits upfront if we want to charge per token, 
     // but we are charging per section (fixed cost).
-    const cost = calculateCost('agent_builder', model);
+    const cost = await getModelCostFromDB(model);
     await deductAgentCredits(cost, model, `Builder Agent (Stream): ${sectionType} using ${model}`);
 
     const systemPrompt = `
@@ -193,7 +210,7 @@ export async function generateSection(
 ) {
     'use server';
 
-    const cost = calculateCost('agent_builder', model);
+    const cost = await getModelCostFromDB(model);
     await deductAgentCredits(cost, model, `Builder Agent: ${sectionType} using ${model}`);
 
     const systemPrompt = `
