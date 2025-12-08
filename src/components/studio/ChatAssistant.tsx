@@ -265,6 +265,37 @@ export function ChatAssistant() {
                         return;
                     }
 
+                    // --- COST TRANSPARENCY & CONTROL ---
+                    // Calculate exact estimated cost
+                    // Architect Cost: Fixed based on model (System uses Architect Agent model, assume same as selected for now or default)
+                    // Builder Cost: Per Page * Cost per Section (Heuristic: 1 section call per page for now)
+
+                    const { getCredits } = await import('@/lib/actions/credits');
+                    const { calculateCost } = await import('@/lib/pricing');
+
+                    const balance = await getCredits();
+
+                    // We need to know which model is being used. `selectedModel` is state.
+                    const builderCostPerUnit = calculateCost('agent_builder', selectedModel);
+                    const totalBuilderCost = pagesToBuild.length * builderCostPerUnit;
+                    const estimatedTotalCost = totalBuilderCost; // Architect already paid/done at this point? 
+                    // Wait, Architect was called in Step 1. That cost is ALREADY incurred.
+                    // So we are estimating the *Remaining* cost for the Builders.
+
+                    if (balance < estimatedTotalCost) {
+                        toast.warning(
+                            `⚠️ Low Balance: You have ${balance} credits. This build requires ~${estimatedTotalCost} credits (${pagesToBuild.length} pages x ${builderCostPerUnit}). Partial completion expected.`
+                        );
+                    } else {
+                        toast(
+                            `💰 Cost Est: ~${estimatedTotalCost} Credits (${pagesToBuild.length} pages x ${builderCostPerUnit}/page). Balance: ${balance}.`,
+                            {
+                                icon: '💳',
+                                duration: 5000
+                            }
+                        );
+                    }
+
                     // 3. Parallel Build (Builder Agents) with Concurrency Control
                     toast.info(`Builder Agents: Starting construction of ${pagesToBuild.length} pages...`);
 

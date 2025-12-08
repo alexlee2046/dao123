@@ -35,20 +35,18 @@ export const MODEL_COSTS: Record<string, number> = {
     // Chat Models (Per Message)
     // Premium Models (Target ROI > 5x)
     'openai/gpt-5': 20,           // Premium Future Model
-    'openai/gpt-4o': 6,           // Standard Premium (Increased for context handling)
-    'anthropic/claude-3.5-sonnet': 6, // Increased for context handling
-    'google/gemini-3-pro-preview': 6, // Increased for context handling
-    'qwen/qwen-2.5-72b-instruct': 3,
+    'openai/gpt-5-mini': 5,       // Efficient Premium
+    'google/gemini-3-pro-preview': 10, // Google Flagship
 
-    // Efficient/Free-tier Models (Charge 1 credit to cover infra/compute overhead)
+    // Efficient/Free-tier Models
+    'deepseek/deepseek-v3.2': 1,         // Very cheap standard
+    'deepseek/deepseek-v3.2-speciale': 3, // Performance variant
+    'qwen/qwen-2.5-72b-instruct': 2,      // Best Open Model
+
+    // Legacy / Fallbacks
+    'openai/gpt-4o': 6,
+    'anthropic/claude-3.5-sonnet': 6,
     'google/gemini-2.5-flash': 1,
-    'deepseek/deepseek-chat': 1,
-    'deepseek/deepseek-chat-v3.1:free': 1,
-    'deepseek/deepseek-v3.2-exp': 1,          // DeepSeek V3.2 Experimental (Free)
-    'deepseek/deepseek-v3.2-speciale': 3,     // DeepSeek V3.2 Speciale (High Performance)
-    'qwen/qwen3-coder:free': 1,
-    'google/gemini-2.0-flash-exp:free': 1,
-    'moonshotai/kimi-k2:free': 1,
 
     // Image Models (Per Generation)
     // Target ROI > 5x (Cost ~$0.04 -> Price $0.20-$0.25)
@@ -78,23 +76,28 @@ export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architec
     }
 
     // Agentic Workflow Pricing
+    // Agentic Workflow Pricing
     if (type === 'agent_architect') {
-        // Architect uses high-reasoning models (Claude 3.5 Sonnet / GPT-4o)
+        // Architect uses high-reasoning models
         // Fixed cost per plan generation
-        return modelId.includes('gpt-4o') ? 5 : 3;
+        if (modelId.includes('gpt-5') && !modelId.includes('mini')) return 10;
+        if (modelId.includes('gemini-3')) return 8;
+        return 5; // Default for others (Mini/DeepSeek)
     }
     if (type === 'agent_designer') {
         // Designer uses high-reasoning models
         // Fixed cost per design system
-        return modelId.includes('gpt-4o') ? 5 : 3;
+        if (modelId.includes('gpt-5') && !modelId.includes('mini')) return 8;
+        return 5;
     }
     if (type === 'agent_builder') {
-        // Builder uses faster models (Gemini Flash / DeepSeek)
+        // Builder uses faster models
         // Cost per section
-        if (modelId.includes('gemini')) return 0.5; // Very cheap
-        if (modelId.includes('deepseek')) return 0.5;
-        if (modelId.includes('gpt-4o-mini')) return 0.5;
-        return 1; // Default
+        if (modelId.includes('deepseek')) return 1;
+        if (modelId.includes('qwen')) return 2;
+        if (modelId.includes('gpt-5-mini')) return 2;
+        if (modelId.includes('gemini-3')) return 3; // Pro is expensive
+        return 5; // Default (GPT-5 full)
     }
 
     // Existing Chat Pricing
