@@ -88,8 +88,6 @@ export async function getModelCostFromDB(modelId: string): Promise<number> {
 
 // 1. Architect Agent: Generate Site Plan
 export async function generateSitePlan(prompt: string, model: string) {
-    'use server';
-
     try {
         const { cost, is_free } = await getModelDataFromDB(model);
         await deductAgentCredits(cost, model, `Architect Agent: ${model}`, is_free);
@@ -125,8 +123,6 @@ export async function generateSitePlan(prompt: string, model: string) {
 
 // 2. Designer Agent: Generate Design System
 export async function generateDesignSystem(intent: string, model: string) {
-    'use server';
-
     const { cost, is_free } = await getModelDataFromDB(model);
     await deductAgentCredits(cost, model, `Designer Agent: ${model}`, is_free);
 
@@ -160,8 +156,6 @@ export async function streamSectionGeneration(
     designSystem: any,
     model: string
 ) {
-    'use server';
-
     // Note: Streaming makes it harder to deduct credits upfront if we want to charge per token, 
     // but we are charging per section (fixed cost).
     const { cost, is_free } = await getModelDataFromDB(model);
@@ -223,8 +217,6 @@ export async function generateSection(
     designSystem: any,
     model: string
 ) {
-    'use server';
-
     const { cost, is_free } = await getModelDataFromDB(model);
     await deductAgentCredits(cost, model, `Builder Agent: ${sectionType} using ${model}`, is_free);
 
