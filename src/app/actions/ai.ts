@@ -196,10 +196,11 @@ export async function generateSection(
     designSystem: any,
     model: string
 ) {
-    const { cost, is_free } = await getModelDataFromDB(model);
-    await deductAgentCredits(cost, model, `Builder Agent: ${sectionType} using ${model}`, is_free);
+    try {
+        const { cost, is_free } = await getModelDataFromDB(model);
+        await deductAgentCredits(cost, model, `Builder Agent: ${sectionType} using ${model}`, is_free);
 
-    const systemPrompt = `
+        const systemPrompt = `
     You are an expert React Component Builder using Craft.js.
     Your task is to build a single website section based on the Architect's description and the Designer's design system.
     
@@ -238,12 +239,18 @@ export async function generateSection(
     The root element MUST be a BuilderContainer.
   `;
 
-    const { object } = await generateObject({
-        model: await getProvider(model),
-        schema: ComponentSchema,
-        system: systemPrompt,
-        prompt: `Build a ${sectionType} section. Description: ${description}`,
-    });
+        const { object } = await generateObject({
+            model: await getProvider(model),
+            schema: ComponentSchema,
+            system: systemPrompt,
+            prompt: `Build a ${sectionType} section. Description: ${description}`,
+        });
 
-    return object;
+        return object;
+
+    } catch (error: any) {
+        console.error('Error in generateSection:', error);
+        // Throw a simple error that can be caught by the client or displayed
+        throw new Error(error.message || 'Failed to generate section');
+    }
 }

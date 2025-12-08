@@ -36,6 +36,11 @@ export async function generateSitePlan(prompt: string, model: string = 'anthropi
         return { success: true, sitePlan: object };
     } catch (error: any) {
         console.error('Error in generateSitePlan:', error);
-        return { success: false, error: error.message || 'Failed to generate site plan' };
+        // Return a simple serializable object
+        return {
+            success: false,
+            error: error.message || 'Unknown error during site generation',
+            sitePlan: null
+        };
     }
 }
