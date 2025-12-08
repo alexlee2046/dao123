@@ -1,33 +1,12 @@
 'use server';
 
 import { generateObject, streamObject } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { DesignSystemSchema, SitePlanSchema, ComponentSchema } from '@/lib/ai/schemas';
 import { z } from 'zod';
 import { deductCredits } from '@/lib/actions/credits';
 import { calculateCost, calculateUserCost, getEffectiveTier } from '@/lib/pricing';
 import { createClient } from '@/lib/supabase/server';
-
-// Initialize providers
-export const openRouter = createOpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY,
-    name: 'openrouter',
-});
-
-const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-});
-
-// Helper to get provider based on model string
-export function getProvider(modelName: string) {
-    if (modelName.startsWith('google/')) {
-        const cleanName = modelName.replace('google/', '');
-        return google(cleanName);
-    }
-    return openRouter(modelName);
-}
+import { getProvider } from './providers';
 
 // Helper to deduct credits with tier check
 // is_free: If true and user is Pro, they don't pay for this model
@@ -108,7 +87,7 @@ export async function generateSitePlan(prompt: string, model: string) {
   `;
 
         const { object } = await generateObject({
-            model: getProvider(model),
+            model: await getProvider(model),
             schema: SitePlanSchema,
             system: systemPrompt,
             prompt: prompt,
@@ -140,7 +119,7 @@ export async function generateDesignSystem(intent: string, model: string) {
   `;
 
     const { object } = await generateObject({
-        model: getProvider(model),
+        model: await getProvider(model),
         schema: DesignSystemSchema,
         system: systemPrompt,
         prompt: `Design intent: ${intent}`,
@@ -201,7 +180,7 @@ export async function streamSectionGeneration(
   `;
 
     const result = await streamObject({
-        model: getProvider(model),
+        model: await getProvider(model),
         schema: ComponentSchema,
         system: systemPrompt,
         prompt: `Build a ${sectionType} section. Description: ${description}`,
@@ -260,7 +239,7 @@ export async function generateSection(
   `;
 
     const { object } = await generateObject({
-        model: getProvider(model),
+        model: await getProvider(model),
         schema: ComponentSchema,
         system: systemPrompt,
         prompt: `Build a ${sectionType} section. Description: ${description}`,

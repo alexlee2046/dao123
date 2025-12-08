@@ -10,7 +10,7 @@ export async function generateSitePlan(prompt: string, model: string = 'anthropi
         await deductAgentCredits(cost, model, `Architect Agent: ${model}`, is_free);
 
         const { object } = await generateObject({
-            model: getProvider(model),
+            model: await getProvider(model),
             schema: SitePlanSchema,
             prompt: `
         You are an expert Information Architect and Product Manager for a website builder.
