@@ -114,10 +114,10 @@ export function ChatAssistant() {
             console.error('Chat error:', err);
             toast.error(err.message || t('chatPanel.serviceError'));
         },
-        onFinish: async ({ message }: any) => {
+        onFinish: async (message: any) => {
             // Extract content - support both text and parts
             let content = '';
-            if (message.content) {
+            if (typeof message.content === 'string') {
                 content = message.content;
             } else if (message.parts) {
                 content = message.parts
@@ -128,7 +128,6 @@ export function ChatAssistant() {
 
             if (!content) return;
 
-            // Log raw content for client-side debugging
             // Log raw content for client-side debugging
             console.log('[ChatAssistant] Raw AI response length:', content.length);
 
