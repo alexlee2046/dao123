@@ -571,6 +571,8 @@
         "themeLight": "浅色",
         "themeDark": "深色",
         "themeSystem": "跟随系统",
+        "aiModel": "AI 模型",
+        "aiModelDesc": "选择默认使用的 AI 模型",
         "profileUpdated": "个人资料已更新",
         "passwordUpdated": "密码已更新",
         "errorUpdating": "更新失败",

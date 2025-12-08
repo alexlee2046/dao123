@@ -11,11 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, User, Shield, Palette, Bell, Crown } from 'lucide-react';
+import { Loader2, User, Shield, Palette, Bell, Crown, Bot } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useTheme } from 'next-themes';
 import { format } from 'date-fns';
+import { getModels, type Model } from '@/lib/actions/models';
+import { useStudioStore } from '@/lib/store';
 
 interface Profile {
     id: string;
@@ -35,11 +38,14 @@ export function SettingsForm() {
     const [upgrading, setUpgrading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [models, setModels] = useState<Model[]>([]);
+    const { selectedModel, setSelectedModel } = useStudioStore();
     const supabase = createClient();
     const { theme, setTheme } = useTheme();
 
     useEffect(() => {
         loadProfile();
+        getModels('chat').then(setModels);
     }, []);
 
     const loadProfile = async () => {
@@ -359,6 +365,32 @@ export function SettingsForm() {
                                 <Button variant={theme === 'dark' ? 'default' : 'outline'} size="sm" onClick={() => setTheme('dark')}>{t('themeDark')}</Button>
                                 <Button variant={theme === 'system' ? 'default' : 'outline'} size="sm" onClick={() => setTheme('system')}>{t('themeSystem')}</Button>
                             </div>
+                        </div>
+                        <div className="flex items-center justify-between max-w-sm pt-4 border-t">
+                            <div className="flex items-center gap-2">
+                                <Bot className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                    <Label>{t('aiModel')}</Label>
+                                    <p className="text-xs text-muted-foreground">{t('aiModelDesc')}</p>
+                                </div>
+                            </div>
+                            <Select value={selectedModel} onValueChange={setSelectedModel}>
+                                <SelectTrigger className="w-[200px]">
+                                    <SelectValue placeholder={models.length > 0 ? "Select model" : "Loading..."} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {models.map(m => (
+                                        <SelectItem key={m.id} value={m.id}>
+                                            <div className="flex justify-between w-full gap-2">
+                                                <span>{m.name}</span>
+                                                <span className="text-muted-foreground text-xs">
+                                                    {m.cost_per_unit > 0 ? `${m.cost_per_unit}` : 'Free'}
+                                                </span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardContent>
                 </Card>

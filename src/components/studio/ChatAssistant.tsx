@@ -690,7 +690,7 @@ export function ChatAssistant() {
                     <div className="flex items-center gap-1">
                         <GuideModal onComplete={(prompt) => handleSend(prompt)} />
                         <Select value={selectedModel} onValueChange={setSelectedModel}>
-                            <SelectTrigger className="h-6 text-[10px] border-none bg-transparent focus:ring-0 px-1 text-muted-foreground hover:text-foreground w-auto min-w-[100px] justify-end">
+                            <SelectTrigger className="h-7 text-xs border-none bg-muted/50 focus:ring-0 px-2 text-foreground hover:bg-muted w-auto min-w-[140px] justify-end rounded-lg">
                                 <SelectValue placeholder={models.length > 0 ? t('chatPanel.selectModel') : t('chatPanel.noModelsAvailable')} />
                             </SelectTrigger>
                             <SelectContent align="end" className="w-[300px]">

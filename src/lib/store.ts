@@ -195,14 +195,19 @@ export const useStudioStore = create<StudioState>((set) => {
 
     // Settings
     openRouterApiKey: typeof window !== 'undefined' ? localStorage.getItem('openRouterApiKey') || '' : '',
-    selectedModel: 'anthropic/claude-3.5-sonnet',
+    selectedModel: typeof window !== 'undefined' ? localStorage.getItem('selectedModel') || '' : '',
     setOpenRouterApiKey: (key) => {
       if (typeof window !== 'undefined') {
         localStorage.setItem('openRouterApiKey', key);
       }
       set({ openRouterApiKey: key });
     },
-    setSelectedModel: (model) => set({ selectedModel: model }),
+    setSelectedModel: (model) => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedModel', model);
+      }
+      set({ selectedModel: model });
+    },
 
     // Project
     currentProject: null,

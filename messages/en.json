@@ -549,6 +549,30 @@
         "themeLight": "Light",
         "themeDark": "Dark",
         "themeSystem": "System",
+        "aiModel": "AI Model",
+        "aiModelDesc": "Select the default AI model to use",
+        "membership": "Membership",
+        "currentPlan": "Current Plan",
+        "freePlan": "Free Plan",
+        "proPlan": "Pro Plan",
+        "upgrade": "Upgrade",
+        "upgradeToPro": "Upgrade to Pro",
+        "renewMembership": "Renew Membership",
+        "expiresOn": "Expires On",
+        "creditsBalance": "Credits Balance",
+        "planFeatures": {
+            "free": [
+                "Use free models (consumes credits)",
+                "Basic generation speed",
+                "Community support"
+            ],
+            "pro": [
+                "Free models unlimited (0 credits)",
+                "Priority generation queue",
+                "Access to advanced models",
+                "Dedicated customer support"
+            ]
+        },
         "profileUpdated": "Profile updated",
         "passwordUpdated": "Password updated",
         "errorUpdating": "Error updating",
