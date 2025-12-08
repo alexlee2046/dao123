@@ -2,7 +2,8 @@
 
 import { generateObject } from 'ai';
 import { SitePlanSchema } from '@/lib/ai/schemas';
-import { getProvider, deductAgentCredits, getModelDataFromDB } from './ai';
+import { getProvider } from './providers';
+import { deductAgentCredits, getModelDataFromDB } from './ai';
 
 export async function generateSitePlan(prompt: string, model: string = 'anthropic/claude-3.5-sonnet') {
     try {
