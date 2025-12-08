@@ -12,8 +12,7 @@ import {
     Globe,
     Settings,
     LogOut,
-    CreditCard,
-    Cpu
+    CreditCard
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getCredits } from "@/lib/actions/credits"
@@ -27,7 +26,6 @@ export function AppSidebar({ className }: { className?: string }) {
     const router = useRouter()
     const locale = useLocale()
     const [credits, setCredits] = useState<number | null>(null)
-    const [isAdmin, setIsAdmin] = useState(false)
 
     // 定义侧边栏项目，使用翻译键
     const sidebarItems = [
@@ -39,13 +37,8 @@ export function AppSidebar({ className }: { className?: string }) {
         { icon: Settings, label: t('settings'), href: "/settings" },
     ]
 
-    const adminItems = [
-        { icon: Cpu, label: tNav('models'), href: "/admin" },
-    ]
-
     useEffect(() => {
         loadCredits()
-        checkAdminRole()
     }, [])
 
     const loadCredits = async () => {
@@ -54,24 +47,6 @@ export function AppSidebar({ className }: { className?: string }) {
             setCredits(balance)
         } catch (error) {
             console.error('Failed to load credits:', error)
-        }
-    }
-
-    const checkAdminRole = async () => {
-        try {
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-
-            setIsAdmin(profile?.role === 'admin')
-        } catch (error) {
-            console.error('Failed to check admin role:', error)
         }
     }
 
@@ -109,27 +84,6 @@ export function AppSidebar({ className }: { className?: string }) {
                         </Button>
                     </Link>
                 ))}
-
-                {isAdmin && (
-                    <>
-                        <div className="pt-4 mt-4 border-t">
-                            <div className="px-2 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                Admin
-                            </div>
-                            {adminItems.map((item) => (
-                                <Link key={item.href} href={item.href}>
-                                    <Button
-                                        variant={isActive(item.href) ? "secondary" : "ghost"}
-                                        className="w-full justify-start"
-                                    >
-                                        <item.icon className="mr-2 h-4 w-4" />
-                                        {item.label}
-                                    </Button>
-                                </Link>
-                            ))}
-                        </div>
-                    </>
-                )}
             </nav>
 
             <div className="p-4 border-t">
