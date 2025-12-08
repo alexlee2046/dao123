@@ -9,6 +9,7 @@ import {
     Palette,
     Image as ImageIcon,
     Video,
+    Heart,
     Globe,
     Settings,
     LogOut,
@@ -31,6 +32,7 @@ export function AppSidebar({ className }: { className?: string }) {
     const sidebarItems = [
         { icon: LayoutDashboard, label: t('dashboard'), href: "/dashboard" },
         { icon: Palette, label: tNav('studio'), href: "/studio" },
+        { icon: Heart, label: tNav('h5'), href: "/h5" },
         { icon: ImageIcon, label: tNav('aiImage'), href: "/generate/image" },
         { icon: Video, label: tNav('aiVideo'), href: "/generate/video" },
         { icon: Globe, label: t('community'), href: "/community" },

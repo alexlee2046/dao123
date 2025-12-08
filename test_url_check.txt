@@ -1,0 +1,39 @@
+
+Running 5 tests using 1 worker
+
+  ✘  1 [chromium] › e2e/generation.spec.ts:20:9 › AI Generation & Zero-Loss Parser Debug › Debug: Track AI Generation and Parsing Flow (1.7m)
+
+
+  1) [chromium] › e2e/generation.spec.ts:20:9 › AI Generation & Zero-Loss Parser Debug › Debug: Track AI Generation and Parsing Flow 
+
+    Test was interrupted.
+
+    Error: page.fill: Test ended.
+    Call log:
+    [2m  - waiting for locator('input[id="email"]')[22m
+
+
+       at utils.ts:17
+
+      15 |     }
+      16 |
+    > 17 |     await page.fill('input[id="email"]', TEST_USER.email);
+         |                ^
+      18 |     await page.fill('input[id="password"]', TEST_USER.password);
+      19 |     await page.click('button[type="submit"]');
+      20 |     await page.waitForURL('**/dashboard', { timeout: 30000 });
+        at login (/Users/alex/Develop/dao123/e2e/utils.ts:17:16)
+        at /Users/alex/Develop/dao123/e2e/generation.spec.ts:17:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/generation-AI-Generation-Z-5b518-Generation-and-Parsing-Flow-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 interrupted
+    [chromium] › e2e/generation.spec.ts:20:9 › AI Generation & Zero-Loss Parser Debug › Debug: Track AI Generation and Parsing Flow 
+  4 did not run
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

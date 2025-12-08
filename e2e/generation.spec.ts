@@ -94,9 +94,32 @@ test.describe('AI Generation & Zero-Loss Parser Debug', () => {
 
         // 1. Navigate to Studio
         console.log('\n=== Step 1: Navigate to Studio ===');
+        const baseURL = test.info().project.use.baseURL;
+        console.log(`[CONFIG] Base URL from config: ${baseURL}`);
+
         await page.goto('/studio/new');
         await page.waitForLoadState('domcontentloaded');
+        const currentUrl = page.url();
+        console.log(`[Current URL] Testing against: ${currentUrl}`);
+
         await page.waitForTimeout(3000);
+
+        // Check for "Create Project" interstitial
+        const createProjectBtn = page.getByRole('button', { name: /Create Project|创建项目/i });
+        if (await createProjectBtn.isVisible()) {
+            console.log('Detected Create Project screen, creating new project...');
+            await page.fill('input[type="text"]', 'E2E Test Project ' + Date.now());
+            // Description might be the first textarea, so we explicitly look for it by label or placeholder if possible, 
+            // but 'textarea' selector might work just for filling.
+            const descInput = page.locator('textarea').first();
+            if (await descInput.isVisible()) {
+                await descInput.fill('Auto-generated text for E2E testing');
+            }
+            await createProjectBtn.click();
+            // Wait for editor to load (URL pattern matching /project/...)
+            await page.waitForTimeout(5000);
+            console.log('Project created, navigating to editor...');
+        }
 
         await page.screenshot({ path: 'test-results/debug-01-initial.png' });
 

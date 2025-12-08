@@ -1,0 +1,96 @@
+
+Running 1 test using 1 worker
+
+[Login] Starting login flow...
+[Login] Navigating to /login...
+[Login] Current URL: https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fdao123-hls7j4290-alexlee2046s-projects.vercel.app%252Flogin%26nonce%3Db462fcf3db873b3edc770e4ca5e91a56a70736bb9730a7cc001fca1ca7952ea0
+[Login] Waiting for email input...
+Login interaction failed: locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[id="email"]').or(getByPlaceholder('name@example.com')) to be visible[22m
+
+    at login [90m(/Users/alex/Develop/dao123/[39me2e/utils.ts:25:26[90m)[39m
+    at [90m/Users/alex/Develop/dao123/[39me2e/api-validation.spec.ts:9:9 {
+  name: [32m'TimeoutError'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/alex/Develop/dao123/e2e/utils.ts'[39m,
+      line: [33m25[39m,
+      column: [33m26[39m,
+      function: [32m'login'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m`Wait for selector locator('input[id="email"]').or(getByPlaceholder('name@example.com'))`[39m,
+    apiName: [32m'locator.waitFor'[39m,
+    params: {
+      selector: [32m'input[id="email"] >> internal:or="internal:attr=[placeholder=\\"name@example.com\\"i]"'[39m,
+      strict: [33mtrue[39m,
+      omitReturnValue: [33mtrue[39m,
+      state: [32m'visible'[39m,
+      timeout: [33m30000[39m
+    },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@38'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@38'[39m,
+      _title: [32m`Wait for selector locator('input[id="email"]').or(getByPlaceholder('name@example.com'))`[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1765206379414[39m,
+    error: {
+      message: [32m'TimeoutError: locator.waitFor: Timeout 30000ms exceeded.\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m`\x1B[2m  - waiting for locator('input[id="email"]').or(getByPlaceholder('name@example.com')) to be visible\x1B[22m\n`[39m,
+      stack: [32m'TimeoutError: locator.waitFor: Timeout 30000ms exceeded.\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m`\x1B[2m  - waiting for locator('input[id="email"]').or(getByPlaceholder('name@example.com')) to be visible\x1B[22m\n`[39m +
+        [32m'\n'[39m +
+        [32m'    at login (/Users/alex/Develop/dao123/e2e/utils.ts:25:26)\n'[39m +
+        [32m'    at /Users/alex/Develop/dao123/e2e/api-validation.spec.ts:9:9'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Current URL on failure: https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Fdao123-hls7j4290-alexlee2046s-projects.vercel.app%252Flogin%26nonce%3Db462fcf3db873b3edc770e4ca5e91a56a70736bb9730a7cc001fca1ca7952ea0
+  ✘  1 [chromium] › e2e/api-validation.spec.ts:12:9 › API Generation & Parsing Stress Test › should successfully generate content via /api/chat and parse it (38.3s)
+
+
+  1) [chromium] › e2e/api-validation.spec.ts:12:9 › API Generation & Parsing Stress Test › should successfully generate content via /api/chat and parse it 
+
+    TimeoutError: locator.waitFor: Timeout 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[id="email"]').or(getByPlaceholder('name@example.com')) to be visible[22m
+
+
+       at utils.ts:25
+
+      23 |         // Try multiple selectors
+      24 |         const emailInput = page.locator('input[id="email"]').or(page.getByPlaceholder('name@example.com'));
+    > 25 |         await emailInput.waitFor({ state: 'visible', timeout: 30000 });
+         |                          ^
+      26 |         await expect(emailInput).toBeEditable({ timeout: 10000 });
+      27 |         await emailInput.fill(TEST_USER.email);
+      28 |
+        at login (/Users/alex/Develop/dao123/e2e/utils.ts:25:26)
+        at /Users/alex/Develop/dao123/e2e/api-validation.spec.ts:9:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/api-validation-API-Generat-c62d7-t-via-api-chat-and-parse-it-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/api-validation-API-Generat-c62d7-t-via-api-chat-and-parse-it-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/api-validation.spec.ts:12:9 › API Generation & Parsing Stress Test › should successfully generate content via /api/chat and parse it 
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

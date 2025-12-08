@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import type { Asset } from "@/lib/actions/assets"
 import { Textarea } from "@/components/ui/textarea"
@@ -17,23 +17,43 @@ import { toast } from "sonner"
 import { Loader2, Download, Copy, Sparkles, Image as ImageIcon } from "lucide-react"
 import Image from "next/image"
 import { useStudioStore } from "@/lib/store"
-import { AI_CONFIG } from "@/lib/ai-config"
+import { getModels, type Model } from "@/lib/actions/models"
 import { useTranslations } from 'next-intl'
 
 export default function ImageGenerationPage() {
     const [prompt, setPrompt] = useState('')
-    const [model, setModel] = useState(AI_CONFIG.images.defaultModel)
+    const [models, setModels] = useState<Model[]>([])
+    const [model, setModel] = useState('')
+    const [loading, setLoading] = useState(true)
     const [generating, setGenerating] = useState(false)
     const [generatedImage, setGeneratedImage] = useState<Asset | null>(null)
     const { openRouterApiKey } = useStudioStore()
     const t = useTranslations('generate.image')
     const tCommon = useTranslations('common')
 
+    // Load models from database
+    useEffect(() => {
+        async function loadModels() {
+            try {
+                const imageModels = await getModels('image')
+                setModels(imageModels)
+                if (imageModels.length > 0) {
+                    setModel(imageModels[0].id)
+                }
+            } catch (error) {
+                console.error('Failed to load models:', error)
+                toast.error('加载模型列表失败')
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadModels()
+    }, [])
+
+    const selectedModel = models.find(m => m.id === model)
+
     const handleGenerate = async () => {
         if (!prompt) return
-
-        // Note: We are using the API route which now prioritizes DB key, but falls back to user key.
-        // We pass the user key just in case they want to use their own.
 
         try {
             setGenerating(true)
@@ -84,18 +104,36 @@ export default function ImageGenerationPage() {
                         <CardContent className="p-6 space-y-6">
                             <div className="space-y-2">
                                 <Label>{t('model')}</Label>
-                                <Select value={model} onValueChange={setModel}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {AI_CONFIG.images.models.map((m) => (
-                                            <SelectItem key={m.id} value={m.id}>
-                                                {m.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                {loading ? (
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        加载模型中...
+                                    </div>
+                                ) : models.length === 0 ? (
+                                    <p className="text-sm text-destructive">
+                                        暂无可用的图片生成模型，请联系管理员配置。
+                                    </p>
+                                ) : (
+                                    <Select value={model} onValueChange={setModel}>
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {models.map((m) => (
+                                                <SelectItem key={m.id} value={m.id}>
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span>{m.name}</span>
+                                                        {m.is_free && (
+                                                            <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+                                                                Pro免费
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -112,7 +150,7 @@ export default function ImageGenerationPage() {
                                 className="w-full"
                                 size="lg"
                                 onClick={handleGenerate}
-                                disabled={generating || !prompt}
+                                disabled={generating || !prompt || !model || models.length === 0}
                             >
                                 {generating ? (
                                     <>
@@ -127,9 +165,14 @@ export default function ImageGenerationPage() {
                                 )}
                             </Button>
 
-                            <p className="text-xs text-muted-foreground text-center">
-                                {t('cost', { cost: AI_CONFIG.images.models.find(m => m.id === model)?.cost || 10, unit: tCommon('credits') })}
-                            </p>
+                            {selectedModel && (
+                                <p className="text-xs text-muted-foreground text-center">
+                                    {t('cost', {
+                                        cost: selectedModel.is_free ? '0 (Pro)' : selectedModel.cost_per_unit,
+                                        unit: tCommon('credits')
+                                    })}
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
 
