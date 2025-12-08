@@ -13,6 +13,7 @@ import { ArrowLeft, Sparkles, Layout, FileCode, Loader2, ArrowRight } from "luci
 import { createProject } from "@/lib/actions/projects";
 import { toast } from "sonner";
 import { Link } from '@/components/link';
+import { useStudioStore } from "@/lib/store";
 
 export default function CreateProjectPage() {
     const router = useRouter();
@@ -21,6 +22,7 @@ export default function CreateProjectPage() {
     const [mode, setMode] = useState<'blank' | 'ai' | 'import'>('ai');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const { setPendingPrompt } = useStudioStore();
 
     const handleCreate = async () => {
         if (!name.trim()) {
@@ -37,6 +39,12 @@ export default function CreateProjectPage() {
 
             if (newProject?.id) {
                 toast.success("Project created successfully!");
+
+                // Set pending prompt for auto-generation in Studio
+                if (mode === 'ai' && description.trim()) {
+                    setPendingPrompt(description.trim());
+                }
+
                 // Redirect to Studio
                 router.push(`/studio/${newProject.id}`);
             } else {

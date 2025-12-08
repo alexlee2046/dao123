@@ -42,6 +42,8 @@ export function ChatAssistant() {
         selectedModel,
         addAsset,
         setSelectedModel,
+        pendingPrompt,
+        setPendingPrompt,
     } = useStudioStore();
 
     const { startGeneration, currentStep, progress, statusMessage } = useAgentOrchestrator();
@@ -56,6 +58,9 @@ export function ChatAssistant() {
 
     const [mode, setMode] = useState<'chat' | 'builder'>('chat');
 
+    // Track if we've already processed the pending prompt
+    const pendingPromptProcessedRef = useRef(false);
+
     useEffect(() => {
         getModels('chat').then(setModels);
     }, []);
@@ -68,6 +73,25 @@ export function ChatAssistant() {
             }
         }
     }, [models, selectedModel, setSelectedModel]);
+
+    // Auto-trigger generation if pendingPrompt exists (from project creation)
+    useEffect(() => {
+        if (pendingPrompt && models.length > 0 && !pendingPromptProcessedRef.current) {
+            pendingPromptProcessedRef.current = true;
+            // Slight delay to ensure UI is ready
+            const timer = setTimeout(() => {
+                setLocalInput(pendingPrompt);
+                // Clear the pending prompt
+                setPendingPrompt(null);
+                // Trigger the send after setting input
+                setTimeout(() => {
+                    const sendButton = document.querySelector('[data-send-button]') as HTMLButtonElement;
+                    if (sendButton) sendButton.click();
+                }, 100);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [pendingPrompt, models, setPendingPrompt]);
 
     // 使用 refs 来存储动态值，确保每次请求时获取最新值
     const selectedModelRef = useRef(selectedModel);
@@ -658,7 +682,7 @@ export function ChatAssistant() {
                             <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary rounded-lg" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
                                 {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Paperclip className="h-3.5 w-3.5" />}
                             </Button>
-                            <Button size="icon" className={cn("h-7 w-7 rounded-lg transition-all", localInput.trim() ? "bg-primary shadow-md" : "bg-muted text-muted-foreground")} onClick={() => handleSend()} disabled={!localInput.trim() || isLoading}>
+                            <Button size="icon" className={cn("h-7 w-7 rounded-lg transition-all", localInput.trim() ? "bg-primary shadow-md" : "bg-muted text-muted-foreground")} onClick={() => handleSend()} disabled={!localInput.trim() || isLoading} data-send-button>
                                 {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                             </Button>
                         </div>

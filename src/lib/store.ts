@@ -77,6 +77,10 @@ interface StudioState {
   toggleBuilderMode: () => void;
   builderData: string | null; // JSON string for Craft.js
   setBuilderData: (data: string | null) => void;
+
+  // Pending prompt for auto-generation after project creation
+  pendingPrompt: string | null;
+  setPendingPrompt: (prompt: string | null) => void;
 }
 
 export const useStudioStore = create<StudioState>((set) => {
@@ -230,5 +234,9 @@ export const useStudioStore = create<StudioState>((set) => {
         pages: newPages
       };
     }),
+
+    // Pending prompt for auto-generation
+    pendingPrompt: null,
+    setPendingPrompt: (prompt) => set({ pendingPrompt: prompt }),
   };
 });
