@@ -72,13 +72,16 @@ export function createAnonClient() {
     console.log('[createAnonClient] Key exists:', !!key)
 
     if (!url || !key) {
-        console.error('[createAnonClient] Missing Supabase configuration!', { url: !!url, key: !!key })
-        throw new Error('Supabase configuration not available')
+        console.warn('[createAnonClient] Missing Supabase configuration! Using placeholders to prevent build crash.', { url: !!url, key: !!key })
     }
 
+    // Use placeholders if missing to allow build to proceed (requests will fail gracefully)
+    const validUrl = url || 'https://placeholder.supabase.co'
+    const validKey = key || 'placeholder-key'
+
     return createClient(
-        url,
-        key,
+        validUrl,
+        validKey,
         {
             auth: {
                 autoRefreshToken: false,

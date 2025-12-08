@@ -110,7 +110,7 @@ export function ChatAssistant() {
             currentHtml: htmlContent,
             mode: 'direct',
         },
-        onError: (err) => {
+        onError: (err: Error) => {
             console.error('Chat error:', err);
             toast.error(err.message || t('chatPanel.serviceError'));
         },
