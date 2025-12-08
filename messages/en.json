@@ -401,6 +401,15 @@
                 "instruction": "Based on the above information, please act as a senior web designer and generate the code for this website."
             },
             "audienceHint": "AI will adjust the copy complexity and appeal based on the audience.",
+            "stepIndicator": "Step {step} / {total}",
+            "defaults": {
+                "auto": "Auto",
+                "default": "Default",
+                "untitled": "Untitled",
+                "general": "General",
+                "autoPlan": "Auto Plan",
+                "noInstructions": "No specific instructions."
+            },
             "selectedCount": "{count} selected",
             "sectionsHint": "* AI will automatically fill in missing sections based on common sense, don't worry."
         }

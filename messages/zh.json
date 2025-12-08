@@ -401,6 +401,15 @@
                 "instruction": "请根据以上信息，扮演一位资深的网页设计师，为我生成这个网站的代码。"
             },
             "audienceHint": "AI 将根据受众调整文案的难易程度和吸引力。",
+            "stepIndicator": "第 {step} 步 / 共 {total} 步",
+            "defaults": {
+                "auto": "自动",
+                "default": "默认",
+                "untitled": "未命名",
+                "general": "通用",
+                "autoPlan": "自动规划",
+                "noInstructions": "无特殊说明"
+            },
             "selectedCount": "已选 {count} 个",
             "sectionsHint": "* 没选中的板块 AI 也会根据常识自动补充，不用担心。"
         }

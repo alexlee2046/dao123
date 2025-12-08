@@ -98,17 +98,17 @@ export function GuideModal({ onComplete }: GuideModalProps) {
 
     const generateAndComplete = () => {
         const typeLabel = WEBSITE_TYPES.find(t => t.id === data.websiteType)?.label || data.customType;
-        const styleLabel = STYLES.find(s => s.id === data.style)?.label || 'Auto';
-        const colorLabel = COLOR_THEMES.find(c => c.id === data.colorTheme)?.label || 'Default';
+        const styleLabel = STYLES.find(s => s.id === data.style)?.label || t('defaults.auto');
+        const colorLabel = COLOR_THEMES.find(c => c.id === data.colorTheme)?.label || t('defaults.default');
         const toneLabel = TONES.includes(data.tone) ? t(`tones.${data.tone}`) : data.tone;
         const sectionsLabels = data.sections.length > 0
             ? data.sections.map(s => SECTIONS.includes(s) ? t(`sections.${s}`) : s).join(', ')
-            : 'Auto Plan';
+            : t('defaults.autoPlan');
 
         const prompt = `${t('prompt.intro')}
 
 ${t('prompt.basicInfo')}
-   - ${t('prompt.brand')}：${data.brandName || 'Untitled'}
+   - ${t('prompt.brand')}：${data.brandName || t('defaults.untitled')}
    - ${t('prompt.type')}：${typeLabel}
 
 ${t('prompt.visualDesign')}
@@ -116,14 +116,14 @@ ${t('prompt.visualDesign')}
    - ${t('prompt.color')}：${colorLabel}
 
 ${t('prompt.contentStrategy')}
-   - ${t('prompt.audience')}：${data.targetAudience || 'General'}
+   - ${t('prompt.audience')}：${data.targetAudience || t('defaults.general')}
    - ${t('prompt.tone')}：${toneLabel}
 
 ${t('prompt.structure')}
    - ${t('prompt.sections')}：${sectionsLabels}
 
 ${t('prompt.vision')}
-   ${data.customVision || 'No specific instructions.'}
+   ${data.customVision || t('defaults.noInstructions')}
 
 ${t('prompt.instruction')}`;
 
@@ -176,7 +176,7 @@ ${t('prompt.instruction')}`;
                             {step === 5 && <><Lightbulb className="h-5 w-5 text-primary" /> {t('steps.5')}</>}
                         </DialogTitle>
                         <span className="text-xs font-medium text-muted-foreground bg-background px-2 py-1 rounded-full border">
-                            Step {step} / {totalSteps}
+                            {t('stepIndicator', { step, total: totalSteps })}
                         </span>
                     </div>
                     <DialogDescription>
