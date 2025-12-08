@@ -63,12 +63,12 @@ export const recognizeWebPage = async (input: string): Promise<RecognitionResult
         }
 
         return {
-            title: article.title,
-            content: article.content,
-            textContent: article.textContent,
-            excerpt: article.excerpt,
-            byline: article.byline,
-            siteName: article.siteName,
+            title: article.title || '',
+            content: article.content || '',
+            textContent: article.textContent || '',
+            excerpt: article.excerpt || '',
+            byline: article.byline || '',
+            siteName: article.siteName || '',
             originalUrl: url,
         };
     } catch (error) {
