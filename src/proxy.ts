@@ -3,23 +3,76 @@ import { NextResponse, type NextRequest } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
 import { locales, defaultLocale } from './i18n'
 
-// 创建 next-intl 中间件
+// Create next-intl middleware
 const intlMiddleware = createMiddleware({
     locales,
     defaultLocale,
-    localePrefix: 'always' // 总是在 URL 中显示语言前缀，对 SEO 友好
+    localePrefix: 'always' // Always show locale prefix in URL, SEO friendly
 })
 
-export async function middleware(request: NextRequest) {
-    // Skip middleware for API routes - let them handle auth themselves
+export default async function proxy(request: NextRequest) {
+    // Skip middleware for API routes
     if (request.nextUrl.pathname.startsWith('/api/')) {
         return NextResponse.next()
     }
 
-    // 处理 i18n 路由
+    // Subdomain Handling
+    const hostname = request.headers.get('host') || ''
+    // Allow overriding base domain via env, default to dao123.me
+    // In local dev (localhost:3000), we might need to simulate.
+    const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'dao123.me'
+
+    let subdomain: string | null = null
+
+    // simple check: does hostname end with .baseDomain?
+    // Note: localhost handling is tricky. 
+    // Standard approach: app.dao123.me vs dao123.me
+
+    const isVercelDomain = hostname.includes('.vercel.app')
+    const domainParts = hostname.split('.')
+
+    if (hostname.includes('localhost')) {
+        // test.localhost:3000
+        if (domainParts.length > 1 && domainParts[0] !== 'www') {
+            subdomain = domainParts[0]
+        }
+    } else if (isVercelDomain) {
+        // project-name.vercel.app -> subdomain is project-name? 
+        // No, Vercel assigns project name. 
+        // If we use wildcard on Vercel, it appears as subdomain.dao123.me
+        // If user accesses directly via Vercel URL, we might want to treat it as main app or subdomain?
+        // Let's rely on custom domain logic mostly.
+        if (hostname.endsWith(`.${baseDomain}`)) {
+            const sub = hostname.replace(`.${baseDomain}`, '')
+            if (sub !== 'www') {
+                subdomain = sub
+            }
+        }
+    } else {
+        // Production Custom Domain
+        if (hostname.endsWith(`.${baseDomain}`)) {
+            const sub = hostname.replace(`.${baseDomain}`, '')
+            if (sub !== 'www') {
+                subdomain = sub
+            }
+        }
+    }
+
+    // If we detected a valid subdomain (and it's not a reserved one like 'app' if we had one), rewrite
+    if (subdomain) {
+        // Rewrite request to /site/[subdomain]
+        // e.g. alex.dao123.me/foo -> /site/alex/foo
+        const url = request.nextUrl.clone()
+        url.pathname = `/site/${subdomain}${request.nextUrl.pathname}`
+        return NextResponse.rewrite(url)
+    }
+
+    // --- Standard App Routing (i18n + Auth) ---
+
+    // Handle i18n routing
     const intlResponse = intlMiddleware(request)
 
-    // 如果 intl 中间件返回了重定向，直接返回
+    // If intl middleware returned a redirect, return it immediately
     if (intlResponse.status === 307 || intlResponse.status === 308) {
         return intlResponse
     }
@@ -59,7 +112,7 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // 提取 locale 前缀后的路径
+    // Extract path after locale prefix
     const pathnameWithoutLocale = request.nextUrl.pathname.replace(/^\/(en|zh)/, '')
 
     // Protected routes pattern
@@ -69,7 +122,7 @@ export async function middleware(request: NextRequest) {
     // Auth routes (login/signup)
     const isAuthRoute = pathnameWithoutLocale.startsWith('/login') || pathnameWithoutLocale.startsWith('/signup')
 
-    // 获取当前语言
+    // Get current locale
     const locale = request.nextUrl.pathname.split('/')[1] || defaultLocale
 
     if (isProtected && !user) {
