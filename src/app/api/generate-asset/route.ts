@@ -4,10 +4,35 @@ import { createClient } from '@/lib/supabase/server';
 import { deductCredits } from '@/lib/actions/credits';
 import { getModelById, getDefaultModel } from '@/lib/actions/models';
 import { calculateUserCost, getEffectiveTier } from '@/lib/pricing';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+
+// Helper to log errors to DB
+async function logError(message: string, details: any) {
+    try {
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            const adminDb = createAdminClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL,
+                process.env.SUPABASE_SERVICE_ROLE_KEY
+            );
+            await adminDb.from('system_logs').insert({
+                level: 'ERROR',
+                message,
+                details,
+                source: 'api/generate-asset'
+            });
+        }
+    } catch (e) {
+        console.error('Failed to write system log:', e);
+    }
+}
 
 export async function POST(req: Request) {
+    let userPrompt = '';
+    let selectedModelId = '';
+
     try {
         const { prompt, model, type, apiKey: userApiKey } = await req.json();
+        userPrompt = prompt;
 
         // Validate type
         if (!type || !['image', 'video'].includes(type)) {
@@ -80,6 +105,7 @@ export async function POST(req: Request) {
         }
 
         const selectedModel = modelConfig.id;
+        selectedModelId = selectedModel;
         const baseCost = modelConfig.cost_per_unit;
 
         // Calculate Actual Cost based on Tier (Pro users may get free access to is_free models)
@@ -128,38 +154,59 @@ export async function POST(req: Request) {
                             content: prompt
                         }
                     ],
+                    // Should we include this? OpenRouter docs for Gemini say yes.
+                    // For safety, we add it for image types.
+                    ...(type === 'image' ? { modalities: ["image", "text"] } : {})
                 })
             });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 console.error('OpenRouter API Error:', response.status, errorData);
+                await logError('OpenRouter API Error', { status: response.status, data: errorData, model: selectedModel });
                 throw new Error(errorData.error?.message || `OpenRouter API Error: ${response.status}`);
             }
 
             const data = await response.json();
-            const content = data.choices?.[0]?.message?.content;
+            const message = data.choices?.[0]?.message;
+            const content = message?.content;
+            const images = message?.images; // OpenRouter specific field for some models
+            // Defensive coding: Future proofing if video generation aligns with image format
+            const videos = (message as any)?.videos;
 
-            if (!content) {
+            if (!content && (!images || images.length === 0) && (!videos || videos.length === 0)) {
                 console.error('No content in response:', data);
+                await logError('No content in provider response', { data, model: selectedModel });
                 throw new Error("No content received from provider");
             }
 
-            // Extract URL from content
-            // 1. Check for Markdown image/video syntax: ![alt](url) or [alt](url)
-            const markdownMatch = content.match(/!?\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+            // Extract URL from content or images/videos field
+            if (images && images.length > 0) {
+                // Format: images: [{ image_url: { url: "..." } }]
+                assetUrl = images[0].image_url?.url || images[0].url;
+            } else if (videos && videos.length > 0) {
+                assetUrl = videos[0].video_url?.url || videos[0].url;
+            }
 
-            // 2. Check for raw URL (http...)
-            const urlMatch = content.match(/(https?:\/\/[^\s)]+)/);
+            if (!assetUrl && content) {
+                // 1. Check for Markdown image/video syntax: ![alt](url) or [alt](url)
+                const markdownMatch = content.match(/!?\[.*?\]\((https?:\/\/[^\s)]+)\)/);
 
-            if (markdownMatch && markdownMatch[1]) {
-                assetUrl = markdownMatch[1];
-            } else if (urlMatch && urlMatch[1]) {
-                assetUrl = urlMatch[1];
-            } else if (content.trim().startsWith('http')) {
-                assetUrl = content.trim();
-            } else {
-                console.error('Could not parse asset URL from content:', content);
+                // 2. Check for raw URL (http...)
+                const urlMatch = content.match(/(https?:\/\/[^\s)]+)/);
+
+                if (markdownMatch && markdownMatch[1]) {
+                    assetUrl = markdownMatch[1];
+                } else if (urlMatch && urlMatch[1]) {
+                    assetUrl = urlMatch[1];
+                } else if (content.trim().startsWith('http')) {
+                    assetUrl = content.trim();
+                }
+            }
+
+            if (!assetUrl) {
+                console.error('Could not parse asset URL from response:', { content, images });
+                await logError('Could not parse asset URL', { content, images, model: selectedModel });
                 throw new Error("Failed to parse asset URL from response");
             }
 
@@ -207,6 +254,7 @@ export async function POST(req: Request) {
             });
 
         if (uploadError) {
+            await logError('Storage Upload Failed', { error: uploadError, fileName });
             return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
         }
 
@@ -224,6 +272,7 @@ export async function POST(req: Request) {
         } catch (creditError) {
             // CRITICAL: If deduction fails here, we have already given the user the asset.
             console.error('CRITICAL: Credit deduction failed AFTER generation:', creditError);
+            await logError('Credit deduction failed', { error: creditError, user: user.id });
         }
 
         // 8. Save Asset Record
@@ -239,6 +288,7 @@ export async function POST(req: Request) {
             .single();
 
         if (dbError) {
+            await logError('DB Insert Failed', { error: dbError });
             return NextResponse.json({ error: dbError.message }, { status: 500 });
         }
 
@@ -247,6 +297,7 @@ export async function POST(req: Request) {
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Internal Server Error';
         console.error('Generation error:', message);
+        await logError('Unhandled Route Error', { error: message, prompt: userPrompt, model: selectedModelId });
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }

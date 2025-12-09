@@ -61,7 +61,7 @@ export const DEFAULT_COSTS = {
     video: 200,
 };
 
-export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architect' | 'agent_designer' | 'agent_builder', modelId: string): number {
+export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architect' | 'agent_designer' | 'agent_builder' | 'h5', modelId: string): number {
     // 1. Check specific model cost
     if (modelId in MODEL_COSTS) {
         return MODEL_COSTS[modelId];
@@ -91,6 +91,7 @@ export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architec
 
     if (type === 'image') return 20;
     if (type === 'video') return 200;
+    if (type === 'h5') return 5;
 
     return 5;
 }

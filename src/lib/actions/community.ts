@@ -150,6 +150,35 @@ export async function publishAssetToCommunity(assetId: string, price: number, na
     if (!asset) throw new Error('Asset not found')
     if (asset.user_id !== user.id) throw new Error('Unauthorized')
 
+    // Check if a project already exists for this asset
+    const { data: existingProject } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('project_type', asset.type)
+        .contains('content', { asset_id: assetId })
+        .single()
+
+    if (existingProject) {
+        // Update existing project
+        const { data: project, error } = await supabase
+            .from('projects')
+            .update({
+                name: name || asset.name,
+                description: description || `Shared ${asset.type}`,
+                is_public: true,
+                price,
+                published_at: new Date().toISOString()
+            })
+            .eq('id', existingProject.id)
+            .select()
+            .single()
+
+        if (error) throw new Error(error.message)
+        revalidatePath('/community')
+        return project
+    }
+
     // Create a new project for this asset
     const { data: project, error } = await supabase
         .from('projects')
@@ -162,7 +191,7 @@ export async function publishAssetToCommunity(assetId: string, price: number, na
             published_at: new Date().toISOString(),
             project_type: asset.type,
             preview_image: asset.url,
-            content: { url: asset.url }
+            content: { url: asset.url, asset_id: assetId }
         })
         .select()
         .single()

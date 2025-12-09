@@ -116,14 +116,22 @@ export async function POST(req: Request) {
 
                 // Record transaction (async, don't block)
                 if (actualCost > 0) {
-                    adminSupabase.from('transactions').insert({
-                        user_id: user.id,
-                        amount: -actualCost,
-                        type: 'usage',
-                        description: `Chat generation (${model})`
-                    }).then(({ error }) => {
+                    // Start transaction logging without awaiting, but catch errors
+                    const logTransaction = async () => {
+                        const { error } = await adminSupabase.from('transactions').insert({
+                            user_id: user.id,
+                            amount: -actualCost,
+                            type: 'usage',
+                            description: `Chat generation (${model})`
+                        });
                         if (error) console.error('Failed to record transaction:', error);
-                    });
+                    };
+
+                    // In Edge Runtime, we should ideally use context.waitUntil
+                    // Since we don't have context here, we'll just fire and log error
+                    // or we could await it if we want to be strictly safe at cost of latency.
+                    // Let's await it to be safe as requested by my thought process.
+                    await logTransaction();
                 }
             }
         } else if (serviceRoleKey) {

@@ -39,6 +39,8 @@ export function H5Editor({ project: initialProject }: H5EditorProps) {
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const [shareUrl, setShareUrl] = useState('');
     const [qrCodeUrl, setQrCodeUrl] = useState('');
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
     // 获取当前页面内容
     const currentPage = content?.pages?.[0] || { elements: [], background: '#ffffff' };
@@ -105,6 +107,38 @@ export function H5Editor({ project: initialProject }: H5EditorProps) {
                 ...updates
             };
             setContent(newContent);
+        }
+    };
+
+    const handleGenerateH5 = async () => {
+        if (!aiPrompt.trim()) return;
+        setIsGeneratingAI(true);
+        try {
+            const res = await fetch('/api/generate-h5', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: aiPrompt })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || t('editor.generationFailed'));
+
+            const newContent = { ...content };
+            if (!newContent.pages) newContent.pages = [];
+
+            if (newContent.pages.length === 1 && (!newContent.pages[0].elements || newContent.pages[0].elements.length === 0)) {
+                newContent.pages[0] = data.page;
+            } else {
+                newContent.pages.push(data.page);
+            }
+
+            setContent(newContent);
+            toast.success(t('editor.generationSuccess'));
+            setAiPrompt('');
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message);
+        } finally {
+            setIsGeneratingAI(false);
         }
     };
 
@@ -283,10 +317,16 @@ export function H5Editor({ project: initialProject }: H5EditorProps) {
                                 <Textarea
                                     placeholder={t('editor.aiPlaceholder')}
                                     className="mb-3"
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
                                 />
-                                <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500">
-                                    <Sparkles className="h-4 w-4 mr-2" />
-                                    {t('editor.generateWithAI')}
+                                <Button
+                                    className="w-full bg-gradient-to-r from-pink-500 to-purple-500"
+                                    onClick={handleGenerateH5}
+                                    disabled={isGeneratingAI}
+                                >
+                                    {isGeneratingAI ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                                    {isGeneratingAI ? t('editor.generating') : `${t('editor.generateWithAI')} (${t('credits')}: 5)`}
                                 </Button>
                             </CardContent>
                         </Card>

@@ -72,6 +72,7 @@
 | **Agent Architect** | 架构师智能体，负责项目规划 | GPT-5.1 / Gemini 3 | **30** (每次规划) |
 | **Agent Designer** | 设计师智能体，负责 UI/UX 设计 | GPT-5 / Claude 4.5 | **25** (每次设计) |
 | **Agent Builder** | 构建者智能体，负责代码生成 | DeepSeek / Qwen | **3** (每代码块) |
+| **H5 Page Generator** | H5 页面生成器 | Gemini 2.0 Flash Exp | **5** (每页) |
 
 ---
 

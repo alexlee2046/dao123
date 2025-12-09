@@ -895,7 +895,10 @@
             "aiTips": "小贴士：",
             "aiTip1": "可以描述婚礼/活动的时间地点",
             "aiTip2": "说明你想要的风格和语气",
-            "aiTip3": "提供姓名等个性化信息"
+            "aiTip3": "提供姓名等个性化信息",
+            "generating": "正在生成...",
+            "generationSuccess": "页面生成成功",
+            "generationFailed": "生成失败"
         }
     }
 }
