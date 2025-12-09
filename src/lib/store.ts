@@ -1,13 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-interface Asset {
-  id: string;
-  url: string;
-  name: string;
-  type: string;
-  created_at?: string;
-}
+import { Asset } from '@/lib/actions/assets';
 
 interface Message {
   id: string;
