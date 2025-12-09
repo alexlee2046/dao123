@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import type { Asset } from "@/lib/actions/assets"
+import { ShareToCommunityModal } from "@/components/community/ShareToCommunityModal"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
@@ -197,6 +198,15 @@ export default function ImageGenerationPage() {
                                         }}>
                                             <Copy className="h-4 w-4" />
                                         </Button>
+                                        <ShareToCommunityModal
+                                            entityId={generatedImage.id}
+                                            type="asset"
+                                            defaultName={generatedImage.name}
+                                        >
+                                            <Button size="icon" variant="secondary" title="Share to Community">
+                                                <Sparkles className="h-4 w-4" />
+                                            </Button>
+                                        </ShareToCommunityModal>
                                     </div>
                                 </>
                             ) : (

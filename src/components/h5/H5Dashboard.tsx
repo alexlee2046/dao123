@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { motion } from "framer-motion";
 import { useTranslations } from 'next-intl';
 import type { H5Project } from '@/lib/actions/h5';
+import { ShareToCommunityModal } from "@/components/community/ShareToCommunityModal"
 
 interface H5DashboardProps {
     projects: H5Project[];
@@ -194,6 +195,15 @@ function H5ProjectCard({ project }: { project: H5Project }) {
                                 <Eye className="h-3 w-3" />
                             </Link>
                         </Button>
+                        <ShareToCommunityModal
+                            entityId={project.id}
+                            type="project"
+                            defaultName={project.name}
+                        >
+                            <Button size="sm" variant="secondary">
+                                <Sparkles className="h-3 w-3" />
+                            </Button>
+                        </ShareToCommunityModal>
                     </div>
                 </div>
             </div>
@@ -218,6 +228,6 @@ function H5ProjectCard({ project }: { project: H5Project }) {
                     {t('edit')} <ArrowRight className="ml-1 h-3 w-3" />
                 </Link>
             </CardFooter>
-        </Card>
+        </Card >
     );
 }

@@ -21,11 +21,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     const tCommon = await getTranslations('common');
 
     // Determine preview content
-    let previewContent = project.content?.html || '';
-    if (project.content?.pages && Array.isArray(project.content.pages) && project.content.pages.length > 0) {
-        // Try to find index.html or use the first page
-        const indexPage = project.content.pages.find((p: any) => p.path === 'index.html') || project.content.pages[0];
-        previewContent = indexPage.content;
+    let previewContent = null;
+    let previewType = project.project_type || 'web';
+
+    if (previewType === 'web') {
+        const indexPage = project.content?.pages?.find((p: any) => p.path === 'index.html') || project.content?.pages?.[0];
+        previewContent = indexPage?.content || project.content?.html || '';
+    } else if (previewType === 'image' || previewType === 'video') {
+        previewContent = project.content?.url || project.preview_image;
     }
 
     return (
@@ -56,14 +59,31 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <Separator />
 
                 {/* Content Preview */}
-                <div className="h-[70vh] bg-muted rounded-lg border flex items-center justify-center relative overflow-hidden">
-                    <iframe
-                        srcDoc={previewContent}
-                        className="w-full h-full pointer-events-none"
-                        title="Preview"
-                    />
+                {/* Content Preview */}
+                <div className="min-h-[50vh] bg-muted rounded-lg border flex items-center justify-center relative overflow-hidden">
+                    {previewType === 'web' && (
+                        <iframe
+                            srcDoc={previewContent}
+                            className="w-full h-[70vh] pointer-events-none"
+                            title="Preview"
+                        />
+                    )}
+                    {previewType === 'image' && (
+                        <img
+                            src={previewContent}
+                            alt={project.name}
+                            className="max-w-full max-h-[70vh] object-contain"
+                        />
+                    )}
+                    {previewType === 'video' && (
+                        <video
+                            src={previewContent}
+                            controls
+                            className="max-w-full max-h-[70vh]"
+                        />
+                    )}
                     {!hasAccess && (
-                        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-10">
                             <p className="font-semibold text-lg">{t('buyToView')}</p>
                         </div>
                     )}

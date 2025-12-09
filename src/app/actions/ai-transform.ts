@@ -7,6 +7,7 @@ import { convertToCraftJson } from '@/lib/ai/transformer';
 import { calculateCost, calculateUserCost, getEffectiveTier } from '@/lib/pricing';
 import { createClient } from '@/lib/supabase/server';
 import { deductCredits } from '@/lib/actions/credits';
+import { getDefaultModel } from '@/lib/actions/models';
 
 // Initialize providers
 function getProvider(modelName: string, apiKey?: string) {
@@ -20,7 +21,7 @@ function getProvider(modelName: string, apiKey?: string) {
 async function deductAgentCredits(baseCost: number, model: string, description: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) throw new Error('User not authenticated');
 
     const { data: profile } = await supabase
@@ -28,14 +29,14 @@ async function deductAgentCredits(baseCost: number, model: string, description: 
         .select('membership_tier, membership_expires_at')
         .eq('id', user.id)
         .single();
-    
+
     const effectiveTier = getEffectiveTier(profile || {});
     const actualCost = calculateUserCost(baseCost, model, effectiveTier);
 
     if (actualCost < 0) {
         throw new Error(`您的会员等级 (${effectiveTier === 'pro' ? '专业版' : '免费版'}) 无法使用此高级模型 (${model})，请升级会员。`);
     }
-    
+
     if (actualCost > 0) {
         await deductCredits(actualCost, description);
     }
@@ -45,12 +46,18 @@ async function deductAgentCredits(baseCost: number, model: string, description: 
  * AI Transformation: HTML to Builder JSON
  * Uses an LLM to intelligently convert raw HTML into structured Builder components.
  */
-export async function convertHtmlToBuilder(html: string, model: string = 'anthropic/claude-3.5-sonnet', apiKey?: string) {
+export async function convertHtmlToBuilder(html: string, model?: string, apiKey?: string) {
     try {
+        // Resolve Model if not provided
+        if (!model) {
+            const defaultModel = await getDefaultModel('chat');
+            model = defaultModel ? defaultModel.id : 'anthropic/claude-3.5-sonnet';
+        }
+
         // Deduct credits for this operation (treat as 'agent_builder' or similar cost)
         // Only deduct credits if no custom API key is provided
         if (!apiKey) {
-            const cost = calculateCost('agent_builder', model); 
+            const cost = calculateCost('agent_builder', model);
             await deductAgentCredits(cost, model, `AI Transformation: HTML to Builder (${model})`);
         }
 
@@ -67,7 +74,7 @@ export async function convertHtmlToBuilder(html: string, model: string = 'anthro
                 if (dbSetting?.value) {
                     resolvedApiKey = dbSetting.value as string;
                 }
-            } catch {}
+            } catch { }
             if (!resolvedApiKey) {
                 resolvedApiKey = process.env.OPENROUTER_API_KEY as string | undefined;
             }
@@ -123,7 +130,7 @@ export async function convertHtmlToBuilder(html: string, model: string = 'anthro
 
         // Transform the ComponentNode tree into Craft.js flat JSON format
         const craftJson = convertToCraftJson(object);
-        
+
         return { success: true, data: craftJson };
 
     } catch (error: any) {

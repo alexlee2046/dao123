@@ -760,6 +760,8 @@
         "freeProject": "Free Project",
         "price": "Price (Credits)",
         "earningsNote": "You will receive 80% of the earnings.",
+        "labelName": "Name",
+        "labelDescription": "Description",
         "publishBtn": "Publish",
         "saveFirst": "Please save your project first",
         "publishedToCommunity": "Project published to community!",

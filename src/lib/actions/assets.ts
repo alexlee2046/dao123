@@ -8,6 +8,7 @@ export interface Asset {
     url: string
     name: string
     type: string
+    user_id: string
     created_at?: string
 }
 
@@ -94,4 +95,20 @@ export async function deleteAsset(id: string, path: string) {
     }
 
     revalidatePath('/dashboard')
+}
+
+export async function getAsset(id: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return null
+
+    const { data, error } = await supabase
+        .from('assets')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+    if (error) return null
+    return data as Asset
 }

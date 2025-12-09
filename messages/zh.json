@@ -760,6 +760,8 @@
         "freeProject": "免费项目",
         "price": "价格 (积分)",
         "earningsNote": "您将获得 80% 的收益。",
+        "labelName": "名称",
+        "labelDescription": "描述",
         "publishBtn": "发布",
         "saveFirst": "请先保存您的项目",
         "publishedToCommunity": "项目已发布到社区！",

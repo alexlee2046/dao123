@@ -4,7 +4,7 @@ import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, User, Sparkles, Infinity, Search } from "lucide-react";
+import { Star, User, Sparkles, Infinity, Search, Image as ImageIcon, Video, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -21,6 +21,7 @@ interface Project {
     };
     averageRating: number;
     ratingCount: number;
+    project_type?: 'web' | 'image' | 'video';
 }
 
 interface CommunityViewProps {
@@ -138,6 +139,15 @@ export function CommunityView({ projects }: CommunityViewProps) {
                                     {project.description || t('noDesc')}
                                 </p>
                             </CardContent>
+
+                            <div className="absolute top-3 left-3 flex gap-2">
+                                <Badge variant="secondary" className="backdrop-blur-sm bg-background/50">
+                                    {project.project_type === 'image' && <ImageIcon className="h-3 w-3 mr-1" />}
+                                    {project.project_type === 'video' && <Video className="h-3 w-3 mr-1" />}
+                                    {(!project.project_type || project.project_type === 'web') && <Globe className="h-3 w-3 mr-1" />}
+                                    {project.project_type === 'image' ? 'Image' : project.project_type === 'video' ? 'Video' : 'Web'}
+                                </Badge>
+                            </div>
 
                             <CardFooter className="border-t border-border/30 pt-4 flex justify-between items-center bg-muted/20">
                                 <div className="flex items-center gap-1 text-amber-500">

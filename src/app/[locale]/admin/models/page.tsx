@@ -23,22 +23,19 @@ interface Model extends ModelInput {
 
 // 2025年12月最新的OpenRouter推荐模型列表
 const RECOMMENDED_MODELS: ModelInput[] = [
-    // Chat Models - Premium
-    { id: 'openai/gpt-5', name: 'GPT-5 (最强推理)', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 20 },
-    { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini (高性价比)', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 5 },
-    { id: 'google/gemini-3-pro-preview', name: 'Gemini 3.0 Pro (旗舰版)', provider: 'Google', type: 'chat', enabled: true, is_free: false, cost_per_unit: 10 },
+    // Chat Models (旗舰 & 高效)
+    { id: 'google/gemini-3-pro-preview', name: 'Gemini 3.0 Pro', provider: 'Google', type: 'chat', enabled: true, is_free: false, cost_per_unit: 15 },
+    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', provider: 'Anthropic', type: 'chat', enabled: true, is_free: false, cost_per_unit: 15 },
+    { id: 'openai/gpt-5.1', name: 'GPT-5.1', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 20 },
+    { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 5 },
+    { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', type: 'chat', enabled: true, is_free: true, cost_per_unit: 1 },
+    { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', provider: 'Qwen', type: 'chat', enabled: true, is_free: true, cost_per_unit: 2 },
 
-    // Chat Models - Free/Efficient
-    { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2 (极致性价比)', provider: 'DeepSeek', type: 'chat', enabled: true, is_free: true, cost_per_unit: 1 },
-    { id: 'deepseek/deepseek-v3.2-speciale', name: 'DeepSeek V3.2 Speciale (高性能版)', provider: 'DeepSeek', type: 'chat', enabled: true, is_free: false, cost_per_unit: 3 },
-    { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B (开源之王)', provider: 'Qwen', type: 'chat', enabled: true, is_free: true, cost_per_unit: 2 },
-
-    // Image Models
-    { id: 'openai/dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', type: 'image', enabled: true, is_free: false, cost_per_unit: 25 },
+    // Image Models (Vision & Multimodal)
+    { id: 'google/gemini-2.5-flash-image', name: 'Nano Banana', provider: 'Google', type: 'image', enabled: true, is_free: false, cost_per_unit: 2 },
     { id: 'black-forest-labs/flux-1.1-pro', name: 'Flux 1.1 Pro', provider: 'Black Forest Labs', type: 'image', enabled: true, is_free: false, cost_per_unit: 25 },
-
-    // Video Models
-    { id: 'luma/dream-machine', name: 'Luma Dream Machine', provider: 'Luma', type: 'video', enabled: true, is_free: false, cost_per_unit: 200 },
+    { id: 'openai/gpt-5-image', name: 'GPT-5 Image', provider: 'OpenAI', type: 'image', enabled: true, is_free: false, cost_per_unit: 25 },
+    { id: 'stabilityai/stable-diffusion-xl-beta-v2-2-2', name: 'Stable Diffusion XL', provider: 'Stability AI', type: 'image', enabled: true, is_free: false, cost_per_unit: 15 },
 ]
 
 export default function AdminModelsPage() {

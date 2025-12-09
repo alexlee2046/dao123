@@ -33,40 +33,32 @@ export const PRICING_CONSTANTS = {
 
 export const MODEL_COSTS: Record<string, number> = {
     // Chat Models (Per Message)
-    // Premium Models (Target ROI > 5x)
-    'openai/gpt-5': 20,           // Premium Future Model
-    'openai/gpt-5-mini': 5,       // Efficient Premium
-    'google/gemini-3-pro-preview': 10, // Google Flagship
+    // Premium Flagships
+    'openai/gpt-5.1': 20,           // OpenAI Flagship
+    'openai/gpt-5': 20,             // Legacy Flagship
+    'openai/gpt-5-mini': 5,         // Efficient Premium
+    'google/gemini-3-pro-preview': 15, // Google Flagship (LMArena #1)
+    'anthropic/claude-sonnet-4.5': 15, // Coding Flagship
 
     // Efficient/Free-tier Models
-    'deepseek/deepseek-v3.2': 1,         // Very cheap standard
-    'deepseek/deepseek-v3.2-speciale': 3, // Performance variant
+    'deepseek/deepseek-v3.2': 1,         // Free tier standard
     'qwen/qwen-2.5-72b-instruct': 2,      // Best Open Model
 
-    // Legacy / Fallbacks
-    'openai/gpt-4o': 6,
-    'anthropic/claude-3.5-sonnet': 6,
-    'google/gemini-2.5-flash': 1,
-
     // Image Models (Per Generation)
-    // Target ROI > 5x (Cost ~$0.04 -> Price $0.20-$0.25)
-    'openai/dall-e-3': 25,
-    'openai/gpt-image-1': 25,
+    'openai/gpt-5-image': 25,
+    'google/gemini-2.5-flash-image': 2,    // Efficient Image ("Nano Banana")
     'black-forest-labs/flux-1.1-pro': 25,
-    'google/gemini-3-pro-image-preview': 25,
-    'stabilityai/stable-diffusion-xl-beta-v2-2-2': 15, // Lower cost model
+    'stabilityai/stable-diffusion-xl-beta-v2-2-2': 15,
 
     // Video Models (Per Generation)
-    // High Cost Items (Cost ~$0.30 -> Price $2.00)
     'luma/dream-machine': 200,
     'runway/gen-3-alpha': 250,
-    'kling/kling-v1': 200,
 };
 
 export const DEFAULT_COSTS = {
-    chat: 5,      // Default for unknown chat models
-    image: 25,    // Default for unknown image models
-    video: 200,   // Default for unknown video models
+    chat: 5,
+    image: 25,
+    video: 200,
 };
 
 export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architect' | 'agent_designer' | 'agent_builder', modelId: string): number {
@@ -75,43 +67,32 @@ export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architec
         return MODEL_COSTS[modelId];
     }
 
-    // Agentic Workflow Pricing
-    // Agentic Workflow Pricing
+    // 2. Agentic Workflow Pricing (Fixed Project-Level Costs)
+    // Higher than single-turn because they involve multiple internal steps/reasoning
     if (type === 'agent_architect') {
-        // Architect uses high-reasoning models
-        // Fixed cost per plan generation
-        if (modelId.includes('gpt-5') && !modelId.includes('mini')) return 10;
-        if (modelId.includes('gemini-3')) return 8;
-        return 5; // Default for others (Mini/DeepSeek)
+        return 30; // 20 (base) + 10 (buffer/margin)
     }
     if (type === 'agent_designer') {
-        // Designer uses high-reasoning models
-        // Fixed cost per design system
-        if (modelId.includes('gpt-5') && !modelId.includes('mini')) return 8;
-        return 5;
+        return 25; // High capability vision/design
     }
     if (type === 'agent_builder') {
-        // Builder uses faster models
-        // Cost per section
-        if (modelId.includes('deepseek')) return 1;
-        if (modelId.includes('qwen')) return 2;
-        if (modelId.includes('gpt-5-mini')) return 2;
-        if (modelId.includes('gemini-3')) return 3; // Pro is expensive
-        return 5; // Default (GPT-5 full)
+        // Builder usually runs many small chunks
+        if (modelId.includes('deepseek') || modelId.includes('flash')) return 2;
+        return 5; // Default for standard complexity block
     }
 
-    // Existing Chat Pricing
+    // 3. Fallback Heuristics
     if (type === 'chat') {
-        if (modelId.includes('claude-3-5-sonnet')) return 3;
-        if (modelId.includes('gpt-4o')) return 5;
-        if (modelId.includes('gemini')) return 1;
-        return 2; // Default
+        if (modelId.includes('gpt-5') || modelId.includes('gpt-4')) return 10;
+        if (modelId.includes('claude') && (modelId.includes('opus') || modelId.includes('sonnet'))) return 10;
+        if (modelId.includes('gemini') && modelId.includes('pro')) return 10;
+        return 2; // Default for others (Flash, Haiku, open source)
     }
 
-    if (type === 'image') return 10;
-    if (type === 'video') return 50;
+    if (type === 'image') return 20;
+    if (type === 'video') return 200;
 
-    return 0;
+    return 5;
 }
 
 export function calculateUserCost(baseCost: number, modelId: string, membershipTier: 'free' | 'pro' = 'free'): number {

@@ -3,6 +3,8 @@
 import { createClient, createAnonClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+import { getAsset } from '@/lib/actions/assets'
+
 export interface Comment {
     id: string
     user_id: string
@@ -51,7 +53,8 @@ export async function getCommunityProjects() {
             ...project,
             user: { email: 'anonymous@dao123.me' },
             averageRating: 0,
-            ratingCount: 0
+            ratingCount: 0,
+            project_type: project.project_type || 'web'
         }));
     } catch (e) {
         console.error("Failed to get community projects:", e);
@@ -137,6 +140,38 @@ export async function publishProject(id: string, price: number) {
     revalidatePath('/community')
 }
 
+export async function publishAssetToCommunity(assetId: string, price: number, name?: string, description?: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    const asset = await getAsset(assetId)
+    if (!asset) throw new Error('Asset not found')
+    if (asset.user_id !== user.id) throw new Error('Unauthorized')
+
+    // Create a new project for this asset
+    const { data: project, error } = await supabase
+        .from('projects')
+        .insert({
+            user_id: user.id,
+            name: name || asset.name,
+            description: description || `Shared ${asset.type}`,
+            is_public: true,
+            price,
+            published_at: new Date().toISOString(),
+            project_type: asset.type,
+            preview_image: asset.url,
+            content: { url: asset.url }
+        })
+        .select()
+        .single()
+
+    if (error) throw new Error(error.message)
+
+    revalidatePath('/community')
+    return project
+}
 export async function purchaseProject(projectId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

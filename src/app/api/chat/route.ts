@@ -3,12 +3,23 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createClient } from '@/lib/supabase/server';
 import { calculateCost, calculateUserCost, getEffectiveTier } from '@/lib/pricing';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getDefaultModel } from '@/lib/actions/models';
 
 export const runtime = 'edge';
 
 export async function POST(req: Request) {
     try {
-        const { messages, model, currentHtml, mode = 'direct' } = await req.json();
+        let { messages, model, currentHtml, mode = 'direct' } = await req.json();
+
+        // If no model provided, try to get default from DB
+        if (!model) {
+            const defaultModel = await getDefaultModel('chat');
+            if (defaultModel) {
+                model = defaultModel.id;
+            } else {
+                model = 'anthropic/claude-3.5-sonnet'; // Safety fallback
+            }
+        }
 
         // 1. Authenticate User
         const supabase = await createClient();
@@ -23,8 +34,7 @@ export async function POST(req: Request) {
 
 
         // 2. Calculate Cost
-        // If modifying existing code (large context), we might want to adjust cost logic here in the future.
-        const baseCost = calculateCost('chat', model || 'anthropic/claude-3.5-sonnet');
+        const baseCost = calculateCost('chat', model);
         console.log(`[Chat API] User: ${user.id}, Model: ${model}, Base Cost: ${baseCost}, Mode: ${mode}`);
 
         // 3. Check and Deduct Credits (using Admin Client for security)
@@ -62,7 +72,7 @@ export async function POST(req: Request) {
 
         if (profile) {
             const effectiveTier = getEffectiveTier(profile);
-            const actualCost = calculateUserCost(baseCost, model || 'anthropic/claude-3.5-sonnet', effectiveTier);
+            const actualCost = calculateUserCost(baseCost, model, effectiveTier);
             console.log(`[Chat API] User Tier: ${effectiveTier} (Raw: ${profile.membership_tier}), Actual Cost: ${actualCost}`);
 
             if (actualCost < 0) {
@@ -200,7 +210,7 @@ export async function POST(req: Request) {
             systemPrompt += `\n\n当前代码状态:\n\`\`\`html\n${currentHtml}\n\`\`\`\n\n用户想要修改上述代码。请基于用户的要求和当前代码，返回修改后的完整 HTML 代码。请保持原有代码结构，仅根据用户需求进行修改。`;
         }
 
-        console.log('[Chat API] Calling OpenRouter API with model:', model || 'anthropic/claude-3.5-sonnet');
+        console.log('[Chat API] Calling OpenRouter API with model:', model);
         console.log('[Chat API] Message count:', messages.length);
 
         // 清洗消息：确保 content 是字符串，如果前端传来了数组（旧版或错误格式），尝试修复
@@ -219,7 +229,7 @@ export async function POST(req: Request) {
         });
 
         const result = streamText({
-            model: openRouter(model || 'anthropic/claude-3.5-sonnet'),
+            model: openRouter(model),
             system: systemPrompt,
             messages: convertToModelMessages(cleanMessages),
         });
