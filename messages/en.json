@@ -22,7 +22,8 @@
         "success": "Success",
         "credits": "Credits",
         "insufficientCredits": "Insufficient credits, please recharge.",
-        "unauthorized": "Unauthorized, please login."
+        "unauthorized": "Unauthorized, please login.",
+        "download": "Download"
     },
     "nav": {
         "studio": "Studio",

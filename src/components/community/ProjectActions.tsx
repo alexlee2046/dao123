@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { purchaseProject } from "@/lib/actions/community"
 import { toast } from "sonner"
-import { Loader2, ShoppingCart, Copy } from "lucide-react"
+import { Loader2, ShoppingCart, Copy, Download } from "lucide-react"
 import { useRouter } from 'next/navigation'
 import { useStudioStore } from "@/lib/store"
 import { useTranslations, useLocale } from 'next-intl'
@@ -62,7 +62,25 @@ export function ProjectActions({ projectId, price, hasAccess, projectData }: Pro
         }
     }
 
+    const handleDownload = () => {
+        const url = projectData.content?.url || projectData.preview_image
+        if (url) {
+            window.open(url, '_blank')
+        } else {
+            toast.error(t('emptyContentError'))
+        }
+    }
+
     if (hasAccess) {
+        if (projectData.project_type === 'image' || projectData.project_type === 'video') {
+            return (
+                <Button onClick={handleDownload} className="w-full md:w-auto">
+                    <Download className="h-4 w-4 mr-2" />
+                    {tCommon('download')}
+                </Button>
+            )
+        }
+
         return (
             <Button onClick={handleClone} className="w-full md:w-auto">
                 <Copy className="h-4 w-4 mr-2" />
