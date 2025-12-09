@@ -105,17 +105,21 @@ export const useStudioStore = create<StudioState>((set) => {
     currentPage: 'index.html',
 
     setHtmlContent: (content) => set((state) => {
+      const normalize = (p: string) => p.replace(/^\//, '');
+      const currentPath = normalize(state.currentPage);
+
       const newPages = state.pages.map(p =>
-        p.path === state.currentPage ? { ...p, content, content_json: undefined } : p
+        normalize(p.path) === currentPath ? { ...p, content } : p
       );
+
       // If current page is not in pages (edge case), add it
-      if (!newPages.find(p => p.path === state.currentPage)) {
-        newPages.push({ path: state.currentPage, content });
+      if (!newPages.find(p => normalize(p.path) === currentPath)) {
+        newPages.push({ path: currentPath, content });
       }
 
       return {
         htmlContent: content,
-        builderData: null, // Reset builder data to force re-conversion from new HTML
+        // builderData: null, // REMOVED: Do not blindly reset. Callers must reset if content originates from outside Builder.
         pages: newPages,
         past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
         future: []
@@ -124,8 +128,11 @@ export const useStudioStore = create<StudioState>((set) => {
 
     setPages: (pages) => set((state) => {
       // Try to keep current page if it exists in new pages
-      const currentStillExists = pages.find(p => p.path === state.currentPage);
-      const indexPage = pages.find(p => p.path === 'index.html') || pages[0];
+      const normalize = (p: string) => p.replace(/^\//, '');
+      const currentPath = normalize(state.currentPage);
+
+      const currentStillExists = pages.find(p => normalize(p.path) === currentPath);
+      const indexPage = pages.find(p => normalize(p.path) === 'index.html') || pages[0];
 
       const newCurrentPage = currentStillExists ? state.currentPage : (indexPage ? indexPage.path : 'index.html');
       const pageForContent = currentStillExists || indexPage;

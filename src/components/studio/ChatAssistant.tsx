@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { GuideModal } from "./GuideModal";
 import { useAgentOrchestrator } from "@/lib/hooks/useAgentOrchestrator";
 import { useTranslations } from 'next-intl';
+
 import ReactMarkdown from 'react-markdown';
 
 // 聊天输入框中上传的素材类型
@@ -45,7 +46,8 @@ export function ChatAssistant() {
         setPendingPrompt,
     } = useStudioStore();
 
-    const { startGeneration, currentStep, progress, statusMessage } = useAgentOrchestrator();
+
+    const { startGeneration, stopBuild, currentStep, progress, statusMessage } = useAgentOrchestrator();
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const [localInput, setLocalInput] = useState('');
@@ -77,18 +79,16 @@ export function ChatAssistant() {
     useEffect(() => {
         if (pendingPrompt && models.length > 0 && !pendingPromptProcessedRef.current) {
             pendingPromptProcessedRef.current = true;
-            // Slight delay to ensure UI is ready
-            const timer = setTimeout(() => {
-                setLocalInput(pendingPrompt);
-                // Clear the pending prompt
-                setPendingPrompt(null);
-                // Trigger the send after setting input
-                setTimeout(() => {
-                    const sendButton = document.querySelector('[data-send-button]') as HTMLButtonElement;
-                    if (sendButton) sendButton.click();
-                }, 100);
-            }, 500);
-            return () => clearTimeout(timer);
+
+            // Clear the pending prompt FIRST to avoid loops
+            setPendingPrompt(null);
+
+            // Call handleSend directly immediately
+            // We use a small timeout ONLY to ensure state (models) is fully settled if needed, 
+            // but usually we can just call it. 
+            // However, handleSend relies on 'localInput' or argument.
+            // We'll pass the prompt as argument.
+            handleSend(pendingPrompt);
         }
     }, [pendingPrompt, models, setPendingPrompt]);
 
@@ -175,7 +175,11 @@ export function ChatAssistant() {
 
             // Legacy single page fallback (if no pages found by either method)
             const extractedHtml = extractHtml(content);
-            if (extractedHtml) setHtmlContent(extractedHtml);
+            if (extractedHtml) {
+                setHtmlContent(extractedHtml);
+                // Force builder to re-convert from new HTML since we have no JSON
+                useStudioStore.getState().setBuilderData(null);
+            }
         },
     } as any) as any;
 
@@ -187,13 +191,12 @@ export function ChatAssistant() {
         }
     }, [messages]);
 
-    const isBuildingStopped = useRef(false);
 
     const handleStopBuild = () => {
-        isBuildingStopped.current = true;
         setUploading(false); // Reuse this state or separate one?
         // stop() is for useChat.
         stop();
+        stopBuild();
         toast.info(t('chatPanel.stopped'));
     };
 
@@ -202,229 +205,11 @@ export function ChatAssistant() {
         if (!contentToSend.trim()) return;
 
         // Reset stop flag
-        isBuildingStopped.current = false;
-
-        // System 2.0: Architect Mode (New Default for Multi-Page)
-        // We use a heuristic: if the user asks for "site", "website", "pages", or explicitly selects "Architect", we run the full flow.
-        // For now, let's make it explicit via a new internal logic or just replace the "Builder" toggle with an "Agentic" toggle later.
-        // But per requirements, let's treat 'builder' mode as the single-component generator and 'architect' as the site generator.
-        // Let's add a heuristic check or just use the current 'builder' mode for now? 
-        // No, the user wants a SITE generator. Let's add an explicit 'architect' mode or check the prompt.
-        // For simplicity in this iteration, if 'mode' is 'architect' (which we need to add to the UI), we do the full flow.
-        // Let's assume we rename 'builder' to 'agentic' and inside we decide, or just add a new mode.
-        // Let's stick to the plan: Update ChatAssistant to handle the "Map then Build" flow. we'll use 'builder' mode for single, and maybe detect multiple pages?
-        // Actually, the prompt says "Implement System 2.0". Let's upgrade the 'builder' mode to support both, or add a specific check.
-
-        // Let's implement the "Architect" flow as the default for complex requests if we had an intent classifier.
-        // For now, I will add logic: IF mode === 'builder' AND prompt implies multiple pages (heuristic) -> Architect.
-        // OR simpler: Just replace the 'builder' logic with the Site Architect if checking a checkbox.
-        // Let's modify the UI to allow selecting "Site Gen" vs "Component Gen".
-        // For this code block, I will implement the 'full site' flow if a specific flag is set, or just overwrite 'builder' for now?
-        // No, Component Gen is useful.
-        // Let's add a simple heuristic: if content contains "site" or "pages", use Architect. Else use Component Builder.
-
-        // Revised Plan for handleSend in 'builder' mode:
-        // 1. Check intent (Client-side simple regex for now).
-        // 2. If 'Site/Multi-page', call Architect -> Parallel Builders.
-        // 3. If 'Component', call Single Builder (Strategy A).
-
-        const isSiteRequest = /site|website|portfolio|pages|full/i.test(contentToSend);
+        // isBuildingStopped.current = false; // Handled by hook
 
         if (mode === 'builder') {
-            try {
-                setLocalInput(''); // Clear input
-
-                if (isSiteRequest) {
-                    // --- PATH A: Architect (Site Gen) ---
-                    toast.info("Architect Agent: Planning your site structure...");
-
-                    // 1. Call Architect
-                    const { generateSitePlan } = await import('@/app/actions/architect');
-                    const planResult = await generateSitePlan(contentToSend, selectedModel);
-
-                    if (isBuildingStopped.current) return; // Check stop
-
-                    if (!planResult.success || !planResult.sitePlan) {
-                        throw new Error(planResult.error || "Failed to generate site plan");
-                    }
-
-                    const sitePlan = planResult.sitePlan;
-                    console.log("[Architect] Plan:", sitePlan);
-                    toast.success(`Architect: Planned ${sitePlan.pages.length} pages.`);
-
-                    // 2. Initialize Pages in Store (Placeholders)
-                    const { setPages, pages: currentPages } = useStudioStore.getState();
-
-                    const newPagesMap = new Map(currentPages.map(p => [p.path, p]));
-                    const pagesToBuild: { path: string, title: string, seoDescription: string, sections: any[] }[] = [];
-
-                    // Add placeholders
-                    sitePlan.pages.forEach(p => {
-                        // Check if exists
-                        if (newPagesMap.has(p.path)) {
-                            // EDGE CASE: If page exists, we could overwrite or skip.
-                            // For now, let's skip to avoid destroying user data, BUT toast about it.
-                            toast.warning(`Skipping existing page: ${p.path}`);
-                        } else {
-                            newPagesMap.set(p.path, {
-                                path: p.path,
-                                content: '<div class="flex items-center justify-center h-screen"><h1>Building...</h1></div>', // Temp HTML
-                                content_json: undefined,
-                                status: 'pending'
-                            });
-                            pagesToBuild.push(p);
-                        }
-                    });
-                    setPages(Array.from(newPagesMap.values()));
-
-                    if (pagesToBuild.length === 0) {
-                        toast.info("All planned pages already exist. Nothing to build.");
-                        return;
-                    }
-
-                    // --- COST TRANSPARENCY & CONTROL ---
-                    // Calculate exact estimated cost
-                    // Architect Cost: Fixed based on model (System uses Architect Agent model, assume same as selected for now or default)
-                    // Builder Cost: Per Page * Cost per Section (Heuristic: 1 section call per page for now)
-
-                    let balance = 0;
-                    try {
-                        const { getCredits } = await import('@/lib/actions/credits');
-                        balance = await getCredits();
-                    } catch (err) {
-                        console.warn("[ChatAssistant] Failed to load credits, proceeding with 0 balance:", err);
-                    }
-
-                    // Use cost from Dynamic Models (DB)
-                    const selectedModelData = models.find(m => m.id === selectedModel);
-                    const builderCostPerUnit = selectedModelData ? selectedModelData.cost_per_unit : 5; // Default fallback
-
-                    const totalBuilderCost = pagesToBuild.length * builderCostPerUnit;
-                    const estimatedTotalCost = totalBuilderCost; // Architect already paid/done at this point? 
-                    // Wait, Architect was called in Step 1. That cost is ALREADY incurred.
-                    // So we are estimating the *Remaining* cost for the Builders.
-
-                    if (balance < estimatedTotalCost) {
-                        toast.warning(
-                            `⚠️ Low Balance: You have ${balance} credits. This build requires ~${estimatedTotalCost} credits (${pagesToBuild.length} pages x ${builderCostPerUnit}). Partial completion expected.`
-                        );
-                    } else {
-                        toast(
-                            `💰 Cost Est: ~${estimatedTotalCost} Credits (${pagesToBuild.length} pages x ${builderCostPerUnit}/page). Balance: ${balance}.`,
-                            {
-                                icon: '💳',
-                                duration: 5000
-                            }
-                        );
-                    }
-
-                    // 3. Parallel Build (Builder Agents) with Concurrency Control
-                    toast.info(`Builder Agents: Starting construction of ${pagesToBuild.length} pages...`);
-
-                    const { generateSection } = await import('@/app/actions/ai');
-                    const { convertToCraftJson } = await import('@/lib/ai/transformer');
-                    const designSystem = { // TODO: Fetch from Designer Agent or Store
-                        colors: { primary: 'bg-black', background: 'bg-white', text: 'text-gray-900' },
-                        borderRadius: 'rounded-md'
-                    };
-
-                    // Helper for Concurrency (Max 3 parallel)
-                    const MAX_CONCURRENCY = 3;
-                    const results: { path: string, success: boolean }[] = [];
-
-                    // Simple chunking loop
-                    for (let i = 0; i < pagesToBuild.length; i += MAX_CONCURRENCY) {
-                        if (isBuildingStopped.current) {
-                            toast.warning("Build stopped by user.");
-                            break;
-                        }
-
-                        const chunk = pagesToBuild.slice(i, i + MAX_CONCURRENCY);
-
-                        await Promise.allSettled(chunk.map(async (pagePlan) => {
-                            if (isBuildingStopped.current) return;
-
-                            try {
-                                // Construct a prompt for the page
-                                const pagePrompt = `Create a ${pagePlan.title} page. Description: ${pagePlan.seoDescription}. Sections: ${pagePlan.sections.map(s => s.type).join(', ')}.`;
-
-                                const componentSchema = await generateSection(
-                                    'Page',
-                                    pagePrompt,
-                                    designSystem,
-                                    selectedModel
-                                );
-
-                                if (isBuildingStopped.current) return;
-
-                                const builderJson = convertToCraftJson(componentSchema);
-
-                                // Update Store for THIS page
-                                useStudioStore.setState(state => ({
-                                    pages: state.pages.map(p =>
-                                        p.path === pagePlan.path ? {
-                                            ...p,
-                                            content_json: JSON.stringify(builderJson),
-                                            status: 'complete'
-                                        } : p
-                                    )
-                                }));
-
-                                console.log(`[Builder] Finished ${pagePlan.path}`);
-                                results.push({ path: pagePlan.path, success: true });
-                            } catch (err) {
-                                console.error(`[Builder] Failed ${pagePlan.path}`, err);
-
-                                // Mark as error
-                                useStudioStore.setState(state => ({
-                                    pages: state.pages.map(p =>
-                                        p.path === pagePlan.path ? { ...p, status: 'error' } : p
-                                    )
-                                }));
-                                results.push({ path: pagePlan.path, success: false });
-                            }
-                        }));
-                    }
-
-                    // Final Report
-                    const successCount = results.filter(r => r.success).length;
-                    const failCount = results.filter(r => !r.success).length;
-
-                    if (failCount === 0) {
-                        toast.success(`Build Complete: ${successCount} pages generated perfectly.`);
-                    } else {
-                        toast.warning(`Build Complete: ${successCount} success, ${failCount} failed.`);
-                    }
-
-                } else {
-                    // --- PATH B: Single Component (Original Builder) ---
-                    toast.info("Builder Agent: Generating component...");
-
-                    const { generateSection } = await import('@/app/actions/ai');
-                    const { convertToCraftJson } = await import('@/lib/ai/transformer');
-
-                    const designSystem = {
-                        colors: { primary: 'bg-black', background: 'bg-white', text: 'text-gray-900' },
-                        borderRadius: 'rounded-md'
-                    };
-
-                    const componentSchema = await generateSection(
-                        'Custom',
-                        contentToSend,
-                        designSystem,
-                        selectedModel
-                    );
-
-                    const builderJson = convertToCraftJson(componentSchema);
-                    const { setBuilderData, toggleBuilderMode } = useStudioStore.getState();
-                    setBuilderData(JSON.stringify(builderJson));
-                    toggleBuilderMode();
-                    toast.success("Component generated!");
-                }
-            } catch (e: any) {
-                console.error("Agent Failed:", e);
-                toast.error("Agent Failed: " + e.message);
-            }
+            setLocalInput(''); // Clear input
+            await startGeneration(contentToSend, 'builder');
             return;
         }
 

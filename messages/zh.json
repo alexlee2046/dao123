@@ -500,7 +500,38 @@
         "textAlignOptions": {
             "left": "左对齐",
             "center": "居中",
-            "right": "右对齐"
+            "right": "右对齐",
+            "justify": "两端对齐"
+        },
+        "properties": {
+            "title": "标题",
+            "subtitle": "副标题",
+            "description": "描述",
+            "primaryButtonText": "主按钮文本",
+            "primaryButtonLink": "主按钮链接",
+            "showSecondaryButton": "显示次要按钮",
+            "secondaryButtonText": "次要按钮文本",
+            "secondaryButtonLink": "次要按钮链接",
+            "imageUrl": "图片地址",
+            "altText": "替代文本 (Alt)",
+            "objectFit": "填充方式",
+            "posterImage": "封面图",
+            "showControls": "显示控制器",
+            "autoplay": "自动播放",
+            "loop": "循环播放",
+            "muted": "静音",
+            "fontSize": "字体大小",
+            "fontWeight": "字重",
+            "lineHeight": "行高",
+            "textDecoration": "装饰线",
+            "autoWrap": "自动换行",
+            "buttonSize": "尺寸",
+            "styleVariant": "样式变体"
+        },
+        "sizes": {
+            "sm": "小",
+            "default": "默认",
+            "lg": "大"
         }
     },
     "community": {

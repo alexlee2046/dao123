@@ -108,13 +108,18 @@ test.describe('AI Generation & Zero-Loss Parser Debug', () => {
         const createProjectBtn = page.getByRole('button', { name: /Create Project|创建项目/i });
         if (await createProjectBtn.isVisible()) {
             console.log('Detected Create Project screen, creating new project...');
-            await page.fill('input[type="text"]', 'E2E Test Project ' + Date.now());
-            // Description might be the first textarea, so we explicitly look for it by label or placeholder if possible, 
-            // but 'textarea' selector might work just for filling.
-            const descInput = page.locator('textarea').first();
-            if (await descInput.isVisible()) {
+
+            // Use the actual input ID from the page
+            const nameInput = page.locator('#name');
+            await nameInput.waitFor({ state: 'visible', timeout: 10000 });
+            await nameInput.fill('E2E Test Project ' + Date.now());
+
+            // Fill description textarea if visible (AI mode is default)
+            const descInput = page.locator('#description');
+            if (await descInput.isVisible({ timeout: 2000 }).catch(() => false)) {
                 await descInput.fill('Auto-generated text for E2E testing');
             }
+
             await createProjectBtn.click();
             // Wait for editor to load (URL pattern matching /project/...)
             await page.waitForTimeout(5000);
@@ -130,7 +135,7 @@ test.describe('AI Generation & Zero-Loss Parser Debug', () => {
 
         // 3. Switch to Builder mode if possible
         console.log('\n=== Step 3: Try to switch to Builder mode ===');
-        const builderBtn = page.getByTestId('mode-toggle-builder');
+        const builderBtn = page.getByRole('button', { name: /Builder/i });
         try {
             if (await builderBtn.isVisible({ timeout: 5000 })) {
                 await builderBtn.click();

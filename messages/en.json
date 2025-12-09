@@ -500,7 +500,38 @@
         "textAlignOptions": {
             "left": "Left",
             "center": "Center",
-            "right": "Right"
+            "right": "Right",
+            "justify": "Justify"
+        },
+        "properties": {
+            "title": "Title",
+            "subtitle": "Subtitle",
+            "description": "Description",
+            "primaryButtonText": "Primary Button Text",
+            "primaryButtonLink": "Primary Button Link",
+            "showSecondaryButton": "Show Secondary Button",
+            "secondaryButtonText": "Secondary Button Text",
+            "secondaryButtonLink": "Secondary Button Link",
+            "imageUrl": "Image URL",
+            "altText": "Alt Text",
+            "objectFit": "Object Fit",
+            "posterImage": "Poster Image",
+            "showControls": "Show Controls",
+            "autoplay": "Autoplay",
+            "loop": "Loop",
+            "muted": "Muted",
+            "fontSize": "Font Size",
+            "fontWeight": "Font Weight",
+            "lineHeight": "Line Height",
+            "textDecoration": "Text Decoration",
+            "autoWrap": "Auto Wrap",
+            "buttonSize": "Button Size",
+            "styleVariant": "Style Variant"
+        },
+        "sizes": {
+            "sm": "Small",
+            "default": "Default",
+            "lg": "Large"
         }
     },
     "community": {
