@@ -798,8 +798,10 @@
             "generateFailed": "Generation failed",
             "linkCopied": "Link copied",
             "emptyPreview": "Generated image will appear here",
-            "cost": "Cost: {cost} {unit}"
+            "download": "Download",
+            "downloadFailed": "Download failed"
         },
+        "cost": "Cost: {cost} {unit}",
         "video": {
             "title": "AI Video",
             "subtitle": "Turn text into dynamic videos.",
@@ -816,6 +818,29 @@
             "integrationNote": "No video generation models configured yet. We are integrating top video models like Luma, Runway Gen-2 and Stable Video Diffusion. Stay tuned!",
             "joinWaitlist": "Join Waitlist"
         }
+    },
+    "projectCreate": {
+        "title": "Start a New Project",
+        "subtitle": "Bring your ideas to life. Choose how you want to start building.",
+        "projectName": "Project Name",
+        "namePlaceholder": "e.g., My Awesome Portfolio",
+        "aiGenerator": "AI Generator",
+        "aiDescription": "Describe your vision, let AI handle the rest.",
+        "blankCanvas": "Blank Canvas",
+        "blankDescription": "Start from scratch with a clean slate.",
+        "import": "Import",
+        "importDescription": "Import HTML or an existing site.",
+        "describeWebsite": "Describe your website",
+        "describePlaceholder": "A modern landing page for a crypto DAO with a dark theme, hero section with 3D graphics, and a feature grid...",
+        "importNote": "You'll be able to paste your HTML code or URL after creating the project.",
+        "createButton": "Create Project",
+        "creating": "Creating...",
+        "backToDashboard": "Back to Dashboard",
+        "emptyCanvas": "Empty Canvas",
+        "importedSite": "Imported Site",
+        "toastEnterName": "Please enter a project name",
+        "toastSuccess": "Project created successfully!",
+        "toastFailed": "Failed to create project: {error}"
     },
     "share": {
         "title": "Share Your Website",

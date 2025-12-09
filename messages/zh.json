@@ -798,8 +798,10 @@
             "generateFailed": "生成失败",
             "linkCopied": "链接已复制",
             "emptyPreview": "生成的图片将显示在这里",
-            "cost": "消耗：{cost} {unit}"
+            "download": "下载",
+            "downloadFailed": "下载失败"
         },
+        "cost": "消耗：{cost} {unit}",
         "video": {
             "title": "AI 视频",
             "subtitle": "将文本转换为动态视频。",
@@ -816,6 +818,29 @@
             "integrationNote": "管理员尚未配置视频生成模型。我们正在集成 Luma、Runway Gen-2 和 Stable Video Diffusion 等顶级视频生成模型。敬请期待！",
             "joinWaitlist": "加入等待列表"
         }
+    },
+    "projectCreate": {
+        "title": "开启新项目",
+        "subtitle": "让创意落地。选择您想要的开始方式。",
+        "projectName": "项目名称",
+        "namePlaceholder": "例如：我的超级作品集",
+        "aiGenerator": "AI 生成器",
+        "aiDescription": "描述您的构想，让 AI 完成剩下的工作。",
+        "blankCanvas": "空白画布",
+        "blankDescription": "从零开始，自由创作。",
+        "import": "导入",
+        "importDescription": "导入 HTML 或现有网站。",
+        "describeWebsite": "描述您的网站",
+        "describePlaceholder": "一个暗黑风格的 Crypto DAO 落地页，包含 3D 视觉的主屏和功能网格...",
+        "importNote": "创建项目后，您将能够粘贴代码或 URL。",
+        "createButton": "创建项目",
+        "creating": "创建中...",
+        "backToDashboard": "返回仪表板",
+        "emptyCanvas": "空白画布",
+        "importedSite": "导入的网站",
+        "toastEnterName": "请输入项目名称",
+        "toastSuccess": "项目创建成功！",
+        "toastFailed": "创建项目失败: {error}"
     },
     "share": {
         "title": "分享您的网站",

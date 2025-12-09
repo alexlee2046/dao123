@@ -17,7 +17,7 @@ import { useStudioStore } from "@/lib/store";
 
 export default function CreateProjectPage() {
     const router = useRouter();
-    const t = useTranslations('dashboard'); // Assuming dashboard keys are relevant, or use 'common'
+    const t = useTranslations('projectCreate');
     const [isLoading, setIsLoading] = useState(false);
     const [mode, setMode] = useState<'blank' | 'ai' | 'import'>('ai');
     const [name, setName] = useState('');
@@ -26,7 +26,7 @@ export default function CreateProjectPage() {
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            toast.error("Please enter a project name");
+            toast.error(t('toastEnterName'));
             return;
         }
 
@@ -38,7 +38,7 @@ export default function CreateProjectPage() {
             const newProject = await createProject(name, prompt);
 
             if (newProject?.id) {
-                toast.success("Project created successfully!");
+                toast.success(t('toastSuccess'));
 
                 // Set pending prompt for auto-generation in Studio
                 if (mode === 'ai' && description.trim()) {
@@ -52,7 +52,7 @@ export default function CreateProjectPage() {
             }
         } catch (error: any) {
             console.error("Creation failed:", error);
-            toast.error("Failed to create project: " + error.message);
+            toast.error(t('toastFailed', { error: error.message }));
         } finally {
             setIsLoading(false);
         }
@@ -65,7 +65,7 @@ export default function CreateProjectPage() {
                 <Button variant="ghost" size="sm" asChild className="gap-2 text-muted-foreground hover:text-foreground">
                     <Link href="/dashboard">
                         <ArrowLeft className="h-4 w-4" />
-                        Back to Dashboard
+                        {t('backToDashboard')}
                     </Link>
                 </Button>
             </header>
@@ -77,19 +77,19 @@ export default function CreateProjectPage() {
                     <div className="space-y-8">
                         <div>
                             <h1 className="text-4xl font-bold tracking-tight mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                                Start a New Project
+                                {t('title')}
                             </h1>
                             <p className="text-lg text-muted-foreground">
-                                Bring your ideas to life. Choose how you want to start building.
+                                {t('subtitle')}
                             </p>
                         </div>
 
                         <div className="space-y-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name" className="text-base font-medium">Project Name</Label>
+                                <Label htmlFor="name" className="text-base font-medium">{t('projectName')}</Label>
                                 <Input
                                     id="name"
-                                    placeholder="e.g., My Awesome Portfolio"
+                                    placeholder={t('namePlaceholder')}
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     className="h-12 text-lg"
@@ -103,22 +103,22 @@ export default function CreateProjectPage() {
                                     active={mode === 'ai'}
                                     onClick={() => setMode('ai')}
                                     icon={Sparkles}
-                                    title="AI Generator"
-                                    description="Describe your vision, let AI handle the rest."
+                                    title={t('aiGenerator')}
+                                    description={t('aiDescription')}
                                 />
                                 <ModeCard
                                     active={mode === 'blank'}
                                     onClick={() => setMode('blank')}
                                     icon={Layout}
-                                    title="Blank Canvas"
-                                    description="Start from scratch with a clean slate."
+                                    title={t('blankCanvas')}
+                                    description={t('blankDescription')}
                                 />
                                 <ModeCard
                                     active={mode === 'import'}
                                     onClick={() => setMode('import')}
                                     icon={FileCode}
-                                    title="Import"
-                                    description="Import HTML or an existing site."
+                                    title={t('import')}
+                                    description={t('importDescription')}
                                 />
                             </div>
 
@@ -132,11 +132,11 @@ export default function CreateProjectPage() {
                                     <div className="space-y-2">
                                         <Label htmlFor="description" className="text-base font-medium flex items-center gap-2">
                                             <Sparkles className="h-4 w-4 text-purple-500" />
-                                            Describe your website
+                                            {t('describeWebsite')}
                                         </Label>
                                         <Textarea
                                             id="description"
-                                            placeholder="A modern landing page for a crypto DAO with a dark theme, hero section with 3D graphics, and a feature grid..."
+                                            placeholder={t('describePlaceholder')}
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
                                             className="min-h-[120px] resize-none text-base p-4"
@@ -145,7 +145,7 @@ export default function CreateProjectPage() {
                                 )}
                                 {mode === 'import' && (
                                     <div className="p-4 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 text-sm text-blue-600 dark:text-blue-400">
-                                        You'll be able to paste your HTML code or URL after creating the project.
+                                        {t('importNote')}
                                     </div>
                                 )}
                             </motion.div>
@@ -159,11 +159,11 @@ export default function CreateProjectPage() {
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Creating...
+                                        {t('creating')}
                                     </>
                                 ) : (
                                     <>
-                                        Create Project
+                                        {t('createButton')}
                                         <ArrowRight className="ml-2 h-5 w-5" />
                                     </>
                                 )}
@@ -197,12 +197,12 @@ export default function CreateProjectPage() {
                                     </div>
                                 ) : mode === 'blank' ? (
                                     <div className="flex items-center justify-center h-48 border-2 border-dashed border-muted-foreground/25 rounded-lg">
-                                        <span className="text-muted-foreground">Empty Canvas</span>
+                                        <span className="text-muted-foreground">{t('emptyCanvas')}</span>
                                     </div>
                                 ) : (
                                     <div className="space-y-2 font-mono text-xs text-muted-foreground">
                                         <div className="pl-4 border-l-2 border-blue-500/50">&lt;div class="hero"&gt;</div>
-                                        <div className="pl-8 border-l-2 border-blue-500/50">&lt;h1&gt;Imported Site&lt;/h1&gt;</div>
+                                        <div className="pl-8 border-l-2 border-blue-500/50">&lt;h1&gt;{t('importedSite')}&lt;/h1&gt;</div>
                                         <div className="pl-4 border-l-2 border-blue-500/50">&lt;/div&gt;</div>
                                     </div>
                                 )}
