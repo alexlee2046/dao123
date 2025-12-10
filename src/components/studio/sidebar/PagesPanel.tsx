@@ -7,20 +7,7 @@ import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-
-// 验证页面名称的函数
-const validatePageName = (name: string): { valid: boolean; error?: string } => {
-    // 检查非法字符（只允许字母、数字、下划线、连字符和点）
-    const invalidCharsRegex = /[^a-zA-Z0-9_\-\.]/
-    if (invalidCharsRegex.test(name)) {
-        return { valid: false, error: 'invalidPageName' }
-    }
-    // 检查长度
-    if (name.length > 50) {
-        return { valid: false, error: 'pageNameTooLong' }
-    }
-    return { valid: true }
-}
+import { validatePageName } from '@/lib/validation';
 
 // 空白 HTML 模板
 const emptyHtmlTemplate = `

@@ -75,7 +75,7 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
             type: { resolvedName: 'BuilderText' },
             props: {
                 text: textContent,
-                tagName: 'span', // Default to span for raw text
+                tag: 'span', // Default to span for raw text - use 'tag' to match BuilderText interface
             },
             nodes: [],
             parent: parentId,
@@ -171,7 +171,7 @@ function processNode($: ReturnType<typeof cheerio.load>, node: any, parentId: st
                     type: { resolvedName: 'BuilderText' },
                     props: {
                         text: el.text().trim() || '',
-                        tagName: tagName,
+                        tag: tagName, // Use 'tag' to match BuilderText interface
                         className: remainingClasses,
                         ...parsedProps
                     },

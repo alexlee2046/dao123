@@ -69,7 +69,8 @@ function generateContainer(node: BuilderNode, data: BuilderData): string {
 
 function generateText(node: BuilderNode, data: BuilderData): string {
     const attrs = getCommonAttributes(node);
-    const tagName = node.props.tagName || 'p';
+    // Support both 'tag' (new standard) and 'tagName' (legacy) for backward compatibility
+    const tagName = node.props.tag || node.props.tagName || 'p';
     const text = node.props.text || '';
 
     return `<${tagName} ${attrs}>${text}</${tagName}>`;

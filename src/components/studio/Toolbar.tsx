@@ -354,7 +354,7 @@ export function Toolbar() {
                     },
                     "fallback-node": {
                       "type": { "resolvedName": "CustomHTML" },
-                      "isCanvas": true,
+                      "isCanvas": false, // CustomHTML is not a canvas - cannot accept children
                       "props": { "code": htmlContent },
                       "displayName": "Custom HTML",
                       "custom": {},
@@ -372,7 +372,51 @@ export function Toolbar() {
               await new Promise(resolve => setTimeout(resolve, 100));
               toggleBuilderMode();
             } else {
-              // 切换回 AI 模式
+              // 切换回 AI 模式 - 先同步 Builder 状态
+              try {
+                const currentBuilderData = query.serialize();
+
+                if (currentBuilderData && currentBuilderData !== '{}') {
+                  // Update builderData in store
+                  setBuilderData(currentBuilderData);
+
+                  // Generate HTML from builder data to keep them in sync
+                  const { generateHtmlFromBuilderData } = await import('@/lib/builder/generator');
+                  const parsedData = JSON.parse(currentBuilderData);
+                  const generatedHtml = generateHtmlFromBuilderData(parsedData);
+
+                  if (generatedHtml) {
+                    // Wrap in complete HTML document
+                    const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white min-h-screen">
+${generatedHtml}
+</body>
+</html>`;
+
+                    // Update HTML content without clearing builderData
+                    useStudioStore.setState((state) => ({
+                      htmlContent: fullHtml,
+                      pages: state.pages.map(p =>
+                        p.path === state.currentPage
+                          ? { ...p, content: fullHtml, content_json: currentBuilderData }
+                          : p
+                      )
+                    }));
+
+                    console.log("[Toolbar] Synced Builder state before mode switch");
+                  }
+                }
+              } catch (e) {
+                console.warn("[Toolbar] Failed to sync Builder state:", e);
+                // Continue with mode switch even if sync fails
+              }
+
               toggleBuilderMode();
             }
           }}

@@ -154,13 +154,8 @@ export const useStudioStore = create<StudioState>((set) => {
       };
     }),
 
-    messages: [
-      {
-        id: '1',
-        role: 'assistant',
-        content: "你好！我是你的设计助手。我可以帮你构建网站。你还没有上传任何素材。想要上传一个 Logo 开始吗？"
-      }
-    ],
+    // 初始化为空数组，欢迎消息由 ChatAssistant 组件使用 i18n 动态生成
+    messages: [],
     addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
 
     assets: [],
