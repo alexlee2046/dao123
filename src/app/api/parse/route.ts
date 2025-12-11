@@ -62,14 +62,45 @@ export async function POST(req: Request) {
         }
 
         // Fallback: If no pages found, try to parse the whole content as one page if it looks like HTML
-        if (!foundPages && (content.includes('<html') || content.includes('<!DOCTYPE'))) {
-            console.log('[API/Parse] No page markers found, treating as single page.');
+        if (!foundPages) {
+            console.log('[API/Parse] No page markers found.');
             let rawContent = cleanPageContent(content);
-            const $ = cheerio.load(rawContent);
-            pages.push({
-                path: 'index.html',
-                content: $.html()
-            });
+
+            // 如果包含完整 HTML 结构
+            if (rawContent.includes('<html') || rawContent.includes('<!DOCTYPE')) {
+                console.log('[API/Parse] Treating as single complete page.');
+                const $ = cheerio.load(rawContent);
+                pages.push({
+                    path: 'index.html',
+                    content: $.html()
+                });
+            } else {
+                // 尝试检测是否包含 partial HTML (如 div, section, main 等)
+                // DeepSeek 有时只返回部分 HTML 代码
+                console.log('[API/Parse] Trying to wrap partial content.');
+                const $ = cheerio.load(rawContent);
+                const bodyContent = $('body').length > 0 ? $('body').html() : $.html(); // 如果 cheerio 自动包裹了 body，提取出来；否则直接用
+
+                if (bodyContent && bodyContent.trim().length > 10) { // 简单检查是否有内容
+                    console.log('[API/Parse] Wrapped partial content into scaffolding.');
+                    const scaffoldedHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    ${bodyContent}
+</body>
+</html>`;
+                    pages.push({
+                        path: 'index.html',
+                        content: scaffoldedHtml
+                    });
+                }
+            }
         }
 
         return NextResponse.json({ pages });
