@@ -234,25 +234,63 @@ export function useAgentOrchestrator() {
         } catch (error: any) {
             console.error('Agent Orchestrator Error:', error);
 
-            // 解析常见错误类型，提供用户友好的消息
-            let userMessage = error.message || 'Generation failed';
+            // 解析错误消息，提取有用信息
+            const errorMsg = error.message || '';
+            const errorStr = JSON.stringify(error);
 
-            // OpenRouter 特定错误
-            if (error.message?.includes('data policy') || error.message?.includes('Free model publication')) {
+            // 解析常见错误类型，提供用户友好的消息
+            let userMessage = '生成失败，请重试';
+            let errorTitle = '生成失败';
+
+            // 429 Rate Limit 错误 - 最常见
+            if (errorMsg.includes('429') || errorMsg.includes('rate-limited') || errorMsg.includes('rate limit') || errorStr.includes('429')) {
+                userMessage = '当前模型请求过于频繁，正在被限流。建议：\n1. 稍等几秒后重试\n2. 或切换到其他模型';
+                errorTitle = '⏳ 模型繁忙';
+            }
+            // Provider 返回错误
+            else if (errorMsg.includes('Provider returned error')) {
+                userMessage = 'AI 服务商暂时不可用，请稍后重试或切换其他模型';
+                errorTitle = '🔌 服务暂时不可用';
+            }
+            // 数据策略错误
+            else if (errorMsg.includes('data policy') || errorMsg.includes('Free model publication')) {
                 userMessage = '模型配置错误：请在 OpenRouter 设置中开启数据共享，或选择其他模型';
-            } else if (error.message?.includes('No endpoints found')) {
+                errorTitle = '⚙️ 配置问题';
+            }
+            // 找不到端点
+            else if (errorMsg.includes('No endpoints found')) {
                 userMessage = '找不到可用的模型端点，请稍后重试或选择其他模型';
-            } else if (error.message?.includes('rate limit')) {
-                userMessage = 'API 调用频率过高，请稍后重试';
-            } else if (error.message?.includes('credits') || error.message?.includes('积分')) {
+                errorTitle = '🔍 模型不可用';
+            }
+            // 积分不足
+            else if (errorMsg.includes('credits') || errorMsg.includes('积分')) {
                 userMessage = '积分不足，请充值后重试';
-            } else if (error.message?.includes('API key') || error.message?.includes('Unauthorized')) {
+                errorTitle = '💰 积分不足';
+            }
+            // API 密钥问题
+            else if (errorMsg.includes('API key') || errorMsg.includes('Unauthorized') || errorMsg.includes('401')) {
                 userMessage = 'API 密钥配置错误，请联系管理员';
+                errorTitle = '🔑 密钥问题';
+            }
+            // 网络错误
+            else if (errorMsg.includes('fetch') || errorMsg.includes('network') || errorMsg.includes('ECONNREFUSED')) {
+                userMessage = '网络连接失败，请检查网络后重试';
+                errorTitle = '🌐 网络错误';
+            }
+            // 超时
+            else if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
+                userMessage = '请求超时，AI 模型响应时间过长，请重试';
+                errorTitle = '⏱️ 请求超时';
             }
 
-            setStatusMessage(`Error: ${userMessage}`);
+            setStatusMessage(`${errorTitle}: ${userMessage}`);
             setCurrentStep('error');
-            toast.error(userMessage);
+
+            // 使用更醒目的错误提示
+            toast.error(userMessage, {
+                duration: 8000,  // 显示更长时间
+                description: '💡 提示：可以尝试切换到其他模型',
+            });
         }
     }, [selectedModel, currentPages, setPages, setBuilderData, isBuilderMode, toggleBuilderMode]);
 

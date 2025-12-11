@@ -114,7 +114,27 @@ export function ChatAssistant() {
         }),
         onError: (err: Error) => {
             console.error('Chat error:', err);
-            toast.error(err.message || t('chatPanel.serviceError'));
+
+            // 解析错误消息提供用户友好提示
+            const errorMsg = err.message || '';
+            let userMessage = t('chatPanel.serviceError');
+            let hint = '';
+
+            if (errorMsg.includes('429') || errorMsg.includes('rate-limited') || errorMsg.includes('rate limit')) {
+                userMessage = '当前模型繁忙，请稍后重试或切换其他模型';
+                hint = '💡 免费模型使用人数多，建议选择付费模型';
+            } else if (errorMsg.includes('Provider returned error')) {
+                userMessage = 'AI 服务商暂时不可用';
+                hint = '💡 建议切换到其他模型重试';
+            } else if (errorMsg.includes('Failed after')) {
+                userMessage = '多次重试失败，AI 服务暂时不可用';
+                hint = '💡 请稍后重试或联系管理员';
+            }
+
+            toast.error(userMessage, {
+                duration: 6000,
+                description: hint || undefined,
+            });
         },
         onFinish: async (message: any) => {
             // Extract content - support both text and parts
@@ -332,25 +352,47 @@ export function ChatAssistant() {
             <ScrollArea className="flex-1 p-4">
                 <div className="space-y-6 pb-4">
                     {currentStep !== 'idle' && (
-                        <div className="p-4 bg-muted/50 rounded-lg border border-border/50 space-y-3">
+                        <div className={cn(
+                            "p-4 rounded-lg border space-y-3",
+                            currentStep === 'error'
+                                ? "bg-destructive/10 border-destructive/30"
+                                : "bg-muted/50 border-border/50"
+                        )}>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="font-medium flex items-center gap-2">
-                                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                    {statusMessage}
+                                    {currentStep === 'error' ? (
+                                        <AlertCircle className="h-4 w-4 text-destructive" />
+                                    ) : (
+                                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                    )}
+                                    <span className={currentStep === 'error' ? 'text-destructive' : ''}>
+                                        {statusMessage}
+                                    </span>
                                 </span>
-                                <span className="text-muted-foreground">{progress}%</span>
+                                {currentStep !== 'error' && (
+                                    <span className="text-muted-foreground">{progress}%</span>
+                                )}
                             </div>
-                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-primary transition-all duration-500 ease-out"
-                                    style={{ width: `${progress}%` }}
-                                />
-                            </div>
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                                <span className={currentStep === 'architect' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepArchitect')}</span>
-                                <span className={currentStep === 'designer' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepDesigner')}</span>
-                                <span className={currentStep === 'builder' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepBuilder')}</span>
-                            </div>
+                            {currentStep !== 'error' && (
+                                <>
+                                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-primary transition-all duration-500 ease-out"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span className={currentStep === 'architect' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepArchitect')}</span>
+                                        <span className={currentStep === 'designer' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepDesigner')}</span>
+                                        <span className={currentStep === 'builder' ? 'text-primary font-medium' : ''}>{t('chatPanel.stepBuilder')}</span>
+                                    </div>
+                                </>
+                            )}
+                            {currentStep === 'error' && (
+                                <div className="text-xs text-muted-foreground mt-2 p-2 bg-background/50 rounded">
+                                    💡 建议：尝试切换到其他模型，或稍后重试
+                                </div>
+                            )}
                         </div>
                     )}
 
