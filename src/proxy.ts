@@ -11,10 +11,45 @@ const intlMiddleware = createMiddleware({
 })
 
 export default async function proxy(request: NextRequest) {
-    // Skip middleware for API routes
+    // Handle API routes - still need to refresh session for authenticated API calls
     if (request.nextUrl.pathname.startsWith('/api/')) {
-        return NextResponse.next()
+        let response = NextResponse.next({
+            request: {
+                headers: request.headers,
+            },
+        })
+
+        const supabase = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    getAll() {
+                        return request.cookies.getAll()
+                    },
+                    setAll(cookiesToSet) {
+                        cookiesToSet.forEach(({ name, value }) =>
+                            request.cookies.set(name, value)
+                        )
+                        response = NextResponse.next({
+                            request: {
+                                headers: request.headers,
+                            },
+                        })
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            response.cookies.set(name, value, options)
+                        )
+                    },
+                },
+            }
+        )
+
+        // Refresh session for API routes
+        await supabase.auth.getUser()
+
+        return response
     }
+
 
     // Subdomain Handling
     const hostname = request.headers.get('host') || ''

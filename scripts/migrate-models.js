@@ -37,11 +37,14 @@ async function runMigration() {
                     name TEXT NOT NULL,
                     provider TEXT NOT NULL,
                     type TEXT NOT NULL CHECK (type IN ('chat', 'image', 'video')),
+                    cost_per_unit FLOAT NOT NULL DEFAULT 0,
                     enabled BOOLEAN NOT NULL DEFAULT true,
                     is_free BOOLEAN NOT NULL DEFAULT false,
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
                 );
+                
+                ALTER TABLE models ADD COLUMN IF NOT EXISTS cost_per_unit FLOAT NOT NULL DEFAULT 0;
                 `
             })
 
@@ -54,25 +57,25 @@ async function runMigration() {
             // 插入初始数据
             console.log('2️⃣  插入推荐模型数据...')
             const models = [
-                { id: 'openai/gpt-5', name: 'GPT-5', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false },
-                { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false },
-                { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', type: 'chat', enabled: true, is_free: false },
-                { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro Preview', provider: 'Google', type: 'chat', enabled: true, is_free: false },
-                { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', provider: 'Qwen', type: 'chat', enabled: true, is_free: false },
-                { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Free)', provider: 'Google', type: 'chat', enabled: true, is_free: true },
-                { id: 'deepseek/deepseek-v3.2-exp', name: 'DeepSeek V3.2 Experimental (Free)', provider: 'DeepSeek', type: 'chat', enabled: true, is_free: true },
-                { id: 'deepseek/deepseek-v3.2-speciale', name: 'DeepSeek V3.2 Speciale', provider: 'DeepSeek', type: 'chat', enabled: true, is_free: false },
-                { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek', type: 'chat', enabled: true, is_free: true },
-                { id: 'qwen/qwen3-coder:free', name: 'Qwen3 Coder (Free)', provider: 'Qwen', type: 'chat', enabled: true, is_free: true },
-                { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google', type: 'chat', enabled: true, is_free: true },
-                { id: 'openai/dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', type: 'image', enabled: true, is_free: false },
-                { id: 'openai/gpt-image-1', name: 'GPT Image 1', provider: 'OpenAI', type: 'image', enabled: true, is_free: false },
-                { id: 'black-forest-labs/flux-1.1-pro', name: 'Flux 1.1 Pro', provider: 'Black Forest Labs', type: 'image', enabled: true, is_free: false },
-                { id: 'google/gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image Preview', provider: 'Google', type: 'image', enabled: true, is_free: false },
-                { id: 'stabilityai/stable-diffusion-xl-beta-v2-2-2', name: 'Stable Diffusion XL', provider: 'Stability AI', type: 'image', enabled: true, is_free: false },
-                { id: 'luma/dream-machine', name: 'Luma Dream Machine', provider: 'Luma', type: 'video', enabled: true, is_free: false },
-                { id: 'runway/gen-3-alpha', name: 'Runway Gen-3 Alpha', provider: 'Runway', type: 'video', enabled: true, is_free: false },
-                { id: 'kling/kling-v1', name: 'Kling V1', provider: 'Kling', type: 'video', enabled: true, is_free: false },
+                { id: 'openai/gpt-5', name: 'GPT-5', provider: 'OpenAI', type: 'chat', cost_per_unit: 10, enabled: true, is_free: false },
+                { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'OpenAI', type: 'chat', cost_per_unit: 5, enabled: true, is_free: false },
+                { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', type: 'chat', cost_per_unit: 3, enabled: true, is_free: false },
+                { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro Preview', provider: 'Google', type: 'chat', cost_per_unit: 2, enabled: true, is_free: false },
+                { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', provider: 'Qwen', type: 'chat', cost_per_unit: 1, enabled: true, is_free: false },
+                { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Free)', provider: 'Google', type: 'chat', cost_per_unit: 0, enabled: true, is_free: true },
+                { id: 'deepseek/deepseek-v3.2-exp', name: 'DeepSeek V3.2 Experimental (Free)', provider: 'DeepSeek', type: 'chat', cost_per_unit: 0, enabled: true, is_free: true },
+                { id: 'deepseek/deepseek-v3.2-speciale', name: 'DeepSeek V3.2 Speciale', provider: 'DeepSeek', type: 'chat', cost_per_unit: 1, enabled: true, is_free: false },
+                { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek', type: 'chat', cost_per_unit: 0, enabled: true, is_free: true },
+                { id: 'qwen/qwen3-coder:free', name: 'Qwen3 Coder (Free)', provider: 'Qwen', type: 'chat', cost_per_unit: 0, enabled: true, is_free: true },
+                { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google', type: 'chat', cost_per_unit: 0, enabled: true, is_free: true },
+                { id: 'openai/dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', type: 'image', cost_per_unit: 4, enabled: true, is_free: false },
+                { id: 'openai/gpt-image-1', name: 'GPT Image 1', provider: 'OpenAI', type: 'image', cost_per_unit: 4, enabled: true, is_free: false },
+                { id: 'black-forest-labs/flux-1.1-pro', name: 'Flux 1.1 Pro', provider: 'Black Forest Labs', type: 'image', cost_per_unit: 3, enabled: true, is_free: false },
+                { id: 'google/gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image Preview', provider: 'Google', type: 'image', cost_per_unit: 2, enabled: true, is_free: false },
+                { id: 'stabilityai/stable-diffusion-xl-beta-v2-2-2', name: 'Stable Diffusion XL', provider: 'Stability AI', type: 'image', cost_per_unit: 1, enabled: true, is_free: false },
+                { id: 'luma/dream-machine', name: 'Luma Dream Machine', provider: 'Luma', type: 'video', cost_per_unit: 10, enabled: true, is_free: false },
+                { id: 'runway/gen-3-alpha', name: 'Runway Gen-3 Alpha', provider: 'Runway', type: 'video', cost_per_unit: 8, enabled: true, is_free: false },
+                { id: 'kling/kling-v1', name: 'Kling V1', provider: 'Kling', type: 'video', cost_per_unit: 8, enabled: true, is_free: false },
             ]
 
             const { error: insertError } = await supabase

@@ -11,11 +11,19 @@ export const cleanPageContent = (html: string): string => {
  * 从 markdown 中提取 HTML 代码块
  */
 export const extractHtml = (content: string): string | null => {
-    const htmlMatch = content.match(/```html\s*([\s\S]*?)```/);
+    // 1. 尝试匹配 markdown 代码块
+    const htmlMatch = content.match(/```html\s*([\s\S]*?)```/i);
     if (htmlMatch) {
         return htmlMatch[1];
     }
-    // 如果没有代码块但包含 HTML 标签，尝试返回原始内容
+
+    // 2. 尝试匹配标准 HTML 文档结构 (<!DOCTYPE html> ... </html> 或 <html> ... </html>)
+    const docMatch = content.match(/(<!DOCTYPE html[\s\S]*?<\/html>|<html[\s\S]*?<\/html>)/i);
+    if (docMatch) {
+        return docMatch[1];
+    }
+
+    // 3. Fallback: 如果是一段纯 HTML (以 < 开头)
     if (content.trim().startsWith('<') && content.includes('>')) {
         return content;
     }

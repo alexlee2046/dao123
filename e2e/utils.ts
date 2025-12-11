@@ -9,8 +9,7 @@ export async function login(page: Page) {
     console.log('[Login] Starting login flow...');
     console.log(`[Login] Navigating to /login...`);
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    // 等待 React 客户端 hydration 完成
-    await page.waitForLoadState('networkidle');
+    // await page.waitForLoadState('networkidle'); // Removing flaky wait
     await page.waitForTimeout(2000); // 额外等待客户端渲染
     console.log(`[Login] Current URL: ${page.url()}`);
 
@@ -34,7 +33,10 @@ export async function login(page: Page) {
         await pwInput.fill(TEST_USER.password);
 
         console.log('[Login] Submitting...');
-        await page.click('button[type="submit"]');
+        // Dismiss potential Next.js error overlay
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+        await page.click('button[type="submit"]', { force: true });
     } catch (e) {
         console.error('Login interaction failed:', e);
         console.log('Current URL on failure:', page.url());

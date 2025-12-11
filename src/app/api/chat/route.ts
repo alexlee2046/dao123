@@ -243,7 +243,7 @@ export async function POST(req: Request) {
         });
 
         console.log('[Chat API] OpenRouter API call successful, streaming response...');
-        // 使用 toUIMessageStreamResponse 以兼容新版 @ai-sdk/react useChat
+        // 使用 toUIMessageStreamResponse 以兼容 AI SDK v5 的 useChat
         return result.toUIMessageStreamResponse();
 
     } catch (error: unknown) {

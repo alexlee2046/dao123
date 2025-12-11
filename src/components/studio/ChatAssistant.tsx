@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { extractHtml, parseMultiPageResponse } from '@/lib/page-parser';
 import type { UIMessage as Message } from '@ai-sdk/react';
 import { Button } from "@/components/ui/button";
@@ -104,12 +105,15 @@ export function ChatAssistant() {
         htmlContentRef.current = htmlContent;
     }, [htmlContent]);
 
-    const { messages, append, stop, status, error, setMessages } = useChat({
-        body: {
-            model: selectedModel,
-            currentHtml: htmlContent,
-            mode: 'direct',
-        },
+    const { messages, sendMessage, stop, status, error, setMessages } = useChat({
+        transport: new DefaultChatTransport({
+            api: '/api/chat',
+            body: {
+                model: selectedModel,
+                currentHtml: htmlContent,
+                mode: 'direct',
+            },
+        }),
         onError: (err: Error) => {
             console.error('Chat error:', err);
             toast.error(err.message || t('chatPanel.serviceError'));
@@ -130,6 +134,15 @@ export function ChatAssistant() {
 
             // Log raw content for client-side debugging
             console.log('[ChatAssistant] Raw AI response length:', content.length);
+            console.log('[ChatAssistant] Raw AI response content (first 200 chars):', content.substring(0, 200));
+
+            // 优先尝试客户端提取，避免不必要的 API 调用
+            const extractedHtml = extractHtml(content);
+            if (extractedHtml) {
+                console.log('[ChatAssistant] Successfully extracted HTML on client side, length:', extractedHtml.length);
+            } else {
+                console.warn('[ChatAssistant] Failed to extract HTML on client side');
+            }
 
             try {
                 // Call backend API for robust parsing
@@ -174,7 +187,6 @@ export function ChatAssistant() {
             }
 
             // Legacy single page fallback (if no pages found by either method)
-            const extractedHtml = extractHtml(content);
             if (extractedHtml) {
                 setHtmlContent(extractedHtml);
                 // Force builder to re-convert from new HTML since we have no JSON
@@ -223,9 +235,8 @@ export function ChatAssistant() {
         }
 
         try {
-            await append({
-                role: 'user',
-                content: messageContent,
+            await sendMessage({
+                text: messageContent,
             });
         } catch (error: any) {
             toast.error(error.message || t('chatPanel.serviceError'));
