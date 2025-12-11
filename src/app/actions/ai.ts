@@ -44,17 +44,24 @@ export async function deductAgentCredits(baseCost: number, model: string, descri
 
 // Helper to get model cost and is_free from DB
 export async function getModelDataFromDB(modelId: string): Promise<{ cost: number; is_free: boolean }> {
+    // Fallback to default model if modelId is empty
+    let actualModelId = modelId;
+    if (!modelId || modelId.trim() === '') {
+        console.warn('[AI] Empty model ID provided, using default model');
+        actualModelId = 'anthropic/claude-3.5-sonnet'; // Default fallback
+    }
+
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('models')
         .select('cost_per_unit, is_free')
-        .eq('id', modelId)
+        .eq('id', actualModelId)
         .single();
 
     if (error || !data) {
-        console.warn(`Model data not found for ${modelId}, using fallback.`);
+        console.warn(`Model data not found for ${actualModelId}, using fallback.`);
         // Fallback to pricing.ts if not in DB
-        return { cost: calculateCost('chat', modelId), is_free: false };
+        return { cost: calculateCost('chat', actualModelId), is_free: false };
     }
     return { cost: data.cost_per_unit || 1, is_free: data.is_free || false };
 }

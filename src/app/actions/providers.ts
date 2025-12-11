@@ -21,16 +21,23 @@ const google = createGoogleGenerativeAI({
 // Helper to get provider based on model string
 // Note: This is a sync function but wrapped in async to satisfy 'use server' requirements
 export async function getProvider(modelName: string) {
-    if (modelName.startsWith('google/')) {
+    // Fallback to default if empty
+    let actualModelName = modelName;
+    if (!modelName || modelName.trim() === '') {
+        console.warn('[Provider] Empty model name provided, using default: anthropic/claude-3.5-sonnet');
+        actualModelName = 'anthropic/claude-3.5-sonnet';
+    }
+
+    if (actualModelName.startsWith('google/')) {
         if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
             throw new Error("Google API Key is missing (GOOGLE_GENERATIVE_AI_API_KEY)");
         }
-        const cleanName = modelName.replace('google/', '');
+        const cleanName = actualModelName.replace('google/', '');
         return google(cleanName);
     }
 
     if (!process.env.OPENROUTER_API_KEY) {
         throw new Error("OpenRouter API Key is missing (OPENROUTER_API_KEY)");
     }
-    return openRouter(modelName);
+    return openRouter(actualModelName);
 }
