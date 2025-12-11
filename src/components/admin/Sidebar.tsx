@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Settings, FileText, Database, LogOut, Image } from "lucide-react"
+import { LayoutDashboard, Users, Settings, FileText, Database, LogOut, Image, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const sidebarItems = [
@@ -13,6 +13,7 @@ const sidebarItems = [
     { icon: Database, label: "模型管理", href: "/admin/models" },
     { icon: Image, label: "素材管理", href: "/admin/assets" },
     { icon: Settings, label: "系统设置", href: "/admin/settings" },
+    { icon: Activity, label: "AI 日志", href: "/admin/logs" },
 ]
 
 export function Sidebar() {

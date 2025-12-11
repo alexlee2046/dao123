@@ -6,6 +6,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getDefaultModel } from '@/lib/actions/models';
 
 export const runtime = 'edge';
+export const maxDuration = 60; // Allow strictly longer execution for AI generation
 
 export async function POST(req: Request) {
     try {
@@ -236,10 +237,42 @@ export async function POST(req: Request) {
             return m;
         });
 
+        const startTime = Date.now();
+
         const result = streamText({
             model: openRouter(model),
             system: systemPrompt,
             messages: convertToModelMessages(cleanMessages),
+            onFinish: async ({ text, finishReason }) => {
+                const duration = Date.now() - startTime;
+                console.log(`[Chat API] Generation completed in ${duration}ms over ${text.length} chars.`);
+
+                if (adminSupabase) {
+                    const lastUserMessage = cleanMessages.filter((m: any) => m.role === 'user').pop()?.content || '';
+
+                    try {
+                        const { error: logError } = await adminSupabase.from('ai_logs').insert({
+                            user_id: user.id,
+                            type: 'chat',
+                            model: model,
+                            input_snippet: typeof lastUserMessage === 'string' ? lastUserMessage.substring(0, 2000) : JSON.stringify(lastUserMessage).substring(0, 2000),
+                            output_snippet: text.substring(0, 2000),
+                            meta: {
+                                full_output: text, // Store full output for debugging
+                                finishReason,
+                                messages_count: messages.length,
+                                model_mode: mode
+                            },
+                            status: 'success',
+                            duration_ms: duration
+                        });
+
+                        if (logError) console.error('[Chat API] Failed to log success:', logError);
+                    } catch (err) {
+                        console.error('[Chat API] Failed to log success (exception):', err);
+                    }
+                }
+            },
         });
 
         console.log('[Chat API] OpenRouter API call successful, streaming response...');
@@ -268,6 +301,34 @@ export async function POST(req: Request) {
             } else if (error.message.includes('model')) {
                 errorMessage = '模型配置错误: ' + error.message;
             }
+        }
+
+        // Log Error to DB
+        try {
+            const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+            if (serviceRoleKey) {
+                // Re-create client in catch block if needed, or assume we can't access parent scope easily if try block failed early
+                // But we can try to use a fresh client for logging
+                const logClient = createSupabaseClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    serviceRoleKey
+                );
+
+                // Try to extract user ID if possible (might be undefined if auth failed)
+                // We'll peek at req if needed, but for now let's just log what we have
+
+                await logClient.from('ai_logs').insert({
+                    type: 'chat',
+                    status: 'error',
+                    error: errorMessage,
+                    meta: {
+                        raw_error: error instanceof Error ? error.message : String(error),
+                        stack: error instanceof Error ? error.stack : undefined
+                    }
+                });
+            }
+        } catch (logErr) {
+            console.error('Failed to log error to DB:', logErr);
         }
 
         return new Response(

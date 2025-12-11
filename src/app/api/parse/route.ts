@@ -15,7 +15,10 @@ const cleanPageContent = (html: string): string => {
     return html.replace(/```html\s*/gi, '').replace(/```\s*/g, '');
 };
 
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
 export async function POST(req: Request) {
+    const startTime = Date.now();
     try {
         const { content } = (await req.json()) as ParseRequest;
 
@@ -103,9 +106,44 @@ export async function POST(req: Request) {
             }
         }
 
+        // Insert logging before return
+        try {
+            if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                const supabase = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY);
+                await supabase.from('ai_logs').insert({
+                    type: 'parse',
+                    status: pages.length > 0 ? 'success' : 'warning', // Warning if no pages found
+                    input_snippet: content ? content.substring(0, 500) : '',
+                    output_snippet: JSON.stringify(pages).substring(0, 500),
+                    duration_ms: Date.now() - startTime,
+                    meta: {
+                        pages_count: pages.length,
+                        page_paths: pages.map(p => p.path),
+                        full_content_length: content ? content.length : 0
+                    }
+                });
+            }
+        } catch (logErr) {
+            console.error('[API/Parse] Failed to log:', logErr);
+        }
+
         return NextResponse.json({ pages });
 
     } catch (error: any) {
+        // Log Error to DB
+        try {
+            if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                const supabase = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY);
+                await supabase.from('ai_logs').insert({
+                    type: 'parse',
+                    status: 'error',
+                    error: error.message,
+                    duration_ms: Date.now() - startTime,
+                    meta: { stack: error.stack }
+                });
+            }
+        } catch (logErr) { console.error('Failed to log error:', logErr); }
+
         console.error('[API/Parse] Error parsing content:', error);
         return NextResponse.json(
             { error: 'Failed to parse content', details: error.message },

@@ -1,8 +1,8 @@
 import { Page, expect } from '@playwright/test';
 
 export const TEST_USER = {
-    email: 'admin@dao123.me',
-    password: 'ningping'
+    email: process.env.TEST_EMAIL || 'admin@dao123.me',
+    password: process.env.TEST_PASSWORD || 'ningping'
 };
 
 export async function login(page: Page) {
