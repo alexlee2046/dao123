@@ -3,7 +3,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useStudioStore, type Page } from '@/lib/store';
 import { generateSitePlan } from '@/app/actions/architect';
 import { generateSection, generateDesignSystem } from '@/app/actions/ai';
-import { mergeSectionsToCraftJson, sectionsToHtml, convertToCraftJson } from '@/lib/ai/transformer';
+import { sectionsToHtml } from '@/lib/ai/transformer';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 
@@ -13,7 +13,6 @@ export function useAgentOrchestrator() {
     const {
         selectedModel,
         setPages,
-        setBuilderData,
         toggleBuilderMode,
         isBuilderMode,
         pages: currentPages,
@@ -83,7 +82,6 @@ export function useAgentOrchestrator() {
                         newPagesMap.set(p.path, {
                             path: p.path,
                             content: '<div class="flex items-center justify-center h-screen bg-gray-50 text-gray-400"><h1>Construction in progress...</h1></div>',
-                            content_json: undefined, // Will be filled by builder
                             status: 'pending'
                         });
                         pagesToBuild.push(p);
@@ -160,7 +158,6 @@ export function useAgentOrchestrator() {
 
                             if (isBuildingStopped.current) return;
 
-                            const craftJson = mergeSectionsToCraftJson(builtSections);
                             const html = sectionsToHtml(builtSections);
 
                             // Update Store
@@ -169,7 +166,6 @@ export function useAgentOrchestrator() {
                                     p.path === pagePlan.path ? {
                                         ...p,
                                         content: html,
-                                        content_json: craftJson,
                                         status: 'complete'
                                     } : p
                                 )
@@ -213,12 +209,12 @@ export function useAgentOrchestrator() {
 
                 if (isBuildingStopped.current) return;
 
-                const builderJson = convertToCraftJson(componentSchema); // Single component wrapper
+                const html = sectionsToHtml([componentSchema]);
 
-                // If in builder mode, set data directly. If not, maybe switch?
+                // If in builder mode, set data directly.
                 // The requirements say "Generates Builder Component directly".
 
-                setBuilderData(builderJson);
+                setHtmlContent(html);
 
                 // If not in builder mode, switch to it to show the result
                 if (!isBuilderMode) {
@@ -292,7 +288,7 @@ export function useAgentOrchestrator() {
                 description: '💡 提示：可以尝试切换到其他模型',
             });
         }
-    }, [selectedModel, currentPages, setPages, setBuilderData, isBuilderMode, toggleBuilderMode]);
+    }, [selectedModel, currentPages, setPages, isBuilderMode, toggleBuilderMode]);
 
     return {
         currentStep,

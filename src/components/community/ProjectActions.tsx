@@ -19,7 +19,7 @@ interface ProjectActionsProps {
 export function ProjectActions({ projectId, price, hasAccess, projectData }: ProjectActionsProps) {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
-    const { setHtmlContent, setPages, setCurrentProject, setBuilderData } = useStudioStore()
+    const { setHtmlContent, setPages, setCurrentProject } = useStudioStore()
     const t = useTranslations('community')
     const tCommon = useTranslations('common')
     const locale = useLocale()
@@ -42,19 +42,11 @@ export function ProjectActions({ projectId, price, hasAccess, projectData }: Pro
         if (projectData.content?.pages && projectData.content.pages.length > 0) {
             setPages(projectData.content.pages)
             setCurrentProject(null)
-            // 如果有 content_json，也要复制
-            if (projectData.content_json) {
-                setBuilderData(JSON.stringify(projectData.content_json))
-            }
             toast.success(t('cloneSuccess'))
             router.push(`/${locale}/studio/new`)
         } else if (projectData.content?.html) {
             setHtmlContent(projectData.content.html)
             setCurrentProject(null)
-            // 如果有 content_json，也要复制
-            if (projectData.content_json) {
-                setBuilderData(JSON.stringify(projectData.content_json))
-            }
             toast.success(t('cloneSuccess'))
             router.push(`/${locale}/studio/new`)
         } else {
