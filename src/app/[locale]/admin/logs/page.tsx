@@ -119,14 +119,14 @@ export default function AiLogsPage() {
 
                                                             <div>
                                                                 <h4 className="text-sm font-semibold mb-2">Input</h4>
-                                                                <pre className="bg-muted p-4 rounded-lg text-xs whitespace-pre-wrap font-mono overflow-auto max-h-[300px]">
+                                                                <pre className="bg-muted p-4 rounded-lg text-xs whitespace-pre-wrap font-mono break-all">
                                                                     {log.input_snippet}
                                                                 </pre>
                                                             </div>
 
                                                             <div>
                                                                 <h4 className="text-sm font-semibold mb-2">Output / Error</h4>
-                                                                <pre className="bg-muted p-4 rounded-lg text-xs whitespace-pre-wrap font-mono overflow-auto max-h-[400px]">
+                                                                <pre className="bg-muted p-4 rounded-lg text-xs whitespace-pre-wrap font-mono break-all">
                                                                     {log.meta?.full_output || log.output_snippet || log.error}
                                                                 </pre>
                                                             </div>
@@ -134,7 +134,7 @@ export default function AiLogsPage() {
                                                             {log.meta && (
                                                                 <div>
                                                                     <h4 className="text-sm font-semibold mb-2">Metadata</h4>
-                                                                    <pre className="bg-muted p-4 rounded-lg text-xs whitespace-pre-wrap font-mono overflow-auto max-h-[200px]">
+                                                                    <pre className="bg-muted p-4 rounded-lg text-xs whitespace-pre-wrap font-mono break-all">
                                                                         {JSON.stringify(log.meta, null, 2)}
                                                                     </pre>
                                                                 </div>
