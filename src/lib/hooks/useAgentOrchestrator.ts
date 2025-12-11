@@ -39,6 +39,15 @@ export function useAgentOrchestrator() {
     const startGeneration = useCallback(async (prompt: string, mode: 'chat' | 'builder' | 'architect' = 'builder') => {
         isBuildingStopped.current = false;
 
+        // Validate and fallback model if empty
+        const modelToUse = selectedModel && selectedModel.trim() !== ''
+            ? selectedModel
+            : 'anthropic/claude-3.5-sonnet'; // Default fallback
+
+        if (!selectedModel || selectedModel.trim() === '') {
+            console.warn('[AgentOrchestrator] Empty model, using fallback:', modelToUse);
+        }
+
         try {
             // Heuristic: If prompt implies multiple pages or "site", switch to architect mode
             const isSiteRequest = /site|website|portfolio|pages|full/i.test(prompt);
@@ -51,7 +60,7 @@ export function useAgentOrchestrator() {
                 setProgress(5);
 
                 // 1. Generate Site Plan
-                const planResult = await generateSitePlan(prompt, selectedModel);
+                const planResult = await generateSitePlan(prompt, modelToUse);
 
                 if (isBuildingStopped.current) return;
 
@@ -97,7 +106,7 @@ export function useAgentOrchestrator() {
 
                 let designSystem;
                 try {
-                    designSystem = await generateDesignSystem(prompt, selectedModel);
+                    designSystem = await generateDesignSystem(prompt, modelToUse);
                 } catch (e) {
                     console.warn("Design system generation failed, using defaults", e);
                     designSystem = {
@@ -144,7 +153,7 @@ export function useAgentOrchestrator() {
                                     section.type,
                                     section.description,
                                     designSystem,
-                                    selectedModel
+                                    modelToUse
                                 );
                                 builtSections.push(component);
                             }
@@ -199,7 +208,7 @@ export function useAgentOrchestrator() {
                     'Custom Component',
                     prompt,
                     designSystem,
-                    selectedModel
+                    modelToUse
                 );
 
                 if (isBuildingStopped.current) return;

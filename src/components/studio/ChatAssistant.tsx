@@ -78,20 +78,18 @@ export function ChatAssistant() {
 
     // Auto-trigger generation if pendingPrompt exists (from project creation)
     useEffect(() => {
-        if (pendingPrompt && models.length > 0 && !pendingPromptProcessedRef.current) {
+        // Wait for both models to be loaded AND selectedModel to be valid
+        const isModelValid = selectedModel && selectedModel.trim() !== '';
+        if (pendingPrompt && models.length > 0 && isModelValid && !pendingPromptProcessedRef.current) {
             pendingPromptProcessedRef.current = true;
 
             // Clear the pending prompt FIRST to avoid loops
             setPendingPrompt(null);
 
             // Call handleSend directly immediately
-            // We use a small timeout ONLY to ensure state (models) is fully settled if needed, 
-            // but usually we can just call it. 
-            // However, handleSend relies on 'localInput' or argument.
-            // We'll pass the prompt as argument.
             handleSend(pendingPrompt);
         }
-    }, [pendingPrompt, models, setPendingPrompt]);
+    }, [pendingPrompt, models, selectedModel, setPendingPrompt]);
 
     // Use refs to keep latest state accessible in event handlers if needed, 
     // but for useChat body we can use the state directly as it re-renders.
@@ -215,6 +213,13 @@ export function ChatAssistant() {
     const handleSend = async (contentOverride?: string) => {
         const contentToSend = typeof contentOverride === 'string' ? contentOverride : localInput;
         if (!contentToSend.trim()) return;
+
+        // Validate model is selected before sending
+        if (!selectedModel || selectedModel.trim() === '') {
+            toast.error('请先选择一个模型');
+            console.error('[ChatAssistant] Cannot send: model not selected');
+            return;
+        }
 
         // Reset stop flag
         // isBuildingStopped.current = false; // Handled by hook
