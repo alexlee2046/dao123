@@ -6,7 +6,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getDefaultModel } from '@/lib/actions/models';
 
 export const runtime = 'edge';
-export const maxDuration = 60; // Allow strictly longer execution for AI generation
+export const maxDuration = 300; // Allow strictly longer execution for AI generation
 
 export async function POST(req: Request) {
     try {
@@ -245,7 +245,7 @@ export async function POST(req: Request) {
             messages: convertToModelMessages(cleanMessages),
             onFinish: async ({ text, finishReason }) => {
                 const duration = Date.now() - startTime;
-                console.log(`[Chat API] Generation completed in ${duration}ms over ${text.length} chars.`);
+                console.log(`[Chat API] Generation completed in ${duration}ms over ${text.length} chars. Finish Reason: ${finishReason}`);
 
                 if (adminSupabase) {
                     const lastUserMessage = cleanMessages.filter((m: any) => m.role === 'user').pop()?.content || '';

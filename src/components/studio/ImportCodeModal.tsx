@@ -13,13 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useStudioStore } from "@/lib/store";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { htmlToCraftData } from '@/lib/builder/htmlInfoCraft';
 
 export function ImportCodeModal({ children }: { children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
     const [code, setCode] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
-    const { setBuilderData, isBuilderMode, toggleBuilderMode } = useStudioStore();
+    const { setHtmlContent } = useStudioStore();
 
     const handleImport = async () => {
         if (!code.trim()) return;
@@ -28,7 +27,7 @@ export function ImportCodeModal({ children }: { children: React.ReactNode }) {
             setIsProcessing(true);
             let htmlToProcess = code;
 
-            // Check if input is a URL (simple check) or if we should try recognition
+            // Check if input is a URL (simple check)
             const isUrl = /^(http|https):\/\/[^ "]+$/.test(code.trim());
 
             if (isUrl) {
@@ -46,28 +45,22 @@ export function ImportCodeModal({ children }: { children: React.ReactNode }) {
                         toast.success(`Extracted content: ${data.title}`);
                     }
                 } else {
-                    console.warn("Recognition failed, falling back to raw input");
+                    console.warn("Recognition failed, using URL as is");
+                    toast.error("Could not fetch URL content. Please paste HTML directly.");
+                    setIsProcessing(false);
+                    return;
                 }
             }
 
-            // Convert HTML to Craft Data
-            const craftJson = htmlToCraftData(htmlToProcess);
+            // Directly update HTML content for GrapesJS
+            setHtmlContent(htmlToProcess);
 
-            // Update Store
-            setBuilderData(craftJson);
-            // Also update the HTML content to keep it in sync for preview
-            useStudioStore.getState().setHtmlContent(htmlToProcess);
-
-            // Switch to Builder Mode if not active
-            if (!isBuilderMode) {
-                toggleBuilderMode();
-            }
-
-            toast.success("Content imported successfully");
+            toast.success("Content imported successfully!");
             setIsOpen(false);
             setCode('');
-        } catch (error) {
-            console.error("Import failed:", error);
+
+        } catch (error: any) {
+            console.error('Import error:', error);
             toast.error("Failed to import content");
         } finally {
             setIsProcessing(false);

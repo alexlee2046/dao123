@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2, X } from "lucide-react";
+import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2, X, Bug, Layout, Grid, Mail, CreditCard } from "lucide-react";
 import {
     Select,
     SelectContent,
@@ -45,6 +45,7 @@ export function ChatAssistant() {
         setSelectedModel,
         pendingPrompt,
         setPendingPrompt,
+        setAiGeneratedCache, // 缓存 AI 生成的内容
     } = useStudioStore();
 
 
@@ -57,6 +58,15 @@ export function ChatAssistant() {
     const [uploading, setUploading] = useState(false);
     // 本地聊天素材状态 - 只显示用户在聊天中上传的素材
     const [chatAssets, setChatAssets] = useState<ChatAsset[]>([]);
+
+    // Debug info state
+    const [debugInfo, setDebugInfo] = useState<{
+        length?: number;
+        extractStatus?: string;
+        previewSnippet?: string;
+        error?: string;
+    } | null>(null);
+    const [showDebug, setShowDebug] = useState(false);
 
     const [mode, setMode] = useState<'chat' | 'builder'>('chat');
 
@@ -136,82 +146,153 @@ export function ChatAssistant() {
                 description: hint || undefined,
             });
         },
-        onFinish: async (message: any) => {
-            // Extract content - support both text and parts
-            let content = '';
-            if (typeof message.content === 'string') {
-                content = message.content;
-            } else if (message.parts) {
-                content = message.parts
-                    .filter((part: any) => part.type === 'text')
-                    .map((part: any) => part.text)
-                    .join('');
-            }
+        // onFinish removed in favor of real-time monitoring below
+    });
 
-            if (!content) return;
+    // Track previous message count to detect new messages
+    const lastMsgContentRef = useRef('');
 
-            // Log raw content for client-side debugging
-            console.log('[ChatAssistant] Raw AI response length:', content.length);
-            console.log('[ChatAssistant] Raw AI response content (first 200 chars):', content.substring(0, 200));
+    // Real-time monitoring of the last assistant message
+    useEffect(() => {
+        const lastMsg = messages[messages.length - 1];
 
-            // 优先尝试客户端提取，避免不必要的 API 调用
-            const extractedHtml = extractHtml(content);
-            if (extractedHtml) {
-                console.log('[ChatAssistant] Successfully extracted HTML on client side, length:', extractedHtml.length);
-            } else {
-                console.warn('[ChatAssistant] Failed to extract HTML on client side');
-            }
+        // Only proceed if it's an assistant message AND we are streaming or just finished
+        if (!lastMsg || lastMsg.role !== 'assistant') return;
 
-            try {
-                // Call backend API for robust parsing
-                const response = await fetch('/api/parse', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content })
+        let currentContent = '';
+        const msgAny = lastMsg as any;
+        if (typeof msgAny.content === 'string') {
+            currentContent = msgAny.content;
+        } else if (msgAny.parts) {
+            currentContent = msgAny.parts
+                .filter((part: any) => part.type === 'text')
+                .map((part: any) => part.text)
+                .join('');
+        }
+
+        if (!currentContent) return;
+
+        // Update debug info in real-time
+        if (currentContent.length !== lastMsgContentRef.current.length) {
+            lastMsgContentRef.current = currentContent;
+            setDebugInfo(prev => ({
+                ...prev,
+                length: currentContent.length,
+                extractStatus: 'Streaming...',
+                previewSnippet: currentContent.substring(0, 50) + '...' + currentContent.substring(currentContent.length - 50),
+            }));
+        }
+
+        // If status went from streaming to submitted/ready, OR if we have a significant length and status is no longer 'streaming'
+        // Note: useChat status can be 'streaming', 'submitted', 'ready', 'error'
+
+        if (status !== 'streaming' && currentContent.length > 0) {
+            // Debounce final parsing slightly to ensure we have everything
+            const timer = setTimeout(() => {
+                handleFinalParsing(currentContent);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+
+    }, [messages, status]);
+
+    const handleFinalParsing = async (content: string) => {
+        console.log('[ChatAssistant] Starting final parsing, content length:', content.length);
+
+        // Update debug info
+        const extractedHtml = extractHtml(content);
+        setDebugInfo({
+            length: content.length,
+            extractStatus: extractedHtml ? 'Success (Client)' : 'Failed (Client)',
+            previewSnippet: content.substring(0, 50) + '...' + content.substring(content.length - 50),
+        });
+
+        if (extractedHtml) {
+            console.log('[ChatAssistant] Successfully extracted HTML on client side directly.');
+        } else {
+            console.warn('[ChatAssistant] Client-side extraction failed.');
+        }
+
+        try {
+            // Call backend API for robust parsing
+            const response = await fetch('/api/parse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+
+            if (!response.ok) throw new Error(`Parsing failed with status ${response.status}`);
+
+            const { pages } = await response.json();
+
+            if (pages && pages.length > 0) {
+                const currentPages = useStudioStore.getState().pages;
+                const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
+                pages.forEach((p: Page) => mergedPagesMap.set(p.path, p));
+                const finalPages = Array.from(mergedPagesMap.values());
+
+                console.log('[ChatAssistant] Setting pages:', {
+                    count: finalPages.length,
+                    paths: finalPages.map(p => p.path),
+                    contentLengths: finalPages.map(p => ({ path: p.path, length: p.content?.length || 0 }))
                 });
 
-                if (!response.ok) {
-                    throw new Error('Parsing failed');
-                }
+                setPages(finalPages);
 
-                const { pages } = await response.json();
-
-                if (pages && pages.length > 0) {
-                    // Merge with existing pages
-                    const currentPages = useStudioStore.getState().pages;
-                    const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
-
-                    pages.forEach((p: Page) => {
-                        mergedPagesMap.set(p.path, p);
+                // 缓存 AI 生成的 HTML（取第一个页面的内容）
+                const primaryPage = finalPages.find(p => p.path === 'index.html') || finalPages[0];
+                if (primaryPage?.content) {
+                    setAiGeneratedCache(primaryPage.content);
+                    console.log('[ChatAssistant] ✅ Cached AI generated content:', {
+                        path: primaryPage.path,
+                        length: primaryPage.content.length,
+                        preview: primaryPage.content.substring(0, 100)
                     });
 
-                    setPages(Array.from(mergedPagesMap.values()));
-                    toast.success(t('chatPanel.previewUpdated'));
-                    return;
-                }
-            } catch (error) {
-                console.error('[ChatAssistant] Parsing API error, falling back to client parser:', error);
-                // Fallback to client-side parser if API fails
-                const newPages = parseMultiPageResponse(content);
-                if (newPages.length > 0) {
-                    const currentPages = useStudioStore.getState().pages;
-                    const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
-                    newPages.forEach(p => {
-                        mergedPagesMap.set(p.path, p);
+                    // 同时确保 htmlContent 也被更新
+                    const storeState = useStudioStore.getState();
+                    console.log('[ChatAssistant] Store state after cache:', {
+                        htmlContentLength: storeState.htmlContent?.length,
+                        cacheExists: !!storeState.aiGeneratedCache,
+                        cacheLength: storeState.aiGeneratedCache?.html?.length
                     });
-                    setPages(Array.from(mergedPagesMap.values()));
-                    return;
+                } else {
+                    console.warn('[ChatAssistant] ⚠️ No primary page content to cache!');
                 }
-            }
 
-            // Legacy single page fallback (if no pages found by either method)
-            if (extractedHtml) {
-                setHtmlContent(extractedHtml);
-                // Force builder to re-convert from new HTML since we have no JSON
-                useStudioStore.getState().setBuilderData(null);
+                toast.success(t('chatPanel.previewUpdated'));
+                return;
             }
-        },
-    } as any) as any;
+        } catch (error) {
+            console.error('[ChatAssistant] Parsing API error:', error);
+            // Fallback
+            const newPages = parseMultiPageResponse(content);
+            if (newPages.length > 0) {
+                const currentPages = useStudioStore.getState().pages;
+                const mergedPagesMap = new Map(currentPages.map(p => [p.path, p]));
+                newPages.forEach(p => mergedPagesMap.set(p.path, p));
+                const finalPages = Array.from(mergedPagesMap.values());
+                setPages(finalPages);
+
+                // 缓存 fallback 解析的内容
+                const primaryPage = finalPages.find(p => p.path === 'index.html') || finalPages[0];
+                if (primaryPage?.content) {
+                    setAiGeneratedCache(primaryPage.content);
+                }
+
+                toast.success(t('chatPanel.previewUpdated'));
+                return;
+            }
+        }
+
+        // Final fallback
+        if (extractedHtml) {
+            setHtmlContent(extractedHtml);
+            setAiGeneratedCache(extractedHtml); // 也缓存这个
+            // Removed deprecated setBuilderData call
+            toast.success(t('chatPanel.previewUpdated'));
+        }
+    };
 
     const isLoading = status === 'streaming' || status === 'submitted' || uploading;
 
@@ -345,7 +426,17 @@ export function ChatAssistant() {
                     </div>
                 </div>
 
-                {/* Model Selection is now in Footer or can be moved here if desired, but removing the complex Popover */}
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn("h-7 w-7 p-0", showDebug ? "text-primary bg-primary/10" : "text-muted-foreground")}
+                        onClick={() => setShowDebug(!showDebug)}
+                        title="Toggle Debug Info"
+                    >
+                        <Bug className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
 
             {/* Messages Area */}
@@ -397,13 +488,35 @@ export function ChatAssistant() {
                     )}
 
                     {messages.length === 0 && currentStep === 'idle' && (
-                        <div className="flex flex-col items-center justify-center h-[300px] text-center space-y-4 opacity-50">
-                            <div className="h-12 w-12 rounded-full bg-primary/5 flex items-center justify-center relative">
-                                <Sparkles className="h-6 w-6 text-primary/50" />
-                            </div>
-                            <div className="space-y-1">
-                                <p className="font-medium text-sm">{t('chatPanel.emptyTitle')}</p>
-                                <p className="text-xs text-muted-foreground">{t('chatPanel.emptyDesc')}</p>
+                        <div className="flex flex-col h-full">
+                            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 opacity-100 mt-10">
+                                <div className="space-y-2">
+                                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center mx-auto mb-4 border border-border/50 shadow-sm">
+                                        <Sparkles className="h-8 w-8 text-primary" />
+                                    </div>
+                                    <h2 className="font-semibold text-lg text-foreground tracking-tight">{t('chatPanel.emptyTitle')}</h2>
+                                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">{t('chatPanel.emptyDesc')}</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 w-full max-w-[320px] px-2">
+                                    {[
+                                        { label: 'Hero Section', prompt: 'Create a modern hero section with a headline, subheadline, and two buttons.', icon: Layout },
+                                        { label: 'Feature Grid', prompt: 'Add a features section with 3 columns and icons.', icon: Grid },
+                                        { label: 'Newsletter', prompt: 'Create a clean newsletter signup section.', icon: Mail },
+                                        { label: 'Pricing', prompt: 'Generate a pricing table with 3 tiers.', icon: CreditCard },
+                                    ].map((item, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleSend(item.prompt)}
+                                            className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-muted/30 border border-border/40 hover:bg-muted/80 hover:border-primary/30 hover:shadow-md transition-all duration-300 group text-left"
+                                        >
+                                            <div className="p-2 rounded-full bg-background/50 group-hover:bg-primary/10 transition-colors">
+                                                <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                            </div>
+                                            <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">{item.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -441,9 +554,9 @@ export function ChatAssistant() {
                                             </div>
                                             <div className="text-[10px] opacity-90 flex items-center gap-1.5 bg-background/10 rounded px-2 py-1">
                                                 {isLoading && msg.id === messages[messages.length - 1].id ? (
-                                                    <><span className="animate-pulse text-yellow-400">⚡</span><span>{t('chatPanel.coding')}</span></>
+                                                    <><span className="animate-pulse text-yellow-500">⚡</span><span>{t('chatPanel.coding')}</span></>
                                                 ) : (
-                                                    <><span className="text-emerald-400">✅</span><span>{t('chatPanel.previewUpdated')}</span></>
+                                                    <><span className="text-emerald-500">✅</span><span>{t('chatPanel.previewUpdated')}</span></>
                                                 )}
                                             </div>
                                         </div>
@@ -465,11 +578,40 @@ export function ChatAssistant() {
                             <div className="px-3 py-2 rounded-2xl rounded-tl-sm bg-muted/50 border border-border/50 flex items-center gap-2">
                                 <Loader2 className="h-3 w-3 animate-spin text-primary" />
                                 <span className="text-xs text-muted-foreground font-medium">{t('chatPanel.thinking')}</span>
-                                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-destructive ml-1" onClick={() => stop()}>{t('chatPanel.stop')}</Button>
+                                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-destructive ml-1" onClick={handleStopBuild}>{t('chatPanel.stop')}</Button>
                             </div>
                         </div>
                     )}
                     <div ref={scrollRef} />
+
+                    {/* Debug Info Panel */}
+                    {(debugInfo && showDebug) && (
+                        <div className="mt-4 p-3 bg-card rounded-md text-xs font-mono border border-border shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+                            <div className="flex items-center justify-between mb-2 pb-2 border-b border-border/50">
+                                <span className="font-bold text-primary flex items-center gap-2">
+                                    <Bug className="h-3 w-3" /> Debug Info
+                                </span>
+                                <Button variant="ghost" size="sm" className="h-4 w-4 p-0 hover:bg-muted" onClick={() => setShowDebug(false)}><X className="h-3 w-3" /></Button>
+                            </div>
+                            <div className="space-y-1.5 text-muted-foreground">
+                                <div className="flex justify-between">
+                                    <span>Length:</span>
+                                    <span className="text-foreground font-medium">{debugInfo?.length || 0} chars</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Status:</span>
+                                    <span className={cn("font-medium", debugInfo?.extractStatus?.includes('Success') ? "text-emerald-500" : "text-amber-500")}>{debugInfo?.extractStatus || 'Waiting...'}</span>
+                                </div>
+                                <div className="mt-2 text-[10px] text-muted-foreground/70">Raw Snippet:</div>
+                                <div className="bg-muted/50 p-2 rounded border border-border/50 text-[10px] whitespace-pre-wrap break-all h-20 overflow-y-auto custom-scrollbar">
+                                    {debugInfo?.previewSnippet || 'No content yet...'}
+                                </div>
+                                {debugInfo?.error && (
+                                    <p className="text-destructive font-semibold mt-1">Error: {debugInfo.error}</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </ScrollArea>
 
@@ -530,35 +672,33 @@ export function ChatAssistant() {
                     </div>
                 </div>
                 <div className="mt-2 flex items-center justify-between px-1">
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5 border border-border/50">
-                            <Button
-                                variant={mode === 'chat' ? 'secondary' : 'ghost'}
-                                size="sm"
-                                onClick={() => setMode('chat')}
-                                data-testid="mode-toggle-chat"
-                                className={cn("h-6 text-[10px] px-2 rounded-md", mode === 'chat' ? "bg-background shadow-sm text-primary" : "text-muted-foreground")}
-                            >
-                                Default
-                            </Button>
-                            <Button
-                                variant={mode === 'builder' ? 'secondary' : 'ghost'}
-                                size="sm"
-                                onClick={() => setMode('builder')}
-                                data-testid="mode-toggle-builder"
-                                className={cn("h-6 text-[10px] px-2 rounded-md", mode === 'builder' ? "bg-background shadow-sm text-primary" : "text-muted-foreground")}
-                                title="Generates Builder Component directly (Strategy A)"
-                            >
-                                <span className="mr-1">⚡</span>Builder
-                            </Button>
-                        </div>
+                    <div className="flex bg-muted/30 p-0.5 rounded-lg border border-border/30">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setMode('chat')}
+                            data-testid="mode-toggle-chat"
+                            className={cn("h-6 text-[10px] px-3 rounded-md transition-all", mode === 'chat' ? "bg-background shadow-sm text-primary font-medium" : "text-muted-foreground hover:bg-muted/50")}
+                        >
+                            Chat
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setMode('builder')}
+                            data-testid="mode-toggle-builder"
+                            className={cn("h-6 text-[10px] px-3 rounded-md transition-all", mode === 'builder' ? "bg-background shadow-sm text-primary font-medium" : "text-muted-foreground hover:bg-muted/50")}
+                        >
+                            Builder ⚡
+                        </Button>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <GuideModal onComplete={(prompt) => handleSend(prompt)} />
+                    <div className="flex items-center gap-2">
+                        {/* GuideModal removed as requested */}
                         <Select value={selectedModel} onValueChange={setSelectedModel}>
-                            <SelectTrigger className="h-7 text-xs border-none bg-muted/50 focus:ring-0 px-2 text-foreground hover:bg-muted w-auto min-w-[140px] justify-end rounded-lg">
-                                <SelectValue placeholder={models.length > 0 ? t('chatPanel.selectModel') : t('chatPanel.noModelsAvailable')} />
+                            <SelectTrigger className="h-7 text-xs border-none bg-muted/30 focus:ring-0 px-2 text-foreground hover:bg-muted/50 transition-colors w-auto min-w-[120px] justify-end rounded-lg gap-2">
+                                <span className="text-muted-foreground/50 text-[10px] hidden sm:inline">Model:</span>
+                                <SelectValue placeholder={t('chatPanel.selectModel')} />
                             </SelectTrigger>
                             <SelectContent align="end" className="w-[300px]">
                                 {models.map(m => (

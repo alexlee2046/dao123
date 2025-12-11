@@ -31,6 +31,8 @@ export function convertToCraftJson(componentTree: ComponentNode): string {
     };
 
     function traverse(node: ComponentNode, parentId: string) {
+
+
         const id = nanoid(10);
         if (nodes[parentId]) {
             nodes[parentId].nodes.push(id);
@@ -72,6 +74,8 @@ export function mergeSectionsToCraftJson(sections: ComponentNode[]): string {
     };
 
     function traverse(node: ComponentNode, parentId: string) {
+
+
         const id = nanoid(10);
         nodes[parentId].nodes.push(id);
 
@@ -97,10 +101,10 @@ export function mergeSectionsToCraftJson(sections: ComponentNode[]): string {
 
 export function componentNodeToHtml(node: ComponentNode): string {
     const { type, props, children } = node;
-    
+
     // Mapping Builder components to HTML tags
     let tagName = 'div';
-    
+
     if (type === 'BuilderText') {
         tagName = props.tag || 'p';
     } else if (type === 'BuilderButton') {
@@ -126,30 +130,30 @@ export function componentNodeToHtml(node: ComponentNode): string {
     if ('href' in props && props.href) attributes.push(`href="${props.href}"`);
     if ('src' in props && props.src) attributes.push(`src="${props.src}"`);
     if ('alt' in props && props.alt) attributes.push(`alt="${props.alt}"`);
-    
+
     const attrStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
-    
+
     // Self-closing tags
     if (tagName === 'img' || tagName === 'br' || tagName === 'hr') {
         return `<${tagName}${attrStr} />`;
     }
-    
+
     // Children content
     let childrenHtml = '';
     if ('text' in props && props.text) {
         childrenHtml += props.text;
     }
-    
+
     if (children && children.length > 0) {
         childrenHtml += children.map(componentNodeToHtml).join('');
     }
-    
+
     return `<${tagName}${attrStr}>${childrenHtml}</${tagName}>`;
 }
 
 export function sectionsToHtml(sections: ComponentNode[]): string {
     const bodyContent = sections.map(componentNodeToHtml).join('\n');
-    
+
     return `<!DOCTYPE html>
 <html>
 <head>

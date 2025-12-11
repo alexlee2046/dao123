@@ -196,6 +196,7 @@
     },
     "studio": {
         "title": "工作室",
+        "loading": "加载中...",
         "selectPage": "选择页面",
         "canvas": "画布",
         "components": "组件",

@@ -27,7 +27,7 @@ const emptyHtmlTemplate = `
 
 export const PagesPanel = () => {
     const t = useTranslations('studio');
-    const { pages, setPages, currentPage, setCurrentPage, htmlContent, builderData } = useStudioStore();
+    const { pages, setPages, currentPage, setCurrentPage, htmlContent } = useStudioStore();
     const [isCreating, setIsCreating] = React.useState(false);
     const [newPageName, setNewPageName] = React.useState('');
     const [cloneCurrent, setCloneCurrent] = React.useState(false);
@@ -56,7 +56,7 @@ export const PagesPanel = () => {
         const newPage = {
             path: finalPath,
             content: cloneCurrent ? htmlContent : emptyHtmlTemplate,
-            content_json: cloneCurrent ? (builderData || undefined) : undefined
+            // content_json removed
         };
 
         setPages([...pages, newPage]);

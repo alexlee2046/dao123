@@ -196,6 +196,7 @@
     },
     "studio": {
         "title": "Studio",
+        "loading": "Loading...",
         "selectPage": "Select Page",
         "canvas": "Canvas",
         "components": "Components",

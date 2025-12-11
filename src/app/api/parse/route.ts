@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 
 export const runtime = 'nodejs'; // Cheerio usage prefers nodejs runtime usually, though it can run on edge, node is safer for large payloads and logging
+export const maxDuration = 300;
 
 interface ParseRequest {
     content: string;

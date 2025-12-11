@@ -1,0 +1,93 @@
+--- Log cleared Fri Dec 12 02:44:59 CST 2025 ---
+[2025-12-11T18:45:34.849Z] [INFO] [ConvertHtmlToCraft] Starting conversion
+  Data: {
+    "htmlLength": 9426,
+    "preview": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <script src=\"https:/"
+  }
+[2025-12-11T18:45:34.853Z] [INFO] [Parser] Starting HTML to Builder JSON conversion
+  Data: {
+    "inputLength": 9426,
+    "preview": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <script src=\"https://cdn.tailwindcss.com\"></script>\n</head>\n<body clas"
+  }
+[2025-12-11T18:45:34.891Z] [DEBUG] [Parser] Using CustomHTML for: nav
+[2025-12-11T18:45:34.894Z] [DEBUG] [Parser] Created CustomHTML node
+  Data: {
+    "id": "2uQqj0ztlxSv16jK6If5M",
+    "tagName": "nav",
+    "htmlLength": 1482
+  }
+[2025-12-11T18:45:34.902Z] [DEBUG] [Parser] Using CustomHTML for: footer
+[2025-12-11T18:45:34.903Z] [DEBUG] [Parser] Created CustomHTML node
+  Data: {
+    "id": "VTrr7LzVdjD4HXMhmcrEx",
+    "tagName": "footer",
+    "htmlLength": 1639
+  }
+[2025-12-11T18:45:34.904Z] [INFO] [Parser] Conversion complete
+  Data: {
+    "totalNodes": 49,
+    "rootChildren": 1,
+    "nodeTypeCounts": {
+      "BuilderContainer": 22,
+      "CustomHTML": 2,
+      "BuilderColumn": 1,
+      "BuilderText": 15,
+      "BuilderRow": 5,
+      "BuilderButton": 1,
+      "BuilderLink": 2,
+      "BuilderGrid": 1
+    }
+  }
+[2025-12-11T18:45:34.904Z] [INFO] [ConvertHtmlToCraft] Conversion successful
+  Data: {
+    "nodeCount": 49,
+    "durationMs": 55,
+    "rootNodes": 1,
+    "hasRoot": true
+  }
+[2025-12-11T18:53:57.210Z] [INFO] [ConvertHtmlToCraft] Starting conversion
+  Data: {
+    "htmlLength": 8576,
+    "preview": "<!DOCTYPE html><html lang=\"zh-CN\"><head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <ti"
+  }
+[2025-12-11T18:53:57.214Z] [INFO] [Parser] Starting HTML to Builder JSON conversion
+  Data: {
+    "inputLength": 8576,
+    "preview": "<!DOCTYPE html><html lang=\"zh-CN\"><head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>星辰物语 | 美女博客</title>\n    <script src=\"https://c"
+  }
+[2025-12-11T18:53:57.246Z] [DEBUG] [Parser] Using CustomHTML for: nav
+[2025-12-11T18:53:57.252Z] [DEBUG] [Parser] Created CustomHTML node
+  Data: {
+    "id": "p7bitCDHRKwBAlU9g-StE",
+    "tagName": "nav",
+    "htmlLength": 1346
+  }
+[2025-12-11T18:53:57.257Z] [DEBUG] [Parser] Using CustomHTML for: footer
+[2025-12-11T18:53:57.258Z] [DEBUG] [Parser] Created CustomHTML node
+  Data: {
+    "id": "Dtn2k6fd2PwzCcvTtlke0",
+    "tagName": "footer",
+    "htmlLength": 1223
+  }
+[2025-12-11T18:53:57.259Z] [INFO] [Parser] Conversion complete
+  Data: {
+    "totalNodes": 44,
+    "rootChildren": 5,
+    "nodeTypeCounts": {
+      "BuilderContainer": 15,
+      "CustomHTML": 2,
+      "BuilderText": 15,
+      "BuilderButton": 3,
+      "BuilderGrid": 1,
+      "BuilderImage": 4,
+      "BuilderLink": 3,
+      "BuilderColumn": 1
+    }
+  }
+[2025-12-11T18:53:57.260Z] [INFO] [ConvertHtmlToCraft] Conversion successful
+  Data: {
+    "nodeCount": 44,
+    "durationMs": 50,
+    "rootNodes": 5,
+    "hasRoot": true
+  }

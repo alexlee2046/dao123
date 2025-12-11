@@ -39,7 +39,7 @@ const emptyHtmlTemplate = `
 
 export function PageManager({ children }: { children: React.ReactNode }) {
     const t = useTranslations('studio')
-    const { pages, setPages, currentPage, setCurrentPage, htmlContent, builderData } = useStudioStore()
+    const { pages, setPages, currentPage, setCurrentPage, htmlContent } = useStudioStore()
     const [isOpen, setIsOpen] = useState(false)
     const [newPagePath, setNewPagePath] = useState('')
     const [cloneCurrent, setCloneCurrent] = useState(false) // 默认创建空白页面
@@ -66,7 +66,7 @@ export function PageManager({ children }: { children: React.ReactNode }) {
         const newPage: Page = {
             path: finalPath,
             content: cloneCurrent ? htmlContent : emptyHtmlTemplate,
-            content_json: cloneCurrent ? (builderData || undefined) : undefined
+            // content_json removed
         }
 
         setPages([...pages, newPage])
