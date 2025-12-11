@@ -41,7 +41,17 @@ describe('page-parser', () => {
 
         test('should fallback to raw content if it looks like HTML', () => {
             const content = '<div>Just a div</div>';
-            expect(extractHtml(content)).toBe('<div>Just a div</div>');
+            // Now scaffolds partial content
+            expect(extractHtml(content)).toContain('<!DOCTYPE html>');
+            expect(extractHtml(content)).toContain('<div>Just a div</div>');
+        });
+
+        test('should scaffold body content', () => {
+            const content = '<body>Content</body>';
+            const result = extractHtml(content);
+            expect(result).toContain('<!DOCTYPE html>');
+            expect(result).toContain('src="https://cdn.tailwindcss.com"');
+            expect(result).toContain('<body>Content</body>');
         });
 
         test('should return null for non-html content', () => {

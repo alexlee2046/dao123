@@ -12,20 +12,32 @@ export const cleanPageContent = (html: string): string => {
  */
 export const extractHtml = (content: string): string | null => {
     // 1. 尝试匹配 markdown 代码块
-    const htmlMatch = content.match(/```html\s*([\s\S]*?)```/i);
+    const htmlMatch = content.match(/```html\s*([\s\S]*?)```/i) || content.match(/```\s*([\s\S]*?)```/i);
     if (htmlMatch) {
         return htmlMatch[1];
     }
 
-    // 2. 尝试匹配标准 HTML 文档结构 (<!DOCTYPE html> ... </html> 或 <html> ... </html>)
+    // 2. 尝试匹配标准 HTML 文档结构
     const docMatch = content.match(/(<!DOCTYPE html[\s\S]*?<\/html>|<html[\s\S]*?<\/html>)/i);
     if (docMatch) {
         return docMatch[1];
     }
 
-    // 3. Fallback: 如果是一段纯 HTML (以 < 开头)
+    // 3. 尝试匹配 Body
+    const bodyMatch = content.match(/<body[\s\S]*?<\/body>/i);
+    if (bodyMatch) {
+        return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><script src="https://cdn.tailwindcss.com"></script></head>${bodyMatch[0]}</html>`;
+    }
+
+    // 4. 尝试匹配常见的块级标签片段 (针对 DeepSeek 等不返回完整 HTML 的情况)
+    const tagMatch = content.match(/<(div|main|section|header|nav|footer|article)[\s\S]*<\/\1>/i);
+    if (tagMatch) {
+        return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><script src="https://cdn.tailwindcss.com"></script></head><body>${tagMatch[0]}</body></html>`;
+    }
+
+    // 5. Fallback: 如果是一段纯 HTML (以 < 开头)
     if (content.trim().startsWith('<') && content.includes('>')) {
-        return content;
+        return content; // 依然返回原始内容，让浏览器尽力渲染
     }
     return null;
 };
