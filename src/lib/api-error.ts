@@ -130,3 +130,43 @@ export function assertCondition(
         throw new ApiBusinessError(code, message);
     }
 }
+
+/**
+ * 解析 OpenRouter 特定错误并返回用户友好的中文消息
+ * @returns 用户友好消息，如果不是 OpenRouter 特定错误则返回 null
+ */
+export function parseOpenRouterError(error: unknown): string | null {
+    const message = error instanceof Error ? error.message : String(error);
+
+    // Data policy / Free model publication error
+    if (message.includes('data policy') || message.includes('Free model publication')) {
+        return '当前模型需要数据共享许可。请在 OpenRouter 设置中开启数据共享，或联系管理员。';
+    }
+
+    // No endpoints found
+    if (message.includes('No endpoints found')) {
+        return '找不到可用的模型端点。请检查模型配置或稍后重试。';
+    }
+
+    // Rate limiting
+    if (message.includes('rate limit') || message.includes('Rate limit')) {
+        return 'API 调用频率过高，请稍后重试。';
+    }
+
+    // Model not found / unavailable
+    if (message.includes('model') && (message.includes('not found') || message.includes('unavailable'))) {
+        return '所选模型不可用。请尝试选择其他模型。';
+    }
+
+    // API key issues
+    if (message.includes('API key') || message.includes('Unauthorized') || message.includes('401')) {
+        return 'API 密钥无效或未配置。请联系管理员检查配置。';
+    }
+
+    // Credit/balance issues from provider
+    if (message.includes('insufficient') && message.includes('balance')) {
+        return 'API 服务商余额不足。请联系管理员充值。';
+    }
+
+    return null; // Not an OpenRouter-specific error we recognize
+}

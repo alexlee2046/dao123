@@ -307,6 +307,7 @@ export function Toolbar() {
           variant={isBuilderMode ? "secondary" : "ghost"}
           size="sm"
           title={`${isBuilderMode ? t('aiChat') : t('manualEdit')} (Cmd+B)`}
+          data-testid="mode-toggle-button"
           onClick={async () => {
             if (!isBuilderMode) {
               // 如果编辑器是空的，且我们有 HTML 内容，尝试将其转换为 Builder 数据

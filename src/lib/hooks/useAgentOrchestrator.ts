@@ -224,9 +224,26 @@ export function useAgentOrchestrator() {
 
         } catch (error: any) {
             console.error('Agent Orchestrator Error:', error);
-            setStatusMessage(`Error: ${error.message}`);
+
+            // 解析常见错误类型，提供用户友好的消息
+            let userMessage = error.message || 'Generation failed';
+
+            // OpenRouter 特定错误
+            if (error.message?.includes('data policy') || error.message?.includes('Free model publication')) {
+                userMessage = '模型配置错误：请在 OpenRouter 设置中开启数据共享，或选择其他模型';
+            } else if (error.message?.includes('No endpoints found')) {
+                userMessage = '找不到可用的模型端点，请稍后重试或选择其他模型';
+            } else if (error.message?.includes('rate limit')) {
+                userMessage = 'API 调用频率过高，请稍后重试';
+            } else if (error.message?.includes('credits') || error.message?.includes('积分')) {
+                userMessage = '积分不足，请充值后重试';
+            } else if (error.message?.includes('API key') || error.message?.includes('Unauthorized')) {
+                userMessage = 'API 密钥配置错误，请联系管理员';
+            }
+
+            setStatusMessage(`Error: ${userMessage}`);
             setCurrentStep('error');
-            toast.error(error.message || 'Generation failed');
+            toast.error(userMessage);
         }
     }, [selectedModel, currentPages, setPages, setBuilderData, isBuilderMode, toggleBuilderMode]);
 
