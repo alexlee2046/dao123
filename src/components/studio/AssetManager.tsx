@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { Upload, Image as ImageIcon, X, Loader2, Trash2, Copy, FileVideo, Type, Plus } from "lucide-react";
+import { Upload, Image as ImageIcon, X, Loader2, Trash2, Copy, FileVideo, Type, Plus, Video, FileText } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { getAssets, saveAssetRecord, deleteAsset, type Asset } from "@/lib/actions/assets";
 import { createClient } from "@/lib/supabase/client";
@@ -84,7 +84,8 @@ export function AssetManager() {
         }
     };
 
-    const handleDelete = async (asset: Asset) => {
+    const handleDelete = async (e: React.MouseEvent, asset: Asset) => {
+        e.stopPropagation();
         try {
             const path = asset.url.split('/').pop();
             if (!path) return;
@@ -130,70 +131,80 @@ export function AssetManager() {
                 />
             </div>
 
-            <ScrollArea className="flex-1 p-3">
+            <div className="flex-1 p-4 overflow-y-auto">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                        <span className="text-xs">{tCommon('loading')}</span>
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        <span>{tCommon('loading')}</span>
                     </div>
                 ) : assets.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground/50">
-                        <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center border border-dashed border-border">
-                            <ImageIcon className="h-8 w-8" />
-                        </div>
-                        <p className="text-xs">{t('assetsManager.emptyState')}</p>
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-60">
+                        <ImageIcon className="h-12 w-12 mb-2 stroke-1" />
+                        <p>{t('assetsManager.emptyState')}</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                         {assets.map((asset) => (
-                            <Card
+                            <div
                                 key={asset.id}
-                                className="group relative aspect-square cursor-grab active:cursor-grabbing overflow-hidden border-0 shadow-sm ring-1 ring-border/50 hover:ring-primary/50 hover:shadow-md transition-all bg-muted/30"
+                                className="group relative aspect-square bg-muted/30 rounded-xl overflow-hidden border border-border/40 hover:border-primary/50 transition-all duration-300 hover:shadow-md cursor-pointer"
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, asset)}
                             >
                                 {asset.type === 'image' ? (
-                                    <div className="relative w-full h-full">
-                                        <Image
-                                            src={asset.url}
-                                            alt={asset.name}
-                                            fill
-                                            className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                            sizes="(max-width: 768px) 50vw, 33vw"
-                                        />
-                                    </div>
+                                    <Image
+                                        src={asset.url}
+                                        alt={asset.name}
+                                        fill
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        sizes="(max-width: 768px) 50vw, 33vw"
+                                    />
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-muted/50 p-2">
                                         {asset.type === 'video' ? (
-                                            <FileVideo className="h-8 w-8 text-muted-foreground/70" />
+                                            <Video className="h-10 w-10 text-muted-foreground/50" />
                                         ) : (
-                                            <Type className="h-8 w-8 text-muted-foreground/70" />
+                                            <FileText className="h-10 w-10 text-muted-foreground/50" />
                                         )}
                                         <span className="text-[10px] text-muted-foreground truncate max-w-full px-2">{asset.name}</span>
                                     </div>
                                 )}
 
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                                    <Button
-                                        size="icon"
-                                        variant="destructive"
-                                        className="h-7 w-7 rounded-full shadow-lg scale-90 hover:scale-100 transition-transform"
-                                        onClick={() => handleDelete(asset)}
-                                        title={tCommon('delete')}
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                    </Button>
-                                </div>
-                                {asset.type === 'image' && (
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <p className="text-[10px] text-white truncate text-center font-medium">{asset.name}</p>
+                                {/* Glass Overlay on Hover */}
+                                <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-2">
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="secondary"
+                                            size="icon"
+                                            className="h-8 w-8 rounded-full shadow-sm hover:scale-110 transition-transform"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigator.clipboard.writeText(asset.url);
+                                                toast.success(tCommon('urlCopied'));
+                                            }}
+                                            title={tCommon('copyUrl')}
+                                        >
+                                            <Copy className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            className="h-8 w-8 rounded-full shadow-sm hover:scale-110 transition-transform"
+                                            onClick={(e) => handleDelete(e, asset)}
+                                            title={tCommon('delete')}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
                                     </div>
-                                )}
-                            </Card>
+                                    <span className="text-[10px] font-medium text-foreground/80 truncate max-w-[90%] px-2 py-0.5 bg-background/80 rounded-full">
+                                        {asset.name}
+                                    </span>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 )}
-            </ScrollArea>
+            </div>
         </div>
     );
 }

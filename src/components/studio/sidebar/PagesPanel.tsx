@@ -126,32 +126,42 @@ export const PagesPanel = () => {
                 </div>
             )}
 
-            <ScrollArea className="flex-1">
-                <div className="p-2 space-y-1">
+            <ScrollArea className="flex-1 p-2">
+                <div className="space-y-2">
                     {pages.map(page => (
                         <div
                             key={page.path}
                             onClick={() => setCurrentPage(page.path)}
                             className={cn(
-                                "flex items-center justify-between px-3 py-2 rounded-md cursor-pointer text-sm group transition-all border",
+                                "relative flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer text-sm group transition-all duration-200",
                                 currentPage === page.path
-                                    ? "bg-primary/5 border-primary/20 text-primary font-medium shadow-sm"
-                                    : "border-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                                    ? "bg-primary/5 text-primary shadow-sm ring-1 ring-primary/20"
+                                    : "hover:bg-muted/50 text-muted-foreground hover:text-foreground border border-transparent hover:border-border/30 hover:shadow-sm"
                             )}
                         >
-                            <div className="flex items-center gap-2 truncate flex-1">
-                                <FileText className={cn("h-3.5 w-3.5", currentPage === page.path ? "opacity-100" : "opacity-70")} />
-                                <span className="truncate" title={page.path}>{page.path}</span>
+                            {/* Active Indicator Bar */}
+                            {currentPage === page.path && (
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-primary rounded-r-full" />
+                            )}
+
+                            <div className="flex items-center gap-3 truncate flex-1 pl-1">
+                                <div className={cn(
+                                    "p-1.5 rounded-lg transition-colors",
+                                    currentPage === page.path ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground group-hover:bg-background group-hover:text-foreground"
+                                )}>
+                                    <FileText className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="truncate font-medium -tracking-tight" title={page.path}>{page.path}</span>
                             </div>
 
                             {page.path !== 'index.html' && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg scale-90 group-hover:scale-100"
                                     onClick={(e) => handleDelete(e, page.path)}
                                 >
-                                    <Trash2 className="h-3 w-3" />
+                                    <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                             )}
                         </div>

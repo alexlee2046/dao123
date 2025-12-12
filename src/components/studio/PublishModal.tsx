@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -28,6 +29,7 @@ import {
 } from '@/lib/subdomain';
 import { useStudioStore } from "@/lib/store";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function PublishModal({ children }: { children: React.ReactNode }) {
     const t = useTranslations('publish');
@@ -235,8 +237,52 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
             setStep('choose');
         }
         setSubdomainError('');
-        // Don't reset isAvailable if we have a valid subdomain
     };
+
+    const steps = [
+        { id: 'choose', label: t('title') },
+        { id: 'config', label: t('confirmTitle') },
+        { id: 'success', label: t('successTitle') },
+    ];
+
+    const currentStepIndex = steps.findIndex(s => s.id === step) !== -1
+        ? steps.findIndex(s => s.id === step)
+        : (step === 'deploying' ? 1 : (step === 'manage' ? 2 : 0));
+
+    // Helper for Stepper UI
+    const Stepper = () => (
+        <div className="flex items-center justify-between mb-8 px-2 relative">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-muted -z-10" />
+            <div
+                className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-primary transition-all duration-500 ease-in-out -z-10"
+                style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}% ` }}
+            />
+
+            {steps.map((s, idx) => {
+                const isCompleted = idx < currentStepIndex;
+                const isCurrent = idx === currentStepIndex;
+
+                return (
+                    <div key={s.id} className="flex flex-col items-center gap-2 bg-background px-2">
+                        <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+                            isCompleted ? "bg-primary border-primary text-primary-foreground" :
+                                isCurrent ? "border-primary text-primary bg-background shadow-md scale-110" :
+                                    "border-muted text-muted-foreground bg-background"
+                        )}>
+                            {isCompleted ? <Check className="w-4 h-4" /> :
+                                isCurrent ? <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" /> :
+                                    <span className="text-xs">{idx + 1}</span>}
+                        </div>
+                        {/* <span className={cn(
+                            "text-[10px] font-medium transition-colors absolute -bottom-6 w-20 text-center",
+                            isCurrent ? "text-primary" : "text-muted-foreground"
+                        )}>{s.label}</span> */}
+                    </div>
+                );
+            })}
+        </div>
+    );
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -251,14 +297,11 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                                 <Save className="h-5 w-5 text-yellow-500" />
                                 {t('saveRequiredTitle') || "Save Required"}
                             </DialogTitle>
-                            <DialogDescription>
-                                {t('saveRequiredDesc') || "Please save your project before publishing."}
-                            </DialogDescription>
                         </DialogHeader>
-                        <div className="py-4">
-                            <Alert variant="default" className="bg-yellow-50 border-yellow-200">
-                                <AlertCircle className="h-4 w-4 text-yellow-600" />
-                                <AlertDescription className="text-yellow-800">
+                        <div className="py-6">
+                            <Alert variant="default" className="bg-yellow-50/50 border-yellow-200/50 dark:bg-yellow-900/10 dark:border-yellow-900/30">
+                                <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+                                <AlertDescription className="text-yellow-800 dark:text-yellow-200 ml-2">
                                     {t('saveRequiredAlert')}
                                 </AlertDescription>
                             </Alert>
@@ -270,7 +313,9 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                         </DialogFooter>
                     </>
                 ) : (
-                    <>
+                    <div className="pt-2">
+                        {step !== 'manage' && step !== 'deploying' && <div className="mt-2"><Stepper /></div>}
+
                         {step === 'manage' && (
                             <>
                                 <DialogHeader>
@@ -587,7 +632,7 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                                 </DialogFooter>
                             </>
                         )}
-                    </>
+                    </div>
                 )}
             </DialogContent>
         </Dialog>

@@ -1,7 +1,6 @@
 /* GrapesJS Style Overrides - Dao Design System Integration */
 
 /* 0. NUCLEAR OVERRIDES - Force Light Theme on GrapesJS Utilities */
-/* This overrides the default 'dark' theme variables that GrapesJS presets inject */
 .gjs-one-bg {
     background-color: var(--card) !important;
 }
@@ -41,7 +40,7 @@
     --gjs-color-red: var(--destructive) !important;
 }
 
-/* Hide default panels */
+/* Hide default panels that we don't use */
 .gjs-pn-panel.gjs-pn-options,
 .gjs-pn-panel.gjs-pn-commands,
 .gjs-pn-panel.gjs-pn-defaults,
@@ -52,81 +51,111 @@
 
 /* 2. Canvas Area - The "Studio" Feel */
 .gjs-cv-canvas {
-    background-color: #f3f4f6 !important;
-    /* Slightly darker than card for depth */
-    /* Muted background for workspace */
-    background-image: radial-gradient(#e5e7eb 1px, transparent 1px) !important;
-    background-size: 20px 20px !important;
-    /* Dot grid pattern */
+    background-color: #f8fafc !important;
+    /* Lighter, cleaner gray */
+    /* Subtle dot grid */
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px) !important;
+    background-size: 24px 24px !important;
+    /* More breathing room */
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
     bottom: 0 !important;
     right: 340px !important;
-    /* Increased width for better sidebar readability */
+    /* Sidebar width */
     width: auto !important;
     height: 100% !important;
     box-sizing: border-box !important;
-    padding: 40px !important;
-    /* More breathing room */
+    padding: 60px !important;
+    /* More padding for "floating" feel */
 }
 
-/* Frame Wrapper - The "Device" Look */
+/* Frame Wrapper - The "Floating Sheet" Look */
 .gjs-frame-wrapper {
     background-color: #ffffff !important;
-    /* Canvas always white */
     box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.05),
-        0 20px 25px -5px rgba(0, 0, 0, 0.1),
-        0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
-    /* Stronger shadow for depth */
-    border-radius: var(--radius-md) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        0 0 0 1px rgba(0, 0, 0, 0.02),
+        0 20px 40px -12px rgba(0, 0, 0, 0.08),
+        0 10px 15px -8px rgba(0, 0, 0, 0.04) !important;
+    /* Premium soft shadow */
+    border-radius: var(--radius) !important;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* Smooth resize */
     overflow: hidden !important;
 }
 
-/* Selection & Hover Guidelines - Premium Feel */
+/* Selection & Hover Guidelines - Refined */
 .gjs-selected {
     outline: 2px solid var(--primary) !important;
     outline-offset: -2px;
-    box-shadow: 0 0 0 4px var(--primary-foreground) inset !important;
-    /* Inner glow */
+    box-shadow:
+        0 0 0 4px var(--primary-foreground) inset,
+        0 4px 12px -2px rgba(var(--primary), 0.2) !important;
 }
 
 .gjs-hovered {
     outline: 2px solid var(--primary) !important;
     outline-offset: -2px;
-    opacity: 0.8;
+    opacity: 1 !important;
+}
+
+/* Add a subtle tint to hovered element instead of just outline */
+.gjs-hovered::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--primary);
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 1000;
 }
 
 .gjs-placeholder {
-    background-color: var(--accent) !important;
-    opacity: 0.5 !important;
+    background-color: var(--primary) !important;
+    opacity: 0.1 !important;
     border: 1px dashed var(--primary) !important;
+    box-shadow: 0 0 0 2px var(--background) !important;
+    /* separation */
 }
 
 .gjs-comp-selected {
     border-color: var(--primary) !important;
 }
 
+/* Context Toolbar (The little bar appearing on selected elements) */
 .gjs-toolbar {
     background-color: var(--popover) !important;
     color: var(--popover-foreground) !important;
     border: 1px solid var(--border) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-    border-radius: var(--radius-sm) !important;
-    top: -30px !important;
-    /* Move slightly up */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    border-radius: var(--radius-full) !important;
+    /* Pill shape */
+    top: -40px !important;
+    /* Floating higher */
+    padding: 2px 4px !important;
 }
 
-/* 3. Right Sidebar Container - Seamless Integration */
+.gjs-toolbar-item {
+    border-radius: var(--radius-full) !important;
+    margin: 0 2px !important;
+    width: 28px !important;
+    height: 28px !important;
+}
+
+.gjs-toolbar-item:hover {
+    background-color: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+}
+
+/* 3. Right Sidebar Container - Seamless Glass Integration */
 .gjs-pn-views-container {
-    background-color: rgba(255, 255, 255, 0.85) !important;
-    /* Glassmorphism base */
-    backdrop-filter: blur(12px) !important;
-    /* Glass effect */
-    border-left: 1px solid var(--border);
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.02) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    /* More transparent */
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    /* Stronger frost */
+    border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
+    /* Very subtle border */
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.03) !important;
     position: absolute !important;
     top: 0 !important;
     right: 0 !important;
@@ -134,12 +163,13 @@
     width: 340px !important;
     height: 100% !important;
     z-index: 10 !important;
-    padding: 64px 0 0 0 !important;
+    padding: 68px 0 0 0 !important;
     /* Space for tabs */
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
 
+/* Show active panel */
 .gjs-pn-views-container.gjs-pn-active {
     display: block !important;
 }
@@ -149,234 +179,110 @@
 .gjs-pn-views-container .gjs-layers,
 .gjs-pn-views-container .gjs-blocks-c,
 .gjs-pn-views-container .gjs-trait-container {
-    padding: 24px;
+    padding: 0 20px 40px 20px !important;
 }
 
-/* 4. Tab Switcher Buttons - Glassy/Segmented Control Look */
+/* 4. Tab Switcher - Segmented Control Style */
 .gjs-pn-views {
     position: absolute !important;
-    top: 0 !important;
-    right: 0 !important;
-    width: 340px !important;
-    height: 64px !important;
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    /* Glass effect */
-    backdrop-filter: blur(8px) !important;
-    border-bottom: 1px solid var(--border);
-    border-left: 1px solid var(--border);
+    top: 16px !important;
+    right: 20px !important;
+    left: calc(100% - 320px) !important;
+    /* Center in sidebar roughly */
+    width: 300px !important;
+    height: 40px !important;
+    background-color: var(--muted) !important;
+    border-radius: var(--radius-full) !important;
     z-index: 20 !important;
     display: flex !important;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
-    padding: 0 16px !important;
+    padding: 4px !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .gjs-pn-btn {
     color: var(--muted-foreground);
-    margin: 0 4px;
-    height: 40px;
-    width: 40px;
-    flex: 0 0 40px;
+    margin: 0;
+    height: 32px;
+    width: 32px;
+    /* Fixed width icons */
+    flex: 1;
+    /* Stretch to fill */
     padding: 0;
     background-color: transparent;
-    border-radius: var(--radius-md);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius-full);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     box-shadow: none !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    border: 1px solid transparent !important;
+    border: none !important;
 }
 
 .gjs-pn-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+    stroke-width: 2px;
 }
 
 .gjs-pn-btn:hover {
-    background-color: var(--accent);
-    color: var(--accent-foreground);
-    transform: translateY(-1px);
+    color: var(--foreground);
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
 .gjs-pn-btn.gjs-pn-active {
-    background-color: var(--primary) !important;
-    color: var(--primary-foreground) !important;
-    border-color: transparent !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+    transform: scale(1.02);
 }
 
-/* 5. Style Manager (Properties) - Clean Accordion Look */
-/* Use high specificity to override GrapesJS defaults */
-.gjs-sm-sector,
-#gjs-sm-sectors .gjs-sm-sector,
-.gjs-sm-sector.gjs-sm-open {
+/* 5. Style Manager - Extremely Clean */
+.gjs-sm-sector {
     border-bottom: 1px solid var(--border) !important;
     margin-bottom: 0 !important;
     background-color: transparent !important;
-    /* Ensure it blends with glass container */
-    overflow: hidden !important;
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    box-shadow: none !important;
 }
 
-.gjs-sm-sector .gjs-sm-title,
-.gjs-sm-sector.gjs-sm-open .gjs-sm-title {
+/* Accordion Header */
+.gjs-sm-sector .gjs-sm-title {
     background-color: transparent !important;
-    /* Clean white background */
     color: var(--foreground) !important;
     font-weight: 600;
-    /* Slightly bolder */
-    font-size: 0.875rem;
-    padding: 12px 0px;
-    /* Aligned left, removed side padding to look cleaner */
+    font-size: 0.8125rem;
+    padding: 16px 0;
     cursor: pointer;
-    border-bottom: 1px solid transparent !important;
+    border-bottom: none !important;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.2s;
-}
-
-.gjs-sm-sector.gjs-sm-open .gjs-sm-title {
-    border-bottom: 1px solid var(--border) !important;
+    transition: color 0.2s;
 }
 
 .gjs-sm-sector .gjs-sm-title:hover {
     color: var(--primary) !important;
 }
 
-/* Fix the 'open' icon rotation */
+/* Icon rotation */
 .gjs-sm-icon {
-    width: 16px;
-    height: 16px;
-    opacity: 0.5;
+    width: 14px;
+    height: 14px;
+    opacity: 0.4;
+    transition: transform 0.2s;
 }
 
+.gjs-sm-sector.gjs-sm-open .gjs-sm-icon {
+    transform: rotate(90deg);
+}
+
+/* Properties Grid */
 .gjs-sm-properties {
-    padding: 16px 0;
-    /* Align with title */
+    padding: 4px 0 20px 0;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     background-color: transparent;
-}
-
-/* 10. Class Manager (The Tags) - Single Line Design */
-.gjs-clm-tags {
-    background-color: transparent !important;
-    /* Remove the "well" look */
-    border: 1px solid var(--border) !important;
-    /* Lighter border */
-    border-radius: var(--radius-md) !important;
-    padding: 8px !important;
-    min-height: 48px !important;
-    display: flex;
-    flex-wrap: nowrap !important;
-    /* Single line */
-    overflow-x: auto !important;
-    /* Scrollable */
-    gap: 8px !important;
-    margin-bottom: 16px !important;
-    transition: border-color 0.2s;
-    scrollbar-width: none;
-    /* Firefox */
-}
-
-.gjs-clm-tags::-webkit-scrollbar {
-    display: none;
-    /* Chrome/Safari */
-}
-
-.gjs-clm-tags:focus-within {
-    border-color: var(--ring);
-    box-shadow: 0 0 0 1px var(--ring);
-}
-
-.gjs-clm-tag {
-    background-color: transparent !important;
-    /* Transparent bg */
-    color: var(--foreground) !important;
-    border: 1px solid var(--border) !important;
-    /* Subtle border */
-    border-radius: var(--radius-sm) !important;
-    /* Slightly more square */
-    padding: 2px 8px !important;
-    font-size: 0.75rem !important;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    line-height: 1;
-    transition: all 0.2s;
-    /* Ensure text doesn't touch edges */
-    margin: 0 !important;
-    white-space: nowrap;
-}
-
-.gjs-clm-tag:hover {
-    border-color: var(--primary) !important;
-    color: var(--primary) !important;
-    background-color: var(--accent) !important;
-}
-
-/* The 'X' icon in the tag */
-.gjs-clm-close {
-    opacity: 0;
-    /* Hidden by default */
-    margin-left: 4px;
-    font-size: 1rem;
-    line-height: 0.5;
-    cursor: pointer;
-    transition: all 0.2s;
-    width: 0;
-    overflow: hidden;
-}
-
-.gjs-clm-tag:hover .gjs-clm-close {
-    opacity: 1;
-    width: auto;
-    color: var(--destructive);
-}
-
-/* Hide the ugly "Selected: ..." text AND its container */
-.gjs-clm-sel-str-c,
-.gjs-clm-sel,
-.gjs-clm-label {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* The 'Add Class' input area */
-.gjs-clm-new {
-    margin-top: 8px;
-    color: var(--foreground);
-    width: 100%;
-}
-
-.gjs-clm-new input {
-    /* Ensure input matches other inputs */
-    background-color: var(--background) !important;
-    border: 1px solid var(--input) !important;
-    color: var(--foreground) !important;
-    border-radius: var(--radius-sm);
-    padding: 0 12px;
-    height: 36px;
-    font-size: 0.875rem;
-}
-
-.gjs-clm-sel-help {
-    font-size: 0.75rem;
-    color: var(--muted-foreground);
-    margin-bottom: 8px;
-    padding: 0 4px;
 }
 
 .gjs-sm-property {
@@ -387,20 +293,18 @@
 
 .gjs-sm-property--half {
     width: calc(50% - 6px);
-    /* Adjusted for gap */
 }
 
 .gjs-sm-label {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 500;
     color: var(--muted-foreground);
     margin-bottom: 6px;
-    text-transform: none !important;
-    /* Use regular case */
+    letter-spacing: 0.02em;
 }
 
-/* Inputs & Selects - Shadcn Match */
+/* Inputs & Selects - shadcn/ui match */
 .gjs-field {
     background-color: transparent !important;
     box-shadow: none !important;
@@ -410,40 +314,41 @@
 
 .gjs-field input,
 .gjs-field select {
-    background-color: rgba(255, 255, 255, 0.5) !important;
-    /* Semi transparent */
-    border: 1px solid var(--input) !important;
+    background-color: var(--background) !important;
+    /* Solid behind input */
+    border: 1px solid var(--border) !important;
     color: var(--foreground) !important;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     padding: 0 8px;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     width: 100%;
     height: 32px;
-    /* Smaller height for density */
-    line-height: 32px;
+    /* Standard small input height */
+    line-height: normal;
     transition: all 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .gjs-field input:hover,
 .gjs-field select:hover {
     border-color: var(--ring) !important;
-    background-color: var(--background) !important;
 }
 
 .gjs-field input:focus,
 .gjs-field select:focus {
     border-color: var(--primary) !important;
     outline: none;
-    background-color: var(--background) !important;
-    box-shadow: 0 0 0 2px var(--ring) !important;
+    box-shadow:
+        0 0 0 2px var(--background),
+        0 0 0 4px var(--primary) !important;
+    /* Ring effect */
 }
 
-/* Color Picker */
+/* Color Picker input special casing */
 .gjs-field-colorp {
     width: 100%;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--input);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
     padding: 3px;
     cursor: pointer;
     background-color: var(--background);
@@ -454,67 +359,196 @@
 }
 
 .gjs-field-colorp:hover {
-    border-color: var(--ring);
+    border-color: var(--primary);
 }
 
 .gjs-field-colorp-c {
-    border-radius: calc(var(--radius-sm) - 2px);
     border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    /* Internal radius */
     width: 100%;
     height: 100%;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Radio Group / Segmented Control Simulation */
-/* This targets standard GrapesJS radio inputs if they exist or custom ones */
-.gjs-radio-items {
+/* 6. Class Manager (Tags) */
+.gjs-clm-tags {
+    background-color: transparent !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 6px !important;
+    min-height: 42px !important;
     display: flex;
-    background-color: var(--muted);
-    padding: 3px;
-    border-radius: var(--radius-md);
-    gap: 2px;
-    width: 100%;
-    border: 1px solid var(--border);
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
 }
 
-.gjs-radio-item-label {
-    padding: 4px;
-    font-size: 0.75rem;
-    text-align: center;
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    color: var(--muted-foreground);
-    transition: all 0.2s;
+.gjs-clm-tag {
+    background-color: var(--accent) !important;
+    color: var(--foreground) !important;
+    border: none !important;
+    border-radius: var(--radius-full) !important;
+    /* Pill tags */
+    padding: 2px 10px !important;
+    font-size: 0.7rem !important;
     font-weight: 500;
-    flex: 1;
-    /* Distribute evenly */
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.5;
+    transition: all 0.2s;
 }
 
-.gjs-radio-item input:checked+.gjs-radio-item-label {
-    background-color: var(--background);
-    color: var(--foreground);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.gjs-clm-tag:hover {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+}
+
+/* The 'X' icon */
+.gjs-clm-close {
+    opacity: 0.5;
+    margin-left: 6px;
+    transition: opacity 0.2s;
+}
+
+.gjs-clm-tag:hover .gjs-clm-close {
+    opacity: 1;
+    color: currentColor;
+}
+
+/* Hide "Selected" text helpers */
+.gjs-clm-sel-str-c,
+.gjs-clm-sel,
+.gjs-clm-label {
+    display: none !important;
+}
+
+/* New Class Input */
+.gjs-clm-new {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.gjs-clm-new input {
+    background-color: transparent !important;
+    border: 1px solid var(--input) !important;
+    border-radius: var(--radius-md);
+    padding: 0 12px;
+    height: 36px;
+    font-size: 0.8125rem;
+    width: 100%;
+}
+
+/* 7. Blocks Manager - Card Grid */
+.gjs-blocks-c {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    /* Bigger gap */
+    padding-top: 10px !important;
+}
+
+/* Block Category Headers */
+.gjs-block-category {
+    background-color: transparent !important;
+    border: none !important;
+    margin-bottom: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+}
+
+.gjs-block-category .gjs-title {
+    background-color: transparent !important;
+    color: var(--muted-foreground) !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 16px 0 8px 0 !important;
+    border-bottom: 1px solid transparent !important;
+    /* remove border */
+    cursor: default !important;
+    /* Don't look clickable if not accordion */
+}
+
+/* Hide grid container of blocks inside category, we style the items */
+.gjs-block-category .gjs-blocks-c {
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Individual Block Item */
+.gjs-block {
+    width: 100% !important;
+    min-height: 90px !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    /* More rounded */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Bounce effect */
+    cursor: grab;
+    position: relative;
+    overflow: hidden;
+}
+
+.gjs-block:hover {
+    border-color: var(--primary) !important;
+    background-color: var(--background) !important;
+    transform: translateY(-4px);
+    /* Bigger lift */
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.gjs-block:active {
+    cursor: grabbing;
+}
+
+/* Block Label */
+.gjs-block-label {
+    font-size: 0.75rem;
     font-weight: 600;
+    color: var(--foreground);
+    margin: 0;
 }
 
-/* 6. Layers Manager - Modern Tree */
+/* Block Icon */
+.gjs-block svg,
+.gjs-block i {
+    font-size: 1.75rem;
+    /* Larger icons */
+    color: var(--muted-foreground);
+    transition: all 0.3s;
+}
+
+.gjs-block:hover svg,
+.gjs-block:hover i {
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+/* 8. Layer Manager - Modern Tree */
+.gjs-layers {
+    padding-top: 10px !important;
+}
+
 .gjs-layer {
     background-color: transparent !important;
     border-bottom: 1px solid var(--border);
     color: var(--foreground);
-    padding: 8px 12px;
-    /* Denser */
-    font-size: 0.8125rem;
+    padding: 10px 12px;
     height: auto !important;
-    border-radius: var(--radius-sm);
-    margin-bottom: 2px;
-    display: flex;
-    align-items: center;
-}
-
-.gjs-layer-title {
-    color: inherit;
-    font-weight: 500;
+    border-radius: var(--radius-md);
+    margin-bottom: 4px;
+    transition: background-color 0.2s;
 }
 
 .gjs-layer:hover {
@@ -524,257 +558,69 @@
 .gjs-layer.gjs-selected {
     background-color: var(--accent) !important;
     color: var(--primary) !important;
-    border: 1px solid var(--primary) !important;
+    box-shadow: inset 2px 0 0 var(--primary);
+    /* Left accent line */
+    border: 1px solid transparent !important;
 }
 
-/* 7. Blocks Manager - Card Grid */
-.gjs-blocks-c {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-    align-content: start;
-    padding-top: 0 !important;
-    background-color: transparent !important;
+.gjs-layer-title {
+    font-size: 0.8125rem;
+    font-weight: 500;
 }
 
-/* Fix parent containers */
-.gjs-pn-views-container .gjs-blocks-c,
-.gjs-pn-views-container .gjs-sm-sectors {
-    background-color: transparent !important;
+/* Layer Icons (eye, etc) */
+.gjs-layer-vis {
+    opacity: 0.5;
 }
 
-/* Category Headers - Accordion Style */
-.gjs-block-category {
-    background-color: rgba(255, 255, 255, 0.5) !important;
-    /* Semi transparent */
-    border-bottom: 1px solid var(--border) !important;
-    margin-bottom: 16px !important;
-    border-radius: var(--radius-md) !important;
-    overflow: hidden;
-    border: 1px solid var(--border) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-
-.gjs-block-category .gjs-title {
-    background-color: var(--muted) !important;
-    color: var(--foreground) !important;
-    font-weight: 600 !important;
-    font-size: 0.8125rem !important;
-    padding: 8px 12px !important;
-    border-bottom: 1px solid var(--border) !important;
-    cursor: pointer !important;
-    transition: background-color 0.2s;
-    display: flex;
-    align-items: center;
-}
-
-.gjs-block-category .gjs-title:hover {
-    background-color: var(--accent) !important;
-}
-
-.gjs-block-category .gjs-blocks-c {
-    padding: 12px !important;
-    background-color: transparent !important;
-    border: none !important;
-}
-
-/* Block Item - Premium Card */
-.gjs-block {
-    width: 100% !important;
-    min-height: 80px !important;
-    margin: 0 !important;
-    padding: 16px 8px !important;
-    background-color: var(--card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-md) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: grab;
-    user-select: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.gjs-block:hover {
-    border-color: var(--primary) !important;
-    background-color: var(--accent) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08) !important;
-}
-
-.gjs-block-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-align: center;
-    color: var(--foreground);
-    margin-top: 4px;
-    letter-spacing: -0.01em;
-}
-
-.gjs-block svg,
-.gjs-block i {
-    font-size: 1.5rem;
-    color: var(--muted-foreground);
-    opacity: 0.9;
-    transition: all 0.2s;
-}
-
-.gjs-block:hover svg,
-.gjs-block:hover i {
-    color: var(--primary);
+.gjs-layer:hover .gjs-layer-vis {
     opacity: 1;
-    transform: scale(1.1);
 }
 
-/* 8. Scrollbar Styling - Subtle */
+/* 9. Scrollbars - Invisible but functional */
 .gjs-pn-views-container ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-}
-
-.gjs-pn-views-container ::-webkit-scrollbar-track {
+    width: 0px;
+    /* Hide scrollbars for cleaner look */
     background: transparent;
 }
 
-.gjs-pn-views-container ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 10px;
+/* On hover, maybe show? No, keep it clean like mobile */
+
+/* 10. Trait Manager */
+.gjs-trait-container {
+    padding-top: 10px !important;
 }
 
-.gjs-pn-views-container ::-webkit-scrollbar-thumb:hover {
-    background: var(--muted-foreground);
+.gjs-trt-trait {
+    padding: 0 0 16px 0 !important;
 }
 
-/* Hide Logo & Version */
-.gjs-logo-version {
-    display: none !important;
-}
-
-/* Trait Manager Specifics */
-.gjs-thm-label {
-    font-size: 0.75rem;
-    font-weight: 500;
+.gjs-trt-label {
+    font-size: 0.7rem;
     color: var(--muted-foreground);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    display: block;
 }
 
-/* 9. Context Toolbar & Badges */
-.gjs-badge {
-    background-color: var(--primary) !important;
-    color: var(--primary-foreground) !important;
-    border-radius: var(--radius-sm) !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    padding: 2px 6px !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Rich Text Editor Toolbar */
-.gjs-rte-toolbar {
-    background-color: var(--popover) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-md) !important;
-    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1) !important;
-    padding: 4px !important;
-    z-index: 100 !important;
-}
-
-.gjs-rte-action {
-    color: var(--foreground) !important;
-    border-radius: var(--radius-sm) !important;
-    transition: all 0.2s !important;
-    border: none !important;
-}
-
-.gjs-rte-action:hover {
-    background-color: var(--accent) !important;
-    color: var(--accent-foreground) !important;
-}
-
-/* Modal / Dialogs */
+/* 11. Modal/Dialogs */
 .gjs-mdl-dialog {
-    background-color: var(--popover) !important;
-    border-radius: var(--radius-lg) !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    background-color: var(--background) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
     border: 1px solid var(--border) !important;
+    max-width: 600px !important;
 }
 
 .gjs-mdl-header {
     border-bottom: 1px solid var(--border) !important;
-    padding: 16px 24px !important;
+    padding: 20px 24px !important;
 }
 
 .gjs-mdl-title {
-    font-size: 1.125rem !important;
+    font-size: 1.25rem !important;
     font-weight: 600 !important;
-    color: var(--foreground) !important;
 }
 
-.gjs-mdl-btn-close {
-    color: var(--muted-foreground) !important;
-}
-
-/* The "State" Selector (often top right or in panel) */
-.gjs-pn-views .gjs-pn-btn {
-    /* Ensure top tab buttons are clean */
-    background-color: transparent;
-}
-
-/* Specific fix for the State Button/Dropdown if it appears */
-.gjs-pn-options .gjs-pn-btn,
-.gjs-state-btn {
-    background-color: var(--secondary) !important;
-    color: var(--foreground) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-sm) !important;
-}
-
-/* Force Input Placeholders to be visible */
-input::placeholder {
-    color: var(--muted-foreground) !important;
-    opacity: 0.7;
-}
-
-/* Fix generic labels */
-.gjs-label {
-    color: var(--muted-foreground) !important;
-    font-size: 0.75rem !important;
-    margin-bottom: 4px;
-}
-
-/* State Button Dropdown - Make it look like a Trigger */
-.gjs-pn-views-container .gjs-clm-states {
-    padding: 0 !important;
-    margin-bottom: 12px;
-}
-
-.gjs-clm-states .gjs-field {
-    width: 100%;
-}
-
-.gjs-clm-states select {
-    background-color: rgba(255, 255, 255, 0.5) !important;
-    border: 1px solid var(--input) !important;
-    border-radius: var(--radius-md) !important;
-    color: var(--foreground) !important;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 4px 12px !important;
-    height: 36px !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.gjs-clm-states select:hover {
-    background-color: var(--accent) !important;
-    border-color: var(--ring) !important;
-}
-
-/* Hide the red issue badge logic if it's not critical */
-.gjs-pn-btn.gjs-pn-btn-issues {
-    display: none !important;
+.gjs-mdl-content {
+    padding: 24px !important;
 }
