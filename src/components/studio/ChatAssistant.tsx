@@ -500,10 +500,10 @@ export function ChatAssistant() {
 
                                 <div className="grid grid-cols-2 gap-3 w-full max-w-[320px] px-2">
                                     {[
-                                        { label: 'Hero Section', prompt: 'Create a modern hero section with a headline, subheadline, and two buttons.', icon: Layout },
-                                        { label: 'Feature Grid', prompt: 'Add a features section with 3 columns and icons.', icon: Grid },
-                                        { label: 'Newsletter', prompt: 'Create a clean newsletter signup section.', icon: Mail },
-                                        { label: 'Pricing', prompt: 'Generate a pricing table with 3 tiers.', icon: CreditCard },
+                                        { label: t('chatPanel.quickActions.heroSection'), prompt: 'Create a modern hero section with a headline, subheadline, and two buttons.', icon: Layout },
+                                        { label: t('chatPanel.quickActions.featureGrid'), prompt: 'Add a features section with 3 columns and icons.', icon: Grid },
+                                        { label: t('chatPanel.quickActions.newsletter'), prompt: 'Create a clean newsletter signup section.', icon: Mail },
+                                        { label: t('chatPanel.quickActions.pricing'), prompt: 'Generate a pricing table with 3 tiers.', icon: CreditCard },
                                     ].map((item, idx) => (
                                         <button
                                             key={idx}

@@ -3,8 +3,7 @@ import grapesjs, { Editor } from 'grapesjs';
 import gjsPresetWebpage from 'grapesjs-preset-webpage';
 import gjsBlocksBasic from 'grapesjs-blocks-basic';
 import gjsPluginForms from 'grapesjs-plugin-forms';
-import 'grapesjs/dist/css/grapes.min.css';
-import './grapes-overrides.css';
+import './grapes-custom-theme.css'; // Custom Forked Theme (matches Dao Assistant)
 
 export interface GrapesEditorProps {
     /** HTML content to load into the editor */
@@ -193,8 +192,9 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                     }
                 },
 
-                // Plugins
-                plugins: [gjsPresetWebpage, gjsBlocksBasic, gjsPluginForms],
+                // Plugins - Note: gjsPresetWebpage includes gjsBlocksBasic internally
+                // So we only load gjsPresetWebpage and gjsPluginForms to avoid duplicate blocks
+                plugins: [gjsPresetWebpage, gjsPluginForms],
                 pluginsOpts: {
                     [gjsPresetWebpage as any]: {
                         modalImportTitle: '导入代码',
@@ -202,14 +202,14 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                         modalImportContent: function (editor: any) {
                             return editor.getHtml() + '<style>' + editor.getCss() + '</style>'
                         },
-                        blocksBasicOpts: { flexGrid: true },
-                    },
-                    [gjsBlocksBasic as any]: {
-                        flexGrid: true,
-                        category: '基础组件' // Override category name to match i18n
+                        // Configure the internal gjsBlocksBasic through blocksBasicOpts
+                        blocksBasicOpts: {
+                            flexGrid: true,
+                            category: '基础组件'
+                        },
                     },
                     [gjsPluginForms as any]: {
-                        category: '表单组件' // Override category name to match i18n
+                        category: '表单组件'
                     }
                 },
 

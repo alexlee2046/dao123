@@ -228,6 +228,7 @@
         "saveFailed": "保存失败: ",
         "publishToCommunity": "发布到广场",
         "share": "分享",
+        "importCode": "导入代码",
         "publishOnline": "发布上线",
         "generatedBy": "由 Dao123 生成",
         "pageManager": "页面管理",
@@ -276,6 +277,12 @@
             "stepBuilder": "构建",
             "emptyTitle": "道生一 (Origin)",
             "emptyDesc": "描述您的想法，开启创造之旅",
+            "quickActions": {
+                "heroSection": "首屏横幅",
+                "featureGrid": "功能网格",
+                "newsletter": "订阅表单",
+                "pricing": "价格方案"
+            },
             "building": "正在构建...",
             "designCompleted": "设计已完成",
             "coding": "AI 正在编写代码...",
