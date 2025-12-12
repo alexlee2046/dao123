@@ -17,6 +17,11 @@
     *   `STRIPE_SECRET_KEY`: (From your Stripe Dashboard)
     *   `STRIPE_WEBHOOK_SECRET`: (From your Stripe Webhook Settings)
     *   `NEXT_PUBLIC_APP_URL`: Your production URL (e.g., `https://your-project.vercel.app`)
+    *   `NEXT_PUBLIC_SITE_URL`: Same as APP_URL (used for SEO)
+    *   `NEXT_PUBLIC_BASE_DOMAIN`: Your custom domain or `vercel.app` domain (e.g. `dao123.me` or `your-project.vercel.app`)
+    *   `OPENROUTER_API_KEY`: For AI capabilities
+    *   `GOOGLE_GENERATIVE_AI_API_KEY`: For AI capabilities
+    *   `SUPABASE_SERVICE_ROLE_KEY`: For admin tasks (Be careful with this!)
 
 5.  Click **"Deploy"**.
 

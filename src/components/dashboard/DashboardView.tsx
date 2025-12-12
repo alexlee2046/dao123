@@ -3,14 +3,14 @@
 import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit, Eye, Sparkles, Clock, ArrowRight, Settings, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Edit, Eye, Sparkles, Clock, ArrowRight, Settings, Image as ImageIcon, Loader2, Zap } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from 'react';
-import { updateProjectMetadata } from "@/lib/actions/projects";
+import { updateProjectMetadata, createProject } from "@/lib/actions/projects";
 import { useRouter } from 'next/navigation';
 import { toast } from "sonner";
 
@@ -41,6 +41,26 @@ export function DashboardView({ projects }: DashboardViewProps) {
         }
     };
 
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleQuickStart = async () => {
+        setIsLoading(true);
+        try {
+            const dateStr = new Date().toLocaleDateString();
+            const newProject = await createProject(`${t('untitledProject')} ${dateStr}`, "Quick Start Project");
+
+            if (newProject?.id) {
+                toast.success(t('projectCreated'));
+                router.push(`/studio/${newProject.id}`);
+            }
+        } catch (error) {
+            console.error("Quick start failed:", error);
+            toast.error(t('createFailed'));
+            setIsLoading(false);
+        }
+    };
+
     const item = {
         hidden: { opacity: 0, y: 20 },
         show: { opacity: 1, y: 0 }
@@ -66,12 +86,22 @@ export function DashboardView({ projects }: DashboardViewProps) {
                         {t('manageProjects')}
                     </p>
                 </div>
-                <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
-                    <Link href="/project/create">
-                        <Plus className="mr-2 h-5 w-5" />
-                        {t('startProject')}
-                    </Link>
-                </Button>
+                <div className="flex gap-4">
+                    <Button
+                        size="lg"
+                        variant="secondary"
+                        className="rounded-full shadow-lg hover:shadow-xl transition-all"
+                        onClick={handleQuickStart}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        ) : (
+                            <Zap className="mr-2 h-5 w-5" />
+                        )}
+                        {t('quickStart')}
+                    </Button>
+                </div>
             </motion.div>
 
             <motion.div
@@ -82,7 +112,7 @@ export function DashboardView({ projects }: DashboardViewProps) {
             >
                 {/* New Site Card - Always first */}
                 <motion.div variants={item}>
-                    <Link href="/project/create" className="block h-full">
+                    <div onClick={handleQuickStart} className="block h-full">
                         <Card className="h-full border-dashed border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all cursor-pointer group flex flex-col items-center justify-center min-h-[280px]">
                             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                                 <Plus className="h-8 w-8 text-primary" />
@@ -92,7 +122,7 @@ export function DashboardView({ projects }: DashboardViewProps) {
                                 {t('newProjectDesc')}
                             </p>
                         </Card>
-                    </Link>
+                    </div>
                 </motion.div>
 
                 {/* Project Cards */}
@@ -115,6 +145,8 @@ function ProjectCard({ project }: { project: Project }) {
     const [name, setName] = useState(project.name);
     const [previewImage, setPreviewImage] = useState(project.preview_image || '');
     const router = useRouter();
+
+
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
