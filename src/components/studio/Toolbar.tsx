@@ -1,55 +1,77 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { Link } from '@/components/link';
-// import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Undo, Redo, ArrowLeft, FileCode, Layers } from "lucide-react";
-import { useStudioStore } from "@/lib/store";
-import { PageManager } from "@/components/studio/PageManager";
 import { DeviceSelector } from "@/components/studio/toolbar/DeviceSelector";
+import { Undo, Redo, ArrowLeft, Layers, Eye, Code, Command } from "lucide-react";
+import { CodeEditorModal } from "@/components/studio/CodeEditorModal";
+import { PreviewModal } from "@/components/studio/PreviewModal";
+
+import { AutosaveIndicator } from "@/components/studio/AutosaveIndicator";
+import { CanvasControls } from "@/components/studio/CanvasControls";
+import { useStudioStore } from "@/lib/store";
 import { toast } from "sonner";
-// import { motion } from "framer-motion";
 import { useTranslations } from 'next-intl';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ActionButtons } from "@/components/studio/toolbar/ActionButtons";
-
 export function Toolbar() {
-  // const router = useRouter();
-  const { undo, redo, past, future, currentProject, htmlContent, pages, currentPage, setCurrentPage, captureScreenshot, isBuilderMode, selectedModel, setSelectedModel, previewDevice, setPreviewDevice, markAsSaved } = useStudioStore();
-  const [saving, setSaving] = React.useState(false);
-  // const [isRefining, setIsRefining] = React.useState(false);
+  const { undo, redo, past, future, currentProject, htmlContent, pages, currentPage, setCurrentPage, captureScreenshot, markAsSaved, setHtmlContent, runCommand, setCommandPaletteOpen, isBuilderMode, saveStatus, lastSavedAt } = useStudioStore();
   const t = useTranslations('studio');
-  // const locale = useLocale();
 
-  // GrapesJS 不需要 CraftJS 的 useEditor hook
+  // Code Editor Modal State
+  const [codeEditorOpen, setCodeEditorOpen] = useState(false);
+  const [editorHtml, setEditorHtml] = useState('');
+  const [editorCss, setEditorCss] = useState('');
 
-  useEffect(() => {
-    // getModels('chat').then(setModels); // Removed as models state and getModels are unused
+  // Preview Modal State
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [previewCss, setPreviewCss] = useState('');
+
+  // Get code from GrapesJS when opening editor
+  const handleOpenCodeEditor = useCallback(() => {
+    // Dispatch event to get current HTML/CSS from GrapesJS
+    const event = new CustomEvent('dao:get-code', {
+      detail: {
+        callback: (html: string, css: string) => {
+          setEditorHtml(html);
+          setEditorCss(css);
+          setCodeEditorOpen(true);
+        }
+      }
+    });
+    window.dispatchEvent(event);
   }, []);
 
+  // Apply code changes back to GrapesJS
+  const handleApplyCode = useCallback((html: string, css: string) => {
+    window.dispatchEvent(new CustomEvent('dao:set-code', {
+      detail: { html, css }
+    }));
+  }, []);
+
+  // Open Preview Modal with current content
+  const handleOpenPreview = useCallback(() => {
+    const event = new CustomEvent('dao:get-code', {
+      detail: {
+        callback: (html: string, css: string) => {
+          setPreviewHtml(html);
+          setPreviewCss(css);
+          setPreviewOpen(true);
+        }
+      }
+    });
+    window.dispatchEvent(event);
+  }, []);
 
   const handleSave = useCallback(async () => {
     try {
-      setSaving(true);
       const { updateProject, updateProjectMetadata } = await import("@/lib/actions/projects");
-
-      // Capture screenshot before saving
       const screenshot = await captureScreenshot();
-
-      // GrapesJS 直接使用 htmlContent，不需要 builderData 转换
-      // htmlContent 已经在 GrapesEditor 的 onHtmlChange 回调中实时同步
       const finalHtml = htmlContent;
 
       if (currentProject?.id) {
         await updateProject(currentProject.id, {
           html: finalHtml,
           pages,
-          content_json: undefined // GrapesJS 不使用 content_json
+          content_json: undefined
         });
         if (screenshot) {
           await updateProjectMetadata(currentProject.id, { preview_image: screenshot });
@@ -62,11 +84,8 @@ export function Toolbar() {
     } catch (error: any) {
       console.error(error);
       toast.error(t('saveFailed') + error.message);
-    } finally {
-      setSaving(false);
     }
   }, [currentProject, htmlContent, pages, captureScreenshot, markAsSaved, t]);
-
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -87,17 +106,20 @@ export function Toolbar() {
               undo();
             }
             break;
-
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, undo, redo]);
+    window.addEventListener('dao:open-code-editor', handleOpenCodeEditor);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('dao:open-code-editor', handleOpenCodeEditor);
+    };
+  }, [handleSave, undo, redo, handleOpenCodeEditor]);
 
   return (
-    <div className="h-16 border-b border-border/40 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50 transition-all duration-300">
+    <div className="h-14 border-b border-border/40 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50">
       {/* Left Section: Unified Navigation Capsule */}
       <div className="flex items-center gap-2">
         {/* Unified Capsule */}
@@ -113,36 +135,6 @@ export function Toolbar() {
           <span className="font-semibold text-sm tracking-tight px-2 cursor-default select-none text-foreground/80">
             {currentProject?.name || t('untitledProject')}
           </span>
-
-          <div className="h-4 w-px bg-border/40 mx-1" />
-
-          {/* Page Selector */}
-          <Select value={currentPage} onValueChange={setCurrentPage}>
-            <SelectTrigger className="h-7 border-0 bg-transparent p-0 px-2 hover:bg-background/50 rounded-full focus:ring-0 shadow-none gap-1 min-w-[100px] text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <FileCode className="w-3.5 h-3.5 opacity-70" />
-              <SelectValue placeholder={t('selectPage')} />
-            </SelectTrigger>
-            <SelectContent>
-              {pages.map((page) => (
-                <SelectItem key={page.path} value={page.path} className="text-xs">
-                  {page.path}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="h-4 w-px bg-border/40 mx-1" />
-
-          <PageManager>
-            <Button
-              variant="ghost"
-              size="icon"
-              title={t('pageManager')}
-              className="h-7 w-7 rounded-full hover:bg-background hover:shadow-sm ml-0"
-            >
-              <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-            </Button>
-          </PageManager>
         </div>
 
         {/* Undo/Redo Group */}
@@ -151,8 +143,14 @@ export function Toolbar() {
             variant="ghost"
             size="icon"
             title={`${t('undo')} (Cmd+Z)`}
-            onClick={undo}
-            disabled={past.length === 0}
+            onClick={() => {
+              if (isBuilderMode) {
+                runCommand('dao:undo');
+              } else {
+                undo();
+              }
+            }}
+            disabled={past.length === 0 && !isBuilderMode}
             className="h-7 w-7 rounded-full hover:bg-background hover:shadow-sm"
           >
             <Undo className="h-3.5 w-3.5" />
@@ -161,20 +159,102 @@ export function Toolbar() {
             variant="ghost"
             size="icon"
             title={`${t('redo')} (Cmd+Shift+Z)`}
-            onClick={redo}
-            disabled={future.length === 0}
+            onClick={() => {
+              if (isBuilderMode) {
+                runCommand('dao:redo');
+              } else {
+                redo();
+              }
+            }}
+            disabled={future.length === 0 && !isBuilderMode}
             className="h-7 w-7 rounded-full hover:bg-background hover:shadow-sm"
           >
             <Redo className="h-3.5 w-3.5" />
           </Button>
         </div>
+
+        {/* Command Palette Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          title={`${t('commandPalette') || 'Command Palette'} (Cmd+K)`}
+          onClick={() => setCommandPaletteOpen(true)}
+          className="h-7 w-7 rounded-full hover:bg-background hover:shadow-sm ml-1"
+        >
+          <Command className="h-3.5 w-3.5" />
+        </Button>
       </div>
 
-      {/* Center Section: Device Toggles - Anchored Dynamic Island */}
-      <DeviceSelector />
+      {/* Right Section: Actions */}
+      <div className="flex items-center gap-2">
 
-      {/* Right Section: Simplified Actions */}
-      <ActionButtons onSave={handleSave} isSaving={saving} />
+
+        {/* Canvas Zoom Controls */}
+        <CanvasControls />
+
+        <div className="h-4 w-px bg-border/30" />
+
+        {/* Device Selector (Center-ish or Right) */}
+        <div className="mr-2">
+          <DeviceSelector />
+        </div>
+
+        {/* Auto-save Status */}
+        <AutosaveIndicator
+          status={saveStatus}
+          lastSavedAt={lastSavedAt}
+        />
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-2 bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300"
+          onClick={handleSave}
+          title={`${t('save')} (Cmd+S)`}
+        >
+          <div className={`w-2 h-2 rounded-full ${currentProject ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-yellow-500'}`} />
+          {t('save')}
+        </Button>
+
+        {/* Code Editor Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-2 bg-background/50 backdrop-blur-sm border-border/40 hover:bg-muted/50 transition-all"
+          onClick={handleOpenCodeEditor}
+          title={t('codeEditor') || 'Code Editor'}
+        >
+          <Code className="w-3.5 h-3.5" />
+          {t('codeEditor') || 'Code'}
+        </Button>
+
+        <Button
+          size="sm"
+          className="h-8 gap-2 bg-primary/90 hover:bg-primary shadow-[0_0_15px_rgba(124,58,237,0.3)] hover:shadow-[0_0_20px_rgba(124,58,237,0.5)] transition-all duration-300"
+          onClick={handleOpenPreview}
+        >
+          <Eye className="w-3.5 h-3.5" />
+          {t('preview')}
+        </Button>
+      </div>
+
+      {/* Code Editor Modal */}
+      <CodeEditorModal
+        open={codeEditorOpen}
+        onOpenChange={setCodeEditorOpen}
+        htmlContent={editorHtml}
+        cssContent={editorCss}
+        onApply={handleApplyCode}
+      />
+
+      {/* Preview Modal */}
+      <PreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        htmlContent={previewHtml}
+        cssContent={previewCss}
+      />
     </div>
   );
 }
+

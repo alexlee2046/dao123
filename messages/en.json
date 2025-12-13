@@ -202,6 +202,11 @@
         "components": "Components",
         "settings": "Settings",
         "layers": "Layers",
+        "styles": "Styles",
+        "traits": "Traits",
+        "selectors": "Selectors",
+        "codeEditor": "Code Editor",
+        "previewMode": "Preview Mode",
         "pages": "Pages",
         "toolbox": "Toolbox",
         "confirmDeletePage": "Are you sure you want to delete this page? This action cannot be undone.",
@@ -265,6 +270,173 @@
             "copyLink": "Copy Link",
             "delete": "Delete"
         },
+        "editor": {
+            "blockManager": {
+                "labels": {
+                    "Text": "Text",
+                    "Link": "Link",
+                    "Image": "Image",
+                    "Video": "Video",
+                    "Map": "Map",
+                    "Link Block": "Link Block",
+                    "Quote": "Quote",
+                    "Text section": "Text Section",
+                    "1 Column": "1 Column",
+                    "2 Columns": "2 Columns",
+                    "3 Columns": "3 Columns",
+                    "2 Columns 3/7": "2 Columns 3/7",
+                    "Form": "Form Container",
+                    "Input": "Input",
+                    "Textarea": "Textarea",
+                    "Select": "Select",
+                    "Button": "Button",
+                    "Label": "Label",
+                    "Checkbox": "Checkbox",
+                    "Radio": "Radio"
+                },
+                "categories": {
+                    "Basic": "Basic",
+                    "Forms": "Forms",
+                    "Extra": "Extra"
+                }
+            },
+            "styleManager": {
+                "sectors": {
+                    "general": "General",
+                    "layout": "Layout",
+                    "typography": "Typography",
+                    "decorations": "Decorations",
+                    "extra": "Extra",
+                    "flex": "Flex",
+                    "dimension": "Dimension"
+                },
+                "properties": {
+                    "float": "Float",
+                    "display": "Display",
+                    "position": "Position",
+                    "top": "Top",
+                    "right": "Right",
+                    "left": "Left",
+                    "bottom": "Bottom",
+                    "width": "Width",
+                    "height": "Height",
+                    "max-width": "Max Width",
+                    "min-height": "Min Height",
+                    "margin": "Margin",
+                    "padding": "Padding",
+                    "font-family": "Font Family",
+                    "font-size": "Font Size",
+                    "font-weight": "Font Weight",
+                    "letter-spacing": "Letter Spacing",
+                    "color": "Color",
+                    "line-height": "Line Height",
+                    "text-align": "Text Align",
+                    "text-shadow": "Text Shadow",
+                    "background-color": "Background Color",
+                    "border-radius": "Border Radius",
+                    "border": "Border",
+                    "box-shadow": "Box Shadow",
+                    "opacity": "Opacity"
+                }
+            },
+            "modals": {
+                "import": {
+                    "title": "Import Code",
+                    "label": "Please paste HTML/CSS code and click Import"
+                },
+                "export": {
+                    "title": "Export Code"
+                },
+                "codeEdit": {
+                    "title": "Edit Code",
+                    "button": "Save"
+                }
+            },
+            "layerManager": {
+                "empty": "Select a component to view layer structure",
+                "root": "Root"
+            },
+            "traitManager": {
+                "empty": "Select a component to edit traits",
+                "label": {
+                    "id": "ID",
+                    "title": "Title",
+                    "required": "Required",
+                    "checked": "Checked",
+                    "enabled": "Enabled"
+                },
+                "attribute": {
+                    "id": "ID",
+                    "for": "For",
+                    "name": "Name",
+                    "placeholder": "Placeholder",
+                    "value": "Value",
+                    "type": "Type",
+                    "href": "Link URL",
+                    "target": "Target",
+                    "alt": "Alt Text",
+                    "src": "Source URL",
+                    "title": "Title",
+                    "class": "CSS Class"
+                },
+                "options": {
+                    "_self": "Same Window",
+                    "_blank": "New Window"
+                }
+            },
+            "selectorManager": {
+                "label": "CSS Selectors",
+                "selected": "Selected",
+                "emptyState": "Select a component to view selectors",
+                "states": {
+                    "hover": "Hover",
+                    "active": "Active",
+                    "nth": "Nth"
+                }
+            },
+            "panelManager": {
+                "layers": "Layers",
+                "styles": "Styles",
+                "traits": "Traits",
+                "blocks": "Blocks"
+            },
+            "commands": {
+                "undo": "Undo",
+                "redo": "Redo",
+                "copy": "Copy",
+                "paste": "Paste",
+                "delete": "Delete",
+                "duplicate": "Duplicate",
+                "selectAll": "Select All",
+                "deselect": "Deselect",
+                "preview": "Preview",
+                "codeEditor": "Code Editor",
+                "save": "Save",
+                "commandPalette": "Command Palette",
+                "zoomIn": "Zoom In",
+                "zoomOut": "Zoom Out",
+                "zoomReset": "Reset Zoom",
+                "toggleSidebar": "Toggle Sidebar"
+            },
+            "deviceManager": {
+                "desktop": "Desktop",
+                "tablet": "Tablet",
+                "mobile": "Mobile"
+            },
+            "richTextEditor": {
+                "bold": "Bold",
+                "italic": "Italic",
+                "underline": "Underline",
+                "strikethrough": "Strikethrough",
+                "link": "Link"
+            },
+            "assetManager": {
+                "add": "Add Asset",
+                "addImage": "Add Image",
+                "inputPlaceholder": "Paste URL or drop files here"
+            }
+        },
+        "commandPalette": "Command Palette",
         "chatPanel": {
             "title": "Dao Assistant",
             "modelSettings": "Model Settings",

@@ -84,7 +84,18 @@ interface StudioState {
 
   // 保存状态跟踪
   lastSavedAt: number | null;
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error' | 'unsaved' | 'offline';
   markAsSaved: () => void;
+  setSaveStatus: (status: 'idle' | 'saving' | 'saved' | 'error' | 'unsaved' | 'offline') => void;
+
+  // GrapesJS Editor 引用
+  editorRef: any | null;
+  setEditorRef: (editor: any | null) => void;
+  runCommand: (commandId: string, options?: any) => void;
+
+  // Command Palette
+  isCommandPaletteOpen: boolean;
+  setCommandPaletteOpen: (open: boolean) => void;
 }
 
 export const useStudioStore = create<StudioState>((set) => {
@@ -153,6 +164,8 @@ export const useStudioStore = create<StudioState>((set) => {
     isBuilderMode: true,
     pendingPrompt: null as string | null,
     aiGeneratedCache: null as StudioState['aiGeneratedCache'],
+    lastSavedAt: null,
+    saveStatus: 'idle' as 'idle' | 'saving' | 'saved' | 'error' | 'unsaved' | 'offline',
   });
 
   return {
@@ -282,7 +295,6 @@ export const useStudioStore = create<StudioState>((set) => {
     setCaptureScreenshotHandler: (handler) => set({ captureScreenshot: handler }),
 
     // Builder Mode
-    isBuilderMode: false,
     toggleBuilderMode: () => set((state) => ({ isBuilderMode: !state.isBuilderMode })),
 
     // Pending prompt for auto-generation
@@ -323,6 +335,26 @@ export const useStudioStore = create<StudioState>((set) => {
     }),
 
     lastSavedAt: null,
-    markAsSaved: () => set({ lastSavedAt: Date.now() }),
+    saveStatus: 'idle',
+    markAsSaved: () => set({ lastSavedAt: Date.now(), saveStatus: 'saved' }),
+    setSaveStatus: (status) => set({ saveStatus: status }),
+
+    // GrapesJS Editor 引用
+    editorRef: null,
+    setEditorRef: (editor) => set({ editorRef: editor }),
+    runCommand: (commandId, options) => {
+      const { editorRef } = useStudioStore.getState();
+      if (editorRef && editorRef.Commands) {
+        try {
+          editorRef.Commands.run(commandId, options);
+        } catch (e) {
+          console.warn(`[Store] Command "${commandId}" failed:`, e);
+        }
+      }
+    },
+
+    // Command Palette
+    isCommandPaletteOpen: false,
+    setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
   };
 });

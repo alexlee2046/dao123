@@ -102,7 +102,7 @@ async function runMigration() {
             .catch(() => ({ data: null, error: null }));
 
         if (!colError && columns) {
-            const hasSubdomain = columns.some((col: any) => col.column_name === 'subdomain');
+            const hasSubdomain = columns.some(col => col.column_name === 'subdomain');
             if (hasSubdomain) {
                 console.log('✅ subdomain 字段已成功添加');
             } else {

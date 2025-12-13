@@ -9,8 +9,10 @@ import {
 import { Toolbar } from "@/components/studio/Toolbar";
 import { ChatAssistant } from "@/components/studio/ChatAssistant";
 import { LivePreview } from "@/components/studio/LivePreview";
-import { AssetManager } from "@/components/studio/AssetManager";
 import { PagesPanel } from "@/components/studio/sidebar/PagesPanel";
+import { BlockManagerPanel, LayerManagerPanel } from "@/components/studio/sidebar/BuilderPanels";
+import { SidebarRail } from "@/components/studio/sidebar/SidebarRail";
+import { RightPanel } from "@/components/studio/RightPanel";
 import { useParams, useRouter } from 'next/navigation';
 import { useStudioStore } from "@/lib/store";
 import { getProject } from "@/lib/actions/projects";
@@ -18,7 +20,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, FileText, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, FileText, Box, Layers } from "lucide-react";
+import { LeftPanelActions } from "@/components/studio/LeftPanelActions";
+import { AssetPickerModal } from "@/components/studio/AssetPickerModal";
+import { CommandPalette } from "@/components/studio/CommandPalette";
+import { cn } from "@/lib/utils";
+import { useAutosave } from "@/hooks/useAutosave";
 
 export default function StudioPage() {
     const t = useTranslations('studio');
@@ -30,12 +37,42 @@ export default function StudioPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
 
-    const { setCurrentProject, setHtmlContent, setPages, isBuilderMode, resetForNewProject, htmlContent, pages, lastSavedAt } = useStudioStore();
+    const { setCurrentProject, setHtmlContent, setPages, isBuilderMode, resetForNewProject, htmlContent, pages, lastSavedAt, currentProject } = useStudioStore();
 
     // Track unsaved changes
     const initialContentRef = useRef<string>('');
     const lastSavedAtRef = useRef<number | null>(null);
     const [isDirty, setIsDirty] = useState(false);
+
+    // Asset Picker Modal State
+    const [assetPickerOpen, setAssetPickerOpen] = useState(false);
+    const [assetPickerCallback, setAssetPickerCallback] = useState<((url: string) => void) | null>(null);
+    const [assetPickerTypes, setAssetPickerTypes] = useState<string[]>(['image']);
+
+    // Left Panel State
+    const [activeLeftTab, setActiveLeftTab] = useState('chat');
+
+    // Update left tab when entering builder mode
+    useEffect(() => {
+        if (isBuilderMode && activeLeftTab === 'chat') {
+            setActiveLeftTab('blocks');
+        } else if (!isBuilderMode && (activeLeftTab === 'blocks' || activeLeftTab === 'layers')) {
+            setActiveLeftTab('chat');
+        }
+    }, [isBuilderMode]);
+
+    // Listen for view switch events from Toolbar
+    useEffect(() => {
+        const handleSwitchView = (e: CustomEvent) => {
+            const view = e.detail.view;
+            if (['blocks', 'layers'].includes(view) && isBuilderMode) {
+                setActiveLeftTab(view);
+            }
+        };
+
+        window.addEventListener('dao:switch-view', handleSwitchView as EventListener);
+        return () => window.removeEventListener('dao:switch-view', handleSwitchView as EventListener);
+    }, [isBuilderMode]);
 
     // Initial Load
     useEffect(() => {
@@ -67,12 +104,8 @@ export default function StudioPage() {
             if (project.content) {
                 if (project.content.pages && Array.isArray(project.content.pages) && project.content.pages.length > 0) {
                     setPages(project.content.pages);
-                    // Record initial content for dirty check
-                    const indexPage = project.content.pages.find((p: any) => p.path === 'index.html') || project.content.pages[0];
-                    initialContentRef.current = indexPage?.content || '';
                 } else if (project.content.html) {
                     setHtmlContent(project.content.html);
-                    initialContentRef.current = project.content.html;
                 }
             }
 
@@ -87,6 +120,17 @@ export default function StudioPage() {
             setIsLoading(false);
         }
     };
+
+    // Enable auto-save
+    useAutosave({
+        enabled: !!currentProject?.id && isBuilderMode,
+        onSaveSuccess: () => {
+            // Optional: show toast or just rely on indicator
+        },
+        onSaveError: (error) => {
+            toast.error(t('saveFailed') + ": " + error.message);
+        }
+    });
 
     // Detect Content Changes
     useEffect(() => {
@@ -118,6 +162,22 @@ export default function StudioPage() {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [isDirty]);
+
+    // Asset Picker Event Listener
+    useEffect(() => {
+        const handleOpenAssetPicker = (e: CustomEvent) => {
+            const { types, onSelect, onClose } = e.detail;
+            setAssetPickerTypes(types || ['image']);
+            setAssetPickerCallback(() => (url: string) => {
+                onSelect?.(url);
+                setAssetPickerOpen(false);
+            });
+            setAssetPickerOpen(true);
+        };
+
+        window.addEventListener('dao:open-asset-picker', handleOpenAssetPicker as EventListener);
+        return () => window.removeEventListener('dao:open-asset-picker', handleOpenAssetPicker as EventListener);
+    }, []);
 
     // Redirect logic for 'new'
     useEffect(() => {
@@ -153,9 +213,16 @@ export default function StudioPage() {
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Toolbar />
-            <div className="flex-1 overflow-hidden">
-                <ResizablePanelGroup direction="horizontal">
-                    {/* Left Panel: Chat & Pages (Collapsible) */}
+            <div className="flex-1 flex overflow-hidden">
+                {/* Vertical Navigation Rail */}
+                <SidebarRail
+                    activeTab={activeLeftTab}
+                    onTabChange={setActiveLeftTab}
+                    className="flex-shrink-0"
+                />
+
+                <ResizablePanelGroup direction="horizontal" className="flex-1">
+                    {/* Left Panel Drawer: Chat, Pages, Blocks, Layers */}
                     <ResizablePanel
                         defaultSize={20}
                         minSize={15}
@@ -165,27 +232,30 @@ export default function StudioPage() {
                         className="transition-all duration-300 ease-in-out"
                     >
                         <div className="h-full flex flex-col bg-background border-r">
-                            <Tabs defaultValue="chat" className="flex-1 flex flex-col h-full">
-                                <div className="px-2 pt-2 border-b bg-muted/30">
-                                    <TabsList className="w-full grid grid-cols-2 h-9 mb-2">
-                                        <TabsTrigger value="chat" className="text-xs px-0">
-                                            <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
-                                            {t('chat') || 'Chat'}
-                                        </TabsTrigger>
-                                        <TabsTrigger value="pages" className="text-xs px-0">
-                                            <FileText className="w-3.5 h-3.5 mr-1.5" />
-                                            {t('pages') || 'Pages'}
-                                        </TabsTrigger>
-                                    </TabsList>
-                                </div>
+                            {/* Action Buttons - Keep inside the drawer for specific context actions if needed, or remove if redundant */}
+                            <LeftPanelActions />
 
-                                <TabsContent value="chat" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
+                            <Tabs value={activeLeftTab} className="flex-1 flex flex-col h-full overflow-hidden">
+                                {/* TabsList removed - controlled by SidebarRail */}
+
+                                <TabsContent value="chat" forceMount={true} className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
                                     <ChatAssistant />
                                 </TabsContent>
 
                                 <TabsContent value="pages" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
                                     <PagesPanel />
                                 </TabsContent>
+
+                                {isBuilderMode && (
+                                    <>
+                                        <TabsContent value="blocks" forceMount={true} className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
+                                            <BlockManagerPanel />
+                                        </TabsContent>
+                                        <TabsContent value="layers" forceMount={true} className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
+                                            <LayerManagerPanel />
+                                        </TabsContent>
+                                    </>
+                                )}
                             </Tabs>
                         </div>
                     </ResizablePanel>
@@ -193,32 +263,31 @@ export default function StudioPage() {
                     <ResizableHandle />
 
                     {/* Center: Editor/Preview */}
-                    {/* When in Builder Mode, user might want to collapse the left panel to verify responsiveness, 
-                        but effectively GrapesJS has its own preview mode. */}
                     <ResizablePanel defaultSize={60}>
                         <LivePreview />
                     </ResizablePanel>
 
-                    {/* Right Panel: Assets (Only in AI Mode) */}
-                    {/* In Builder Mode, GrapesJS preset has its own right sidebar, so we hide this panel to avoid clutter */}
-                    {!isBuilderMode && (
-                        <>
-                            <ResizableHandle />
-                            <ResizablePanel defaultSize={20} minSize={15} maxSize={25}>
-                                <div className="h-full flex flex-col bg-background border-l">
-                                    <div className="p-3 border-b bg-muted/20 flex items-center gap-2">
-                                        <ImageIcon className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('assets') || 'Assets'}</span>
-                                    </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <AssetManager />
-                                    </div>
-                                </div>
-                            </ResizablePanel>
-                        </>
-                    )}
+                    <ResizableHandle />
+
+                    {/* Right Panel: Assets / Styles / Traits */}
+                    <ResizablePanel defaultSize={20} minSize={15} maxSize={25}>
+                        <RightPanel />
+                    </ResizablePanel>
                 </ResizablePanelGroup>
             </div>
+
+            {/* Asset Picker Modal for GrapesJS Integration */}
+            <AssetPickerModal
+                open={assetPickerOpen}
+                onOpenChange={setAssetPickerOpen}
+                onSelect={(url) => {
+                    assetPickerCallback?.(url);
+                }}
+                allowedTypes={assetPickerTypes}
+            />
+
+            {/* Command Palette */}
+            <CommandPalette />
         </div>
     );
 }

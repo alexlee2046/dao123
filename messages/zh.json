@@ -202,6 +202,11 @@
         "components": "组件",
         "settings": "设置",
         "layers": "图层",
+        "styles": "样式",
+        "traits": "属性",
+        "selectors": "选择器",
+        "codeEditor": "代码编辑器",
+        "previewMode": "预览模式",
         "pages": "页面",
         "toolbox": "工具箱",
         "confirmDeletePage": "确定要删除此页面吗？此操作无法撤销。",
@@ -265,6 +270,173 @@
             "copyLink": "复制链接",
             "delete": "删除"
         },
+        "editor": {
+            "blockManager": {
+                "labels": {
+                    "Text": "文本",
+                    "Link": "链接",
+                    "Image": "图片",
+                    "Video": "视频",
+                    "Map": "地图",
+                    "Link Block": "链接块",
+                    "Quote": "引语",
+                    "Text section": "文本段落",
+                    "1 Column": "单栏",
+                    "2 Columns": "双栏",
+                    "3 Columns": "三栏",
+                    "2 Columns 3/7": "双栏 3/7",
+                    "Form": "表单容器",
+                    "Input": "输入框",
+                    "Textarea": "多行文本",
+                    "Select": "下拉选择",
+                    "Button": "按钮",
+                    "Label": "标签",
+                    "Checkbox": "复选框",
+                    "Radio": "单选框"
+                },
+                "categories": {
+                    "Basic": "基础组件",
+                    "Forms": "表单组件",
+                    "Extra": "扩展组件"
+                }
+            },
+            "styleManager": {
+                "sectors": {
+                    "general": "常规",
+                    "layout": "布局",
+                    "typography": "文字",
+                    "decorations": "装饰",
+                    "extra": "其他",
+                    "flex": "Flex",
+                    "dimension": "尺寸"
+                },
+                "properties": {
+                    "float": "浮动",
+                    "display": "显示模式",
+                    "position": "定位",
+                    "top": "上边距",
+                    "right": "右边距",
+                    "left": "左边距",
+                    "bottom": "下边距",
+                    "width": "宽度",
+                    "height": "高度",
+                    "max-width": "最大宽度",
+                    "min-height": "最小高度",
+                    "margin": "外边距 (Margin)",
+                    "padding": "内边距 (Padding)",
+                    "font-family": "字体",
+                    "font-size": "字号",
+                    "font-weight": "字重",
+                    "letter-spacing": "字间距",
+                    "color": "颜色",
+                    "line-height": "行高",
+                    "text-align": "对齐方式",
+                    "text-shadow": "文字阴影",
+                    "background-color": "背景颜色",
+                    "border-radius": "圆角",
+                    "border": "边框",
+                    "box-shadow": "阴影",
+                    "opacity": "透明度"
+                }
+            },
+            "modals": {
+                "import": {
+                    "title": "导入代码",
+                    "label": "请粘贴 HTML/CSS 代码并点击导入"
+                },
+                "export": {
+                    "title": "导出代码"
+                },
+                "codeEdit": {
+                    "title": "编辑代码",
+                    "button": "保存"
+                }
+            },
+            "layerManager": {
+                "empty": "选择组件后可查看图层结构",
+                "root": "根节点"
+            },
+            "traitManager": {
+                "empty": "选择一个组件以编辑属性",
+                "label": {
+                    "id": "ID",
+                    "title": "标题",
+                    "required": "必填",
+                    "checked": "已选中",
+                    "enabled": "启用"
+                },
+                "attribute": {
+                    "id": "ID",
+                    "for": "关联",
+                    "name": "名称",
+                    "placeholder": "占位文本",
+                    "value": "值",
+                    "type": "类型",
+                    "href": "链接地址",
+                    "target": "打开方式",
+                    "alt": "替代文本",
+                    "src": "资源地址",
+                    "title": "标题",
+                    "class": "CSS 类"
+                },
+                "options": {
+                    "_self": "当前窗口",
+                    "_blank": "新窗口"
+                }
+            },
+            "selectorManager": {
+                "label": "CSS 选择器",
+                "selected": "已选择",
+                "emptyState": "选择组件以查看选择器",
+                "states": {
+                    "hover": "悬停",
+                    "active": "激活",
+                    "nth": "第N个"
+                }
+            },
+            "panelManager": {
+                "layers": "图层",
+                "styles": "样式",
+                "traits": "属性",
+                "blocks": "组件"
+            },
+            "commands": {
+                "undo": "撤销",
+                "redo": "重做",
+                "copy": "复制",
+                "paste": "粘贴",
+                "delete": "删除",
+                "duplicate": "复制组件",
+                "selectAll": "全选",
+                "deselect": "取消选择",
+                "preview": "预览",
+                "codeEditor": "代码编辑器",
+                "save": "保存",
+                "commandPalette": "命令面板",
+                "zoomIn": "放大",
+                "zoomOut": "缩小",
+                "zoomReset": "重置缩放",
+                "toggleSidebar": "切换侧边栏"
+            },
+            "deviceManager": {
+                "desktop": "桌面",
+                "tablet": "平板",
+                "mobile": "手机"
+            },
+            "richTextEditor": {
+                "bold": "粗体",
+                "italic": "斜体",
+                "underline": "下划线",
+                "strikethrough": "删除线",
+                "link": "链接"
+            },
+            "assetManager": {
+                "add": "添加资源",
+                "addImage": "添加图片",
+                "inputPlaceholder": "粘贴 URL 或拖拽文件到此处"
+            }
+        },
+        "commandPalette": "命令面板",
         "chatPanel": {
             "title": "Dao 助手",
             "modelSettings": "模型设置",

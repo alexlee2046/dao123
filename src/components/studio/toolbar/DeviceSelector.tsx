@@ -23,8 +23,7 @@ export function DeviceSelector() {
         <TooltipProvider delayDuration={300}>
             <div className={cn(
                 "flex items-center p-1 bg-muted/40 rounded-full border border-border/20 shadow-sm backdrop-blur-md",
-                "relative transition-all duration-300 hover:border-border/40 hover:bg-muted/60",
-                "md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+                "relative transition-all duration-300 hover:border-border/40 hover:bg-muted/60"
             )}>
                 {devices.map((device) => {
                     const isActive = previewDevice === device.id;
