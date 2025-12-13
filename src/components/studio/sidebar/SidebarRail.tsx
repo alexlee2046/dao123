@@ -42,7 +42,7 @@ export function SidebarRail({
         { id: 'layers', icon: Layers, label: 'Layers', visible: isBuilderMode },
     ];
 
-    const bottomItems = [
+    const bottomItems: { id: string; icon: React.ElementType; label: string; visible: boolean; }[] = [
         // Placeholder for future global settings or similar
         // { id: 'settings', icon: Settings, label: 'Settings', visible: true },
     ];
