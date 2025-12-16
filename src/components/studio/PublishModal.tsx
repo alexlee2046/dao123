@@ -26,6 +26,7 @@ import {
     getSubdomainUrl,
     checkSubdomainAvailability,
     getVercelDeployUrl,
+    generateUniqueSubdomain,
 } from '@/lib/subdomain';
 import { useStudioStore } from "@/lib/store";
 import { toast } from "sonner";
@@ -38,22 +39,27 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
     const { currentProject, pages } = useStudioStore();
     const pageCount = pages.length;
 
-    // Determine the valid project ID. 
-    // If params.siteId is 'new' or starts with 'new:', it's not a valid DB ID yet.
-    // We prefer currentProject.id if available.
+    // Determine the valid project ID.
     const paramId = params.siteId as string;
     const isParamIdValid = paramId && paramId !== 'new' && !paramId.startsWith('new:');
     const projectId = currentProject?.id || (isParamIdValid ? paramId : null);
 
     const [isOpen, setIsOpen] = useState(false);
-    const [step, setStep] = useState<'choose' | 'config' | 'deploying' | 'success' | 'manage'>('choose');
+    // Simplified steps: 'confirm' (initial) -> 'generating' (new) -> 'success' | 'manage'
+    const [step, setStep] = useState<'confirm' | 'generating' | 'success' | 'manage'>('confirm');
     const [subdomain, setSubdomain] = useState('');
-    const [subdomainError, setSubdomainError] = useState('');
-    const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
-    const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [deployedUrl, setDeployedUrl] = useState('');
     const [deploymentStatus, setDeploymentStatus] = useState<string>('draft');
+
+    // Status messsage for auto-generation
+    const [statusMessage, setStatusMessage] = useState('');
+
+    // Custom Domain State
+    const [customDomain, setCustomDomain] = useState<string | null>(null);
+    const [domainInput, setDomainInput] = useState('');
+    const [isCheckingDomain, setIsCheckingDomain] = useState(false);
+    const [domainConfig, setDomainConfig] = useState<any>(null);
 
     // 加载已有的子域名配置
     useEffect(() => {
@@ -62,13 +68,63 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
         }
     }, [isOpen, projectId]);
 
+    const handleAddCustomDomain = async () => {
+        if (!domainInput || !projectId) return;
+        setIsCheckingDomain(true);
+        try {
+            const res = await fetch('/api/domain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ domain: domainInput, siteId: projectId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCustomDomain(domainInput);
+                setDeployedUrl(`https://${domainInput}`);
+                toast.success('Custom domain added');
+                checkDomainStatus(domainInput);
+            } else {
+                toast.error(data.error || 'Failed to add domain');
+            }
+        } catch (e) {
+            toast.error('Failed to add domain');
+        } finally {
+            setIsCheckingDomain(false);
+        }
+    };
+
+    const handleRemoveCustomDomain = async () => {
+        if (!customDomain || !projectId) return;
+        if (!confirm('Are you sure you want to remove this domain?')) return;
+
+        setIsCheckingDomain(true);
+        try {
+            const res = await fetch(`/api/domain?siteId=${projectId}&domain=${customDomain}`, {
+                method: 'DELETE',
+            });
+            if (res.ok) {
+                setCustomDomain(null);
+                setDomainConfig(null);
+                // Fallback to subdomain URL
+                setDeployedUrl(getSubdomainUrl(subdomain));
+                toast.success('Domain removed');
+            } else {
+                toast.error('Failed to remove domain');
+            }
+        } catch (e) {
+            toast.error('Failed to remove domain');
+        } finally {
+            setIsCheckingDomain(false);
+        }
+    };
+
     const loadProjectSubdomain = async () => {
         if (!projectId) return;
 
         const supabase = createClient();
         const { data } = await supabase
             .from('projects')
-            .select('subdomain, name, deployment_status')
+            .select('subdomain, name, deployment_status, custom_domain')
             .eq('id', projectId)
             .single();
 
@@ -77,91 +133,69 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                 setDeploymentStatus(data.deployment_status);
             }
 
+            if (data.custom_domain) {
+                setCustomDomain(data.custom_domain);
+                // Optionally check config immediately
+                checkDomainStatus(data.custom_domain);
+            }
+
             if (data.subdomain) {
                 setSubdomain(data.subdomain);
-                setIsAvailable(true);
                 if (data.deployment_status === 'deployed') {
-                    setDeployedUrl(getSubdomainUrl(data.subdomain));
+                    setDeployedUrl(data.custom_domain ? `https://${data.custom_domain}` : getSubdomainUrl(data.subdomain));
                     setStep('manage');
+                } else {
+                    // exists but not deployed (draft with subdomain reserved)
+                    setStep('confirm');
                 }
-            } else if (data.name) {
-                // 自动建议子域名
-                const suggested = suggestSubdomain(data.name);
-                setSubdomain(suggested);
-                // 自动检查可用性
-                checkAvailability(suggested);
+            } else {
+                // No subdomain yet
+                setStep('confirm');
             }
         }
     };
 
-    // 实时验证子域名
-    useEffect(() => {
-        const normalized = normalizeSubdomain(subdomain);
-
-        if (!normalized) {
-            setSubdomainError('');
-            setIsAvailable(null);
-            return;
-        }
-
-        const validation = validateSubdomain(normalized);
-        if (!validation.valid) {
-            setSubdomainError(validation.error || '');
-            setIsAvailable(false);
-            return;
-        }
-
-        // 格式正确，检查可用性
-        setSubdomainError('');
-        const timeoutId = setTimeout(() => {
-            checkAvailability(normalized);
-        }, 500);
-
-        return () => clearTimeout(timeoutId);
-    }, [subdomain]);
-
-    const checkAvailability = async (normalizedSubdomain: string) => {
-        // If checking the same subdomain that is already assigned to this project, it's available
-        if (deploymentStatus === 'deployed' && normalizedSubdomain === subdomain) {
-            setIsAvailable(true);
-            return;
-        }
-
-        setIsCheckingAvailability(true);
-
+    const checkDomainStatus = async (domain: string) => {
         try {
-            const result = await checkSubdomainAvailability(normalizedSubdomain);
-            setIsAvailable(result.available);
-            if (!result.available && result.error) {
-                setSubdomainError(result.error);
-            }
-        } catch (error) {
-            console.error('Error checking availability:', error);
-            setSubdomainError(t('checkFailed'));
-            setIsAvailable(null);
-        } finally {
-            setIsCheckingAvailability(false);
+            const res = await fetch(`/api/domain/check?domain=${domain}`);
+            const data = await res.json();
+            setDomainConfig(data);
+        } catch (e) {
+            console.error(e);
         }
     };
 
-    const handleQuickPublish = async () => {
-        // 快速发布到 dao123 子域名
-        if (!isAvailable || subdomainError || !projectId) {
-            return;
-        }
+    const handlePublish = async () => {
+        if (!projectId || !currentProject) return;
 
         setIsSaving(true);
+        setStatusMessage(t('startingPublish') || 'Starting publish...');
 
         try {
+            let finalSubdomain = subdomain;
             const supabase = createClient();
-            const normalized = normalizeSubdomain(subdomain);
 
-            // 保存子域名到数据库
+            // 1. If no subdomain assigned, generate one automatically
+            if (!finalSubdomain) {
+                setStep('generating');
+                setStatusMessage(t('generatingUrl') || 'Generating unique URL...');
+
+                // Use project name or fallback to 'site'
+                const uniqueSub = await generateUniqueSubdomain(currentProject.name || 'site');
+                finalSubdomain = uniqueSub;
+                setSubdomain(uniqueSub);
+            }
+
+            // 2. Save to DB
+            setStatusMessage(t('savingConfig') || 'Saving configuration...');
+
+            const normalized = normalizeSubdomain(finalSubdomain);
+
             const { error } = await supabase
                 .from('projects')
                 .update({
                     subdomain: normalized,
-                    deployment_status: 'deployed', // Directly set to deployed for simulation
+                    deployment_status: 'deployed',
                 })
                 .eq('id', projectId);
 
@@ -171,10 +205,13 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
             setDeployedUrl(getSubdomainUrl(normalized));
             setDeploymentStatus('deployed');
         } catch (error) {
-            console.error('Error saving subdomain:', error);
-            alert(t('saveFailed'));
+            console.error('Error publishing:', error);
+            toast.error(t('publishFailed') || 'Publish failed');
+            // Check if it was a generation error or DB error
+            setStep('confirm');
         } finally {
             setIsSaving(false);
+            setStatusMessage('');
         }
     };
 
@@ -202,7 +239,7 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
 
             toast.success(t('unpublishedSuccess'));
             setDeploymentStatus('draft');
-            setStep('choose');
+            setStep('confirm');
             setDeployedUrl('');
         } catch (error) {
             console.error('Error unpublishing:', error);
@@ -212,84 +249,31 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const handleVercelDeploy = async () => {
-        if (!projectId || !subdomain) return;
-
-        const url = getVercelDeployUrl({
-            templateRepo: 'dao123-inc/dao123-template', // Placeholder
-            subdomain: normalizeSubdomain(subdomain),
-            projectId: projectId
-        });
-
-        window.open(url, '_blank');
-        setStep('deploying');
-    };
-
     const handleCopy = () => {
         navigator.clipboard.writeText(deployedUrl);
         toast.success(t('linkCopied') || "Link copied");
     };
 
-    const handleReset = () => {
-        if (deploymentStatus === 'deployed') {
-            setStep('manage');
-        } else {
-            setStep('choose');
-        }
-        setSubdomainError('');
+    // Helper for generating Vercel deploy link (optional feature now)
+    const handleVercelDeploy = () => {
+        if (!projectId) return;
+        // Use current subdomain if exists, or just project name as hint
+        const subHint = subdomain || currentProject?.name || 'project';
+
+        const url = getVercelDeployUrl({
+            templateRepo: 'dao123-inc/dao123-template',
+            subdomain: normalizeSubdomain(subHint),
+            projectId: projectId
+        });
+        window.open(url, '_blank');
     };
-
-    const steps = [
-        { id: 'choose', label: t('title') },
-        { id: 'config', label: t('confirmTitle') },
-        { id: 'success', label: t('successTitle') },
-    ];
-
-    const currentStepIndex = steps.findIndex(s => s.id === step) !== -1
-        ? steps.findIndex(s => s.id === step)
-        : (step === 'deploying' ? 1 : (step === 'manage' ? 2 : 0));
-
-    // Helper for Stepper UI
-    const Stepper = () => (
-        <div className="flex items-center justify-between mb-8 px-2 relative">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-muted -z-10" />
-            <div
-                className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-primary transition-all duration-500 ease-in-out -z-10"
-                style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}% ` }}
-            />
-
-            {steps.map((s, idx) => {
-                const isCompleted = idx < currentStepIndex;
-                const isCurrent = idx === currentStepIndex;
-
-                return (
-                    <div key={s.id} className="flex flex-col items-center gap-2 bg-background px-2">
-                        <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
-                            isCompleted ? "bg-primary border-primary text-primary-foreground" :
-                                isCurrent ? "border-primary text-primary bg-background shadow-md scale-110" :
-                                    "border-muted text-muted-foreground bg-background"
-                        )}>
-                            {isCompleted ? <Check className="w-4 h-4" /> :
-                                isCurrent ? <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" /> :
-                                    <span className="text-xs">{idx + 1}</span>}
-                        </div>
-                        {/* <span className={cn(
-                            "text-[10px] font-medium transition-colors absolute -bottom-6 w-20 text-center",
-                            isCurrent ? "text-primary" : "text-muted-foreground"
-                        )}>{s.label}</span> */}
-                    </div>
-                );
-            })}
-        </div>
-    );
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[450px]">
                 {!projectId ? (
                     <>
                         <DialogHeader>
@@ -314,8 +298,7 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                     </>
                 ) : (
                     <div className="pt-2">
-                        {step !== 'manage' && step !== 'deploying' && <div className="mt-2"><Stepper /></div>}
-
+                        {/* Manage State (Already Deployed) */}
                         {step === 'manage' && (
                             <>
                                 <DialogHeader>
@@ -353,15 +336,7 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full justify-start"
-                                            onClick={() => setStep('choose')}
-                                        >
-                                            <RefreshCw className="mr-2 h-4 w-4" />
-                                            {t('update')}
-                                        </Button>
+                                    <div className="grid grid-cols-1 gap-4">
                                         <Button
                                             variant="outline"
                                             className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
@@ -375,6 +350,75 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                                             )}
                                             {t('unpublish')}
                                         </Button>
+
+                                        {/* Custom Domain Section */}
+                                        <div className="pt-4 border-t space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <Globe className="h-4 w-4 text-muted-foreground" />
+                                                <h4 className="text-sm font-medium">Custom Domain</h4>
+                                            </div>
+
+                                            {customDomain ? (
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md border">
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="text-sm font-mono">{customDomain}</span>
+                                                            {domainConfig && !domainConfig.misconfigured ? (
+                                                                <div className="flex items-center text-xs text-green-600 gap-1">
+                                                                    <Check className="w-3 h-3" /> Valid Configuration
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center text-xs text-yellow-600 gap-1">
+                                                                    <AlertCircle className="w-3 h-3" /> Configuration Needed
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleRemoveCustomDomain} disabled={isCheckingDomain}>
+                                                            {isCheckingDomain ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                        </Button>
+                                                    </div>
+
+                                                    {domainConfig && domainConfig.misconfigured && (
+                                                        <div className="text-xs text-muted-foreground bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded border border-yellow-200 dark:border-yellow-900/30">
+                                                            <p className="font-medium mb-1 text-yellow-800 dark:text-yellow-200">DNS Configuration Required:</p>
+                                                            <p className="mb-1">Please add a CNAME record to your DNS provider:</p>
+                                                            <div className="bg-white dark:bg-black/20 p-2 rounded border flex flex-col gap-1 font-mono text-[10px] sm:text-xs">
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-muted-foreground">Type:</span>
+                                                                    <span>CNAME</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-muted-foreground">Name:</span>
+                                                                    <span>{customDomain.startsWith('www') ? 'www' : '@'}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-muted-foreground">Value:</span>
+                                                                    <span>cname.vercel-dns.com</span>
+                                                                </div>
+                                                            </div>
+                                                            <Button size="sm" variant="outline" className="w-full mt-2 h-7 text-xs" onClick={() => checkDomainStatus(customDomain)}>
+                                                                <RefreshCw className="w-3 h-3 mr-1" /> Refresh Status
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <p className="text-xs text-muted-foreground">Connect your own domain (e.g. www.mysite.com)</p>
+                                                    <div className="flex gap-2">
+                                                        <Input
+                                                            placeholder="example.com"
+                                                            value={domainInput}
+                                                            onChange={e => setDomainInput(e.target.value)}
+                                                            className="flex-1 h-9 text-sm"
+                                                        />
+                                                        <Button size="sm" onClick={handleAddCustomDomain} disabled={isCheckingDomain || !domainInput}>
+                                                            {isCheckingDomain ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 <DialogFooter>
@@ -385,204 +429,73 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                             </>
                         )}
 
-                        {step === 'choose' && (
+                        {/* Confirm State (About to Publish) */}
+                        {step === 'confirm' && (
                             <>
                                 <DialogHeader>
                                     <DialogTitle className="flex items-center gap-2">
                                         <Sparkles className="h-5 w-5 text-primary" />
-                                        {t('title')}
+                                        {t('confirmPublishTitle') || "Ready to Publish?"}
                                     </DialogTitle>
                                     <DialogDescription>
-                                        {t('description')}
+                                        {t('confirmPublishDesc') || "Your site will be available on a unique subdomain."}
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    {/* 配置子域名 */}
-                                    <div className="space-y-2">
-                                        <Label htmlFor="subdomain">{t('customSubdomain')}</Label>
-                                        <div className="flex items-center gap-2">
-                                            <Input
-                                                id="subdomain"
-                                                value={subdomain}
-                                                onChange={(e) => setSubdomain(e.target.value)}
-                                                placeholder={t('subdomainPlaceholder')}
-                                                className={subdomainError ? 'border-red-500' : ''}
-                                            />
-                                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+
+                                <div className="py-6 space-y-4">
+                                    <div className="p-4 bg-muted/50 rounded-lg space-y-3 border">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">{t('pageCount')}</span>
+                                            <span className="text-sm font-medium">{pageCount} Pages</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Domain</span>
+                                            <span className="text-sm font-medium flex items-center gap-1">
+                                                <span className="italic text-muted-foreground">auto-generated</span>
                                                 .dao123.me
                                             </span>
                                         </div>
-
-                                        {/* 验证状态 */}
-                                        {isCheckingAvailability && (
-                                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                                <Loader2 className="h-3 w-3 animate-spin" />
-                                                {t('checking')}
-                                            </p>
-                                        )}
-
-                                        {!isCheckingAvailability && isAvailable === true && subdomain && (
-                                            <p className="text-sm text-green-600 flex items-center gap-1">
-                                                <Check className="h-3 w-3" />
-                                                {t('available')}
-                                            </p>
-                                        )}
-
-                                        {!isCheckingAvailability && subdomainError && (
-                                            <p className="text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {subdomainError}
-                                            </p>
-                                        )}
-
-                                        {/* 预览完整 URL */}
-                                        {subdomain && !subdomainError && (
-                                            <p className="text-xs text-muted-foreground">
-                                                {t('deployTo')} <span className="font-medium">{getSubdomainUrl(normalizeSubdomain(subdomain))}</span>
-                                            </p>
-                                        )}
                                     </div>
 
-                                    {/* 发布选项 */}
-                                    <div className="space-y-2 pt-2">
-                                        <Button
-                                            onClick={() => setStep('config')}
-                                            className="w-full"
-                                            disabled={!isAvailable || !!subdomainError || !subdomain}
-                                        >
-                                            <Globe className="mr-2 h-4 w-4" />
-                                            {t('publishToDao')}
+                                    <div className="text-xs text-muted-foreground text-center px-4">
+                                        {t('publishingAgree') || "By publishing, you agree to our Terms of Service."}
+                                    </div>
+                                </div>
+
+                                <DialogFooter className="flex-col sm:flex-row gap-2">
+                                    <div className="flex-1 flex justify-start">
+                                        <Button variant="ghost" size="sm" onClick={handleVercelDeploy} className="text-xs text-muted-foreground h-8">
+                                            <svg className="mr-1.5 h-3 w-3" viewBox="0 0 1155 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M577.344 0L1154.69 1000H0L577.344 0Z" fill="currentColor" />
+                                            </svg>
+                                            Vercel
                                         </Button>
-
-                                        <div className="relative">
-                                            <div className="absolute inset-0 flex items-center">
-                                                <span className="w-full border-t" />
-                                            </div>
-                                            <div className="relative flex justify-center text-xs uppercase">
-                                                <span className="bg-background px-2 text-muted-foreground">{t('or')}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="relative group">
-                                            <Button
-                                                variant="outline"
-                                                className="w-full"
-                                                onClick={handleVercelDeploy}
-                                                disabled={!isAvailable || !!subdomainError || !subdomain}
-                                            >
-                                                <svg className="mr-2 h-3 w-3" viewBox="0 0 1155 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M577.344 0L1154.69 1000H0L577.344 0Z" fill="currentColor" />
-                                                </svg>
-                                                {t('deployToVercel')}
-                                            </Button>
-                                        </div>
-
-                                        <Alert className="bg-muted/50 border-muted">
-                                            <Sparkles className="h-4 w-4 text-primary" />
-                                            <AlertDescription className="text-xs text-muted-foreground">
-                                                {t('vercelDesc')}
-                                            </AlertDescription>
-                                        </Alert>
                                     </div>
-                                </div>
-                                {deploymentStatus === 'deployed' && (
-                                    <DialogFooter>
-                                        <Button variant="ghost" onClick={() => setStep('manage')}>
-                                            {t('back')}
-                                        </Button>
-                                    </DialogFooter>
-                                )}
-                            </>
-                        )}
-
-                        {step === 'config' && (
-                            <>
-                                <DialogHeader>
-                                    <DialogTitle>{t('confirmTitle')}</DialogTitle>
-                                    <DialogDescription>
-                                        {t('confirmDesc')}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="py-4 space-y-4">
-                                    <div className="p-4 bg-muted rounded-lg space-y-3">
-                                        <div className="flex justify-between items-start">
-                                            <span className="text-sm text-muted-foreground">{t('siteUrl')}</span>
-                                            <span className="text-sm font-medium text-right break-all">
-                                                {getSubdomainUrl(normalizeSubdomain(subdomain))}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm text-muted-foreground">{t('pageCount')}</span>
-                                            <span className="text-sm font-medium">{pageCount} {t('pageCount').endsWith('Count') ? '' : '个'}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm text-muted-foreground">{t('deployMethod')}</span>
-                                            <span className="text-sm font-medium">{t('daoHosted')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <DialogFooter className="gap-2">
-                                    <Button variant="outline" onClick={handleReset}>
-                                        {t('back')}
-                                    </Button>
-                                    <Button onClick={handleQuickPublish} disabled={isSaving}>
-                                        {isSaving ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                {t('publishing')}
-                                            </>
-                                        ) : (
-                                            t('confirm')
-                                        )}
-                                    </Button>
-                                </DialogFooter>
-                            </>
-                        )}
-
-                        {step === 'deploying' && (
-                            <>
-                                <DialogHeader>
-                                    <DialogTitle className="flex items-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                                        {t('deployingVercel')}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {t('vercelStepsDesc')}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="py-4 space-y-4">
-                                    <Alert>
-                                        <AlertCircle className="h-4 w-4" />
-                                        <AlertDescription className="text-sm space-y-2">
-                                            <p className="font-medium">{t('stepsTitle')}</p>
-                                            <ol className="list-decimal list-inside space-y-1 text-xs">
-                                                <li>{t('step1')}</li>
-                                                <li>{t('step2')}</li>
-                                                <li>{t('step3')}</li>
-                                                <li>{t('step4')}<br />
-                                                    <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                                                        {normalizeSubdomain(subdomain)}.dao123.me
-                                                    </code>
-                                                </li>
-                                            </ol>
-                                        </AlertDescription>
-                                    </Alert>
-
-                                    <div className="p-4 bg-muted rounded-lg">
-                                        <p className="text-sm font-medium mb-2">{t('yourSubdomain')}</p>
-                                        <code className="text-sm bg-background px-2 py-1 rounded block">
-                                            {getSubdomainUrl(normalizeSubdomain(subdomain))}
-                                        </code>
-                                    </div>
-                                </div>
-                                <DialogFooter>
                                     <Button variant="outline" onClick={() => setIsOpen(false)}>
-                                        {t('gotIt')}
+                                        {t('cancel')}
+                                    </Button>
+                                    <Button onClick={handlePublish} disabled={isSaving} className="min-w-[120px]">
+                                        {t('publishNow') || "Publish Now"}
+                                        <Globe className="ml-2 h-4 w-4" />
                                     </Button>
                                 </DialogFooter>
                             </>
                         )}
 
+                        {/* Generating State */}
+                        {step === 'generating' && (
+                            <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
+                                <div className="relative">
+                                    <div className="h-12 w-12 rounded-full border-4 border-primary/20 animate-spin border-t-primary" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-medium text-lg">{t('gettingReady') || "Getting your site ready..."}</h3>
+                                    <p className="text-sm text-muted-foreground">{statusMessage}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Success State */}
                         {step === 'success' && (
                             <>
                                 <DialogHeader>
@@ -594,7 +507,7 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                                         {t('successDesc')}
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="py-4 space-y-4">
+                                <div className="py-6 space-y-4">
                                     <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Globe className="h-4 w-4 text-green-600" />
@@ -612,12 +525,11 @@ export function PublishModal({ children }: { children: React.ReactNode }) {
                                         </div>
                                     </div>
 
-                                    <Alert>
-                                        <AlertCircle className="h-4 w-4" />
-                                        <AlertDescription className="text-xs">
-                                            {t('simulationNote')}
-                                        </AlertDescription>
-                                    </Alert>
+                                    <div className="flex items-center justify-center">
+                                        <div className="h-32 w-32 bg-muted rounded-md flex items-center justify-center text-muted-foreground text-xs border border-dashed">
+                                            QR Code Placeholder
+                                        </div>
+                                    </div>
                                 </div>
                                 <DialogFooter className="gap-2">
                                     <Button variant="outline" onClick={() => setIsOpen(false)}>

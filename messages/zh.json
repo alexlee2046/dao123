@@ -34,7 +34,8 @@
         "users": "用户",
         "profile": "个人资料",
         "aiImage": "AI 图片",
-        "aiVideo": "AI 视频"
+        "aiVideo": "AI 视频",
+        "mail": "邮件营销"
     },
     "auth": {
         "loginTitle": "登录到您的账户",
@@ -101,7 +102,11 @@
         "edit": "编辑",
         "aiImage": "AI 图片",
         "aiVideo": "AI 视频",
-        "logout": "退出登录"
+        "logout": "退出登录",
+        "quickStart": "快速开始",
+        "untitledProject": "未命名项目",
+        "projectCreated": "项目已创建",
+        "createFailed": "创建失败"
     },
     "marketing": {
         "nav": {
@@ -196,6 +201,7 @@
     },
     "studio": {
         "title": "工作室",
+        "projectList": "我的项目",
         "loading": "加载中...",
         "selectPage": "选择页面",
         "canvas": "画布",
@@ -979,7 +985,17 @@
             "linkCopied": "链接已复制",
             "emptyPreview": "生成的图片将显示在这里",
             "download": "下载",
-            "downloadFailed": "下载失败"
+            "downloadFailed": "下载失败",
+            "textToImage": "文生图",
+            "imageToImage": "图生图",
+            "uploadImage": "上传参考图片",
+            "uploadHint": "拖拽图片到此处或点击上传",
+            "imageRequired": "请先上传参考图片",
+            "promptRequired": "请输入提示词",
+            "editPromptPlaceholder": "描述您想要的修改效果...",
+            "generateFromImage": "生成图片",
+            "invalidImageType": "请选择图片文件",
+            "imageTooLarge": "图片大小不能超过 10MB"
         },
         "cost": "消耗：{cost} {unit}",
         "video": {

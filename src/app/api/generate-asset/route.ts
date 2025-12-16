@@ -31,12 +31,23 @@ export async function POST(req: Request) {
     let selectedModelId = '';
 
     try {
-        const { prompt, model, type, apiKey: userApiKey } = await req.json();
+        const { prompt, model, type, apiKey: userApiKey, mode, sourceImage } = await req.json();
         userPrompt = prompt;
 
         // Validate type
         if (!type || !['image', 'video'].includes(type)) {
             return NextResponse.json({ error: '不支持的生成类型：仅支持 image 或 video' }, { status: 400 });
+        }
+
+        // Validate mode for image type
+        const generationMode = mode || 'text-to-image';
+        if (type === 'image' && !['text-to-image', 'image-to-image'].includes(generationMode)) {
+            return NextResponse.json({ error: '不支持的生成模式' }, { status: 400 });
+        }
+
+        // For image-to-image, sourceImage is required
+        if (generationMode === 'image-to-image' && !sourceImage) {
+            return NextResponse.json({ error: '图生图模式需要上传参考图片' }, { status: 400 });
         }
 
         // 1. Get User
@@ -136,7 +147,39 @@ export async function POST(req: Request) {
 
         // 5. Generate Asset
         try {
-            console.log(`Generating ${type} with model: ${selectedModel}`);
+            console.log(`Generating ${type} with model: ${selectedModel}, mode: ${generationMode}`);
+
+            // Build messages based on generation mode
+            let messages: any[];
+
+            if (generationMode === 'image-to-image' && sourceImage) {
+                // Image-to-image mode: use multimodal content format
+                messages = [
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: sourceImage // base64 data URL
+                                }
+                            },
+                            {
+                                type: "text",
+                                text: `Based on this reference image, please: ${prompt}`
+                            }
+                        ]
+                    }
+                ];
+            } else {
+                // Text-to-image mode: simple text prompt
+                messages = [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ];
+            }
 
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
@@ -148,14 +191,8 @@ export async function POST(req: Request) {
                 },
                 body: JSON.stringify({
                     model: selectedModel,
-                    messages: [
-                        {
-                            role: "user",
-                            content: prompt
-                        }
-                    ],
-                    // Should we include this? OpenRouter docs for Gemini say yes.
-                    // For safety, we add it for image types.
+                    messages,
+                    // For image generation, include image modality
                     ...(type === 'image' ? { modalities: ["image", "text"] } : {})
                 })
             });

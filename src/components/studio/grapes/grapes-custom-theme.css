@@ -599,6 +599,45 @@
 }
 
 /* ==============================================
+   FIX: STRICT REMOVAL OF REDUNDANT UI
+   Global Hiding Strategy:
+   1. Hide ALL instances of Class Manager and State Selectors by default.
+   2. Only REVEAL the one inside our authorized #gjs-selector-manager container.
+   This solves the "4 duplicates" issue by visually deleting all unauthorized instances.
+   ============================================== */
+.gjs-clm-tags,
+.gjs-sm-header,
+.gjs-clm-header-status,
+.gjs-clm-sels-info {
+  display: none !important;
+}
+
+/* Whitelist: Only show the one in our dedicated container */
+#gjs-selector-manager .gjs-clm-tags,
+#gjs-selector-manager .gjs-sm-header,
+#gjs-selector-manager .gjs-clm-header-status,
+#gjs-selector-manager .gjs-clm-sels-info {
+  display: block !important;
+}
+
+/* Ensure flex display is restored for headers if needed (usually block is fine, but check layout) */
+#gjs-selector-manager .gjs-sm-header,
+#gjs-selector-manager .gjs-clm-header-status {
+  display: block !important;
+  /* GrapesJS default might be block/flex */
+}
+
+/* Exclude Sector Titles from the global hide! 
+   Sector titles use .gjs-sm-sector-title inside .gjs-sm-header? 
+   No, usually separate. But if they share classes, we must protect them.
+*/
+.gjs-sm-sector-title,
+.gjs-sm-sector .gjs-sm-header {
+  /* Restore visibility for sector titles if they were matched */
+  display: flex !important;
+}
+
+/* ==============================================
    7. LAYER MANAGER (图层管理)
    ============================================== */
 .gjs-layers {

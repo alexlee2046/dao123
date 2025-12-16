@@ -303,6 +303,8 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                             }
                         });
 
+
+
                         // Force refresh to ensure layout updates
                         editor.refresh();
                         console.log('[GrapesEditor] Default panels cleaned up');

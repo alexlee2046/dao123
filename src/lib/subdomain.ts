@@ -241,3 +241,55 @@ export function getDeploymentStatusColor(status: DeploymentStatus): string {
 
     return colorMap[status] || 'text-gray-500';
 }
+
+/**
+ * 自动生成唯一的子域名
+ * 
+ * 逻辑：
+ * 1. 尝试使用 cleanName (标准化后的名称)
+ * 2. 如果 cleanName 不可用，尝试 cleanName + '-' + 4位随机字符
+ * 3. 循环尝试直到找到可用的子域名（最多重试 5 次）
+ */
+export async function generateUniqueSubdomain(baseName: string): Promise<string> {
+    // 1. 基础标准化
+    let candidate = normalizeSubdomain(baseName);
+
+    // 如果 baseName 处理后为空（例如只有特殊字符），使用随机字符串
+    if (!candidate) {
+        candidate = Math.random().toString(36).substring(2, 8);
+    }
+
+    // 确保符合格式要求（去除非法字符）
+    candidate = candidate.replace(/[^a-z0-9-]/g, '');
+
+    // 检查基础名称是否可用
+    // 注意：这里我们假设前端会调用此函数，并处理异步逻辑
+    // 为了防止无限循环，我们限制重试次数
+    const maxRetries = 5;
+
+    // 首次尝试
+    const firstCheck = await checkSubdomainAvailability(candidate);
+    if (firstCheck.available) {
+        return candidate;
+    }
+
+    // 如果不可用，添加后缀重试
+    for (let i = 0; i < maxRetries; i++) {
+        // 生成 4 位随机后缀
+        const suffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const nextCandidate = `${candidate}-${suffix}`;
+
+        // 验证格式（防止拼接后超长等问题，虽然概率很低）
+        const validation = validateSubdomain(nextCandidate);
+        if (!validation.valid) continue;
+
+        const check = await checkSubdomainAvailability(nextCandidate);
+        if (check.available) {
+            return nextCandidate;
+        }
+    }
+
+    // 如果所有尝试都失败（极低概率），抛出错误或返回带长随机数的备选
+    const fallback = `${candidate}-${Date.now().toString(36)}`;
+    return fallback;
+}

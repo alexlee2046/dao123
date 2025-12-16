@@ -84,11 +84,40 @@ export default async function proxy(request: NextRequest) {
             }
         }
     } else {
-        // Production Custom Domain
+        // Production handling
         if (hostname.endsWith(`.${baseDomain}`)) {
+            // It's a subdomain of our base domain (e.g. site.dao123.me)
             const sub = hostname.replace(`.${baseDomain}`, '')
             if (sub !== 'www') {
                 subdomain = sub
+            }
+        } else {
+            // It's a Custom Domain (e.g. www.example.com)
+            // We need to find which project this domain maps to.
+            // CAUTION: This database call in middleware runs on every request for custom domains.
+            // Ideally should be cached via Edge Config or Redis.
+
+            // Note: createServerClient inside middleware might have limitations if not careful,
+            // but for a public read it should be fine with anon key.
+            const supabase = createServerClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+                {
+                    cookies: {
+                        getAll() { return request.cookies.getAll() },
+                        setAll() { } // We don't set cookies here
+                    }
+                }
+            )
+
+            const { data: project } = await supabase
+                .from('projects')
+                .select('subdomain')
+                .eq('custom_domain', hostname)
+                .single();
+
+            if (project && project.subdomain) {
+                subdomain = project.subdomain;
             }
         }
     }

@@ -13,7 +13,8 @@ import {
     Globe,
     Settings,
     LogOut,
-    CreditCard
+    CreditCard,
+    Mail
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getCredits } from "@/lib/actions/credits"
@@ -33,6 +34,7 @@ export function AppSidebar({ className }: { className?: string }) {
         { icon: LayoutDashboard, label: t('dashboard'), href: "/dashboard" },
         { icon: Palette, label: tNav('studio'), href: "/studio" },
         { icon: Heart, label: tNav('h5'), href: "/h5" },
+        { icon: Mail, label: tNav('mail'), href: "/mail" },
         { icon: ImageIcon, label: tNav('aiImage'), href: "/generate/image" },
         { icon: Video, label: tNav('aiVideo'), href: "/generate/video" },
         { icon: Globe, label: t('community'), href: "/community" },

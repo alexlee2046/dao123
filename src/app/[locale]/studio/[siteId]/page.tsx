@@ -182,7 +182,8 @@ export default function StudioPage() {
     // Redirect logic for 'new'
     useEffect(() => {
         if (siteId === 'new') {
-            router.replace('/project/create');
+            // Redirect to dashboard where user can create project via Quick Start
+            router.replace('/dashboard');
         }
     }, [siteId, router]);
 

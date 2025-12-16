@@ -34,7 +34,8 @@
         "users": "Users",
         "profile": "Profile",
         "aiImage": "AI Image",
-        "aiVideo": "AI Video"
+        "aiVideo": "AI Video",
+        "mail": "DaoMail"
     },
     "auth": {
         "loginTitle": "Login to Your Account",
@@ -196,6 +197,7 @@
     },
     "studio": {
         "title": "Studio",
+        "projectList": "My Projects",
         "loading": "Loading...",
         "selectPage": "Select Page",
         "canvas": "Canvas",
@@ -979,7 +981,17 @@
             "linkCopied": "Link copied",
             "emptyPreview": "Generated image will appear here",
             "download": "Download",
-            "downloadFailed": "Download failed"
+            "downloadFailed": "Download failed",
+            "textToImage": "Text to Image",
+            "imageToImage": "Image to Image",
+            "uploadImage": "Upload Reference Image",
+            "uploadHint": "Drop image here or click to upload",
+            "imageRequired": "Please upload a reference image first",
+            "promptRequired": "Please enter a prompt",
+            "editPromptPlaceholder": "Describe the changes you want...",
+            "generateFromImage": "Generate Image",
+            "invalidImageType": "Please select an image file",
+            "imageTooLarge": "Image size cannot exceed 10MB"
         },
         "cost": "Cost: {cost} {unit}",
         "video": {
