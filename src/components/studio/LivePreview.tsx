@@ -26,7 +26,16 @@ const GrapesEditor = dynamic(
 
 export function LivePreview() {
     const t = useTranslations('preview');
-    const { htmlContent, previewDevice, pages, currentPage, setCurrentPage, isBuilderMode, setPages, setHtmlContent } = useStudioStore();
+    
+    // Use fine-grained selectors for better performance
+    const htmlContent = useStudioStore(s => s.htmlContent);
+    const previewDevice = useStudioStore(s => s.previewDevice);
+    const pages = useStudioStore(s => s.pages);
+    const setCurrentPage = useStudioStore(s => s.setCurrentPage);
+    const isBuilderMode = useStudioStore(s => s.isBuilderMode);
+    const setPages = useStudioStore(s => s.setPages);
+    const setHtmlContent = useStudioStore(s => s.setHtmlContent);
+
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     // Handle HTML change from GrapesEditor
@@ -46,6 +55,7 @@ export function LivePreview() {
 ${html}
 </body>
 </html>`;
+        // Use skipHistory: true? (Note: setHtmlContent from store only takes 1 arg)
         setHtmlContent(fullHtml);
     }, [setHtmlContent]);
 

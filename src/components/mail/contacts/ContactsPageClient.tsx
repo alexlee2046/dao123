@@ -64,7 +64,11 @@ export function ContactsPageClient() {
                 company_name: lead.company?.name,
                 position: lead.position || null,
                 phone: lead.phone || null,
-                source: 'hunter',
+                source: lead.source || 'hunter',
+                email_verified: lead.emailVerified,
+                email_verification_status: lead.emailVerificationStatus,
+                email_source: lead.source,
+                confidence_score: lead.confidence,
             });
             toast.success('联系人已添加');
             loadContacts();
@@ -85,7 +89,11 @@ export function ContactsPageClient() {
                     company_name: lead.company?.name,
                     position: lead.position || null,
                     phone: lead.phone || null,
-                    source: 'hunter',
+                    source: lead.source || 'hunter',
+                    email_verified: lead.emailVerified,
+                    email_verification_status: lead.emailVerificationStatus,
+                    email_source: lead.source,
+                    confidence_score: lead.confidence,
                 });
                 successCount++;
             } catch (error) {

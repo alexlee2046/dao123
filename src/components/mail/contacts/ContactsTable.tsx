@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Contact, deleteContact, bulkDeleteContacts } from '@/lib/actions/mail/contacts';
 import { toast } from 'sonner';
+import { EmailVerifyBadge } from './EmailVerifyBadge';
 
 interface ContactsTableProps {
     contacts: Contact[];
@@ -187,6 +188,11 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Mail className="h-3 w-3" />
                                         {contact.email}
+                                        <EmailVerifyBadge
+                                            verified={contact.email_verified}
+                                            status={contact.email_verification_status}
+                                            className="ml-1 scale-90"
+                                        />
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -218,9 +224,16 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant="outline" className="text-xs capitalize">
-                                        {contact.source || 'unknown'}
-                                    </Badge>
+                                    <div className="flex flex-col gap-1 items-start">
+                                        <Badge variant="outline" className="text-xs capitalize">
+                                            {contact.source || 'unknown'}
+                                        </Badge>
+                                        {contact.email_source && contact.email_source !== contact.source && (
+                                            <span className="text-[10px] text-muted-foreground">
+                                                Email: {contact.email_source}
+                                            </span>
+                                        )}
+                                    </div>
                                 </TableCell>
                                 <TableCell>
                                     <DropdownMenu>

@@ -11,13 +11,20 @@ import {
 } from "@/components/ui/tooltip";
 
 export function DeviceSelector() {
-    const { previewDevice, setPreviewDevice } = useStudioStore();
+    const previewDevice = useStudioStore(s => s.previewDevice);
+    const setPreviewDevice = useStudioStore(s => s.setPreviewDevice);
+    const runCommand = useStudioStore(s => s.runCommand);
 
     const devices = [
-        { id: 'desktop', icon: Monitor, label: 'Desktop (100%)' },
-        { id: 'tablet', icon: Tablet, label: 'Tablet (768px)' },
-        { id: 'mobile', icon: Smartphone, label: 'Mobile (375px)' },
+        { id: 'desktop', icon: Monitor, label: 'Desktop (100%)', command: 'dao:set-device-desktop' },
+        { id: 'tablet', icon: Tablet, label: 'Tablet (768px)', command: 'dao:set-device-tablet' },
+        { id: 'mobile', icon: Smartphone, label: 'Mobile (375px)', command: 'dao:set-device-mobile' },
     ] as const;
+
+    const handleDeviceChange = (deviceId: typeof devices[number]['id'], command: string) => {
+        setPreviewDevice(deviceId);
+        runCommand(command);
+    };
 
     return (
         <TooltipProvider delayDuration={300}>
@@ -34,7 +41,7 @@ export function DeviceSelector() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => setPreviewDevice(device.id)}
+                                    onClick={() => handleDeviceChange(device.id, device.command)}
                                     className={cn(
                                         "relative h-8 w-8 rounded-full transition-all duration-300",
                                         isActive

@@ -18,6 +18,9 @@ export interface Contact {
     country?: string | null;
     tags?: string[];
     source?: string;
+    email_verified?: boolean;
+    email_verification_status?: string | null;
+    email_source?: string;
     confidence_score?: number | null;
     created_at?: string;
     updated_at?: string;
@@ -53,7 +56,7 @@ export async function getContacts(filters?: ContactFilters): Promise<{ contacts:
 
     // Apply filters
     if (filters?.search) {
-        query = query.or(`email.ilike.%${filters.search}%,first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%`);
+        query = query.or(`email.ilike.%${filters.search}%,first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,company_name.ilike.%${filters.search}%`);
     }
 
     if (filters?.tags && filters.tags.length > 0) {
@@ -100,11 +103,16 @@ export async function createContact(contact: Partial<Contact>): Promise<{ succes
             email: contact.email,
             first_name: contact.first_name,
             last_name: contact.last_name,
+            company_name: contact.company_name,
             position: contact.position,
             phone: contact.phone,
             country: contact.country,
             tags: contact.tags || [],
             source: contact.source || 'manual',
+            email_verified: contact.email_verified || false,
+            email_verification_status: contact.email_verification_status,
+            email_source: contact.email_source || contact.source || 'manual',
+            confidence_score: contact.confidence_score,
         })
         .select('id')
         .single();

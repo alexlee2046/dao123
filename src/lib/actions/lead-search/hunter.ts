@@ -5,15 +5,18 @@
  * 用于在服务端安全调用 Hunter.io API
  */
 
-import { createHunterClient, HunterDomainSearchResult, HunterEmailFinderResult, HunterVerifyResult, HunterEmailCountResult, LeadContact } from '@/lib/services/lead-search';
+import { createHunterClient } from '@/lib/services/lead-search/hunter';
+import { LeadContact, HunterEmailFinderResult, HunterVerifyResult, HunterEmailCountResult } from '@/lib/services/lead-search/types';
+import { createSearchHistory } from '@/lib/services/lead-search/history';
+
+const HUNTER_API_KEY = process.env.HUNTER_API_KEY!;
 
 // 获取 Hunter 客户端
 function getClient() {
-    const apiKey = process.env.HUNTER_API_KEY;
-    if (!apiKey) {
+    if (!HUNTER_API_KEY) {
         throw new Error('HUNTER_API_KEY 环境变量未设置');
     }
-    return createHunterClient(apiKey);
+    return createHunterClient(HUNTER_API_KEY);
 }
 
 /**
@@ -28,18 +31,30 @@ export async function searchDomain(params: {
     department?: string[];
 }): Promise<{
     success: boolean;
-    data?: HunterDomainSearchResult;
     contacts?: LeadContact[];
     error?: string;
+    data?: any;
 }> {
     try {
         const client = getClient();
-        const result = await client.domainSearch(params);
-        const contacts = client.domainSearchToLeadContacts(result);
+        const response = await client.domainSearch(params);
+        const contacts = client.domainSearchToLeadContacts(response.data);
+
+        // 记录搜索历史
+        await createSearchHistory({
+            search_type: 'domain',
+            query: params,
+            result_summary: {
+                total: response.meta?.results || 0,
+                limit: response.meta?.limit || 0,
+                offset: response.meta?.offset || 0,
+                found_count: contacts.length,
+            },
+        });
 
         return {
             success: true,
-            data: result,
+            data: response.data,
             contacts,
         };
     } catch (error) {
@@ -67,20 +82,33 @@ export async function findEmail(params: {
 }> {
     try {
         const client = getClient();
-        const result = await client.findEmail(params);
+        const response = await client.findEmail(params);
 
-        if (!result) {
+        if (!response) {
             return {
                 success: false,
                 error: '未找到匹配的邮箱地址',
             };
         }
 
-        const contact = client.emailFinderToLeadContact(result);
+        const contact = client.emailFinderToLeadContact(response.data);
+
+        // 记录搜索历史
+        await createSearchHistory({
+            search_type: 'email',
+            query: params,
+            result_summary: {
+                found: true,
+                email: response.data.email,
+                score: response.data.score,
+                position: response.data.position,
+                company: response.data.domain,
+            },
+        });
 
         return {
             success: true,
-            data: result,
+            data: response.data,
             contact,
         };
     } catch (error) {
@@ -103,7 +131,19 @@ export async function verifyEmail(email: string): Promise<{
 }> {
     try {
         const client = getClient();
-        const result = await client.verifyEmail({ email });
+        const response = await client.verifyEmail({ email });
+        const result = response.data;
+
+        // 记录搜索历史
+        await createSearchHistory({
+            search_type: 'verify',
+            query: { email },
+            result_summary: {
+                valid: result.status === 'valid',
+                status: result.status,
+                score: result.score,
+            },
+        });
 
         return {
             success: true,
@@ -135,7 +175,8 @@ export async function verifyEmails(emails: string[]): Promise<{
         emails.map(async (email) => {
             try {
                 const client = getClient();
-                const result = await client.verifyEmail({ email });
+                const response = await client.verifyEmail({ email });
+                const result = response.data;
                 return {
                     email,
                     isValid: result.status === 'valid',
@@ -167,7 +208,19 @@ export async function getEmailCount(domain: string): Promise<{
 }> {
     try {
         const client = getClient();
-        const result = await client.emailCount({ domain });
+        const response = await client.emailCount({ domain });
+        const result = response.data;
+
+        // 记录搜索历史
+        await createSearchHistory({
+            search_type: 'count',
+            query: { domain },
+            result_summary: {
+                total: result.total,
+                personal: result.personalEmails,
+                generic: result.genericEmails,
+            },
+        });
 
         return {
             success: true,

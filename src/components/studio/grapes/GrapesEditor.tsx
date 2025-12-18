@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import grapesjs, { Editor } from 'grapesjs';
 import gjsPresetWebpage from 'grapesjs-preset-webpage';
-import gjsBlocksBasic from 'grapesjs-blocks-basic';
 import gjsPluginForms from 'grapesjs-plugin-forms';
 import gjsPluginExport from 'grapesjs-plugin-export';
 import gjsCustomCode from 'grapesjs-custom-code';
@@ -17,29 +16,14 @@ export interface GrapesEditorProps {
     onHtmlChange?: (html: string, css: string) => void;
     /** Callback when editor is ready */
     onEditorReady?: (editor: Editor) => void;
-    /** Whether the editor is readonly */
-    readonly?: boolean;
     /** Current preview device */
     previewDevice?: 'desktop' | 'tablet' | 'mobile';
-    /** Action callbacks for toolbar buttons */
-    onSave?: () => void;
-    onImportCode?: () => void;
-    onPublishCommunity?: () => void;
-    onShare?: () => void;
-    onPublish?: () => void;
 }
 
 export const GrapesEditor: React.FC<GrapesEditorProps> = ({
     htmlContent,
     onHtmlChange,
-    onEditorReady,
-    readonly = false,
-    previewDevice = 'desktop',
-    onSave,
-    onImportCode,
-    onPublishCommunity,
-    onShare,
-    onPublish
+    onEditorReady
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<Editor | null>(null);
@@ -48,8 +32,8 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
     // Store references for global command access
-    const setEditorRef = useStudioStore((s) => s.setEditorRef);
-    const setCommandPaletteOpen = useStudioStore((s) => s.setCommandPaletteOpen);
+    const setEditorRef = useStudioStore(s => s.setEditorRef);
+    const setCommandPaletteOpen = useStudioStore(s => s.setCommandPaletteOpen);
 
     const locale = useLocale();
     const messages = useMessages();
@@ -132,46 +116,6 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                         scripts: ['https://cdn.tailwindcss.com'],
                         styles: [
                             'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
-                            // Inject our System Design Tokens so the builder content matches the app
-                            `
-                        :root {
-                            --radius: 0.75rem;
-                            --background: oklch(0.985 0 0);
-                            --foreground: oklch(0.145 0 0);
-                            --card: oklch(1 0 0);
-                            --card-foreground: oklch(0.145 0 0);
-                            --popover: oklch(1 0 0);
-                            --popover-foreground: oklch(0.145 0 0);
-                            --primary: oklch(0.5 0.2 270);
-                            --primary-foreground: oklch(0.985 0 0);
-                            --secondary: oklch(0.97 0 0);
-                            --secondary-foreground: oklch(0.205 0 0);
-                            --muted: oklch(0.97 0 0);
-                            --muted-foreground: oklch(0.556 0 0);
-                            --accent: oklch(0.97 0 0);
-                            --accent-foreground: oklch(0.205 0 0);
-                            --destructive: oklch(0.577 0.245 27.325);
-                            --border: oklch(0.922 0 0);
-                            --input: oklch(0.922 0 0);
-                            --ring: oklch(0.5 0.2 270);
-                            --sidebar-primary: oklch(0.5 0.2 270);
-                        }
-                        html, body { 
-                            min-height: 100%; 
-                            margin: 0; 
-                            padding: 0; 
-                            font-family: "Inter", system-ui, sans-serif; 
-                            -webkit-font-smoothing: antialiased; 
-                            color: var(--foreground); 
-                            background-color: #ffffff; /* Always white paper for the page */
-                            line-height: 1.5; 
-                        }
-                        /* Scrollbar styling for component view */
-                        ::-webkit-scrollbar { width: 5px; height: 5px; }
-                        ::-webkit-scrollbar-track { background: transparent; }
-                        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-                        ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
-                        `
                         ]
                     },
 
@@ -356,8 +300,14 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                     });
 
                     // Register custom commands
+                    // dao:save is handled by the global store saveProject action, 
+                    // but we keep the command for backward compatibility if needed, 
+                    // just make it a no-op or call the global action if possible.
                     editor.Commands.add('dao:save', {
-                        run: () => { onSave?.(); }
+                        run: () => { 
+                            const saveProject = useStudioStore.getState().saveProject;
+                            saveProject();
+                        }
                     });
 
                     // Undo/Redo commands (wrapping GrapesJS UndoManager)
@@ -436,6 +386,17 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                         }
                     });
 
+                    // Device switching commands
+                    editor.Commands.add('dao:set-device-desktop', {
+                        run: (ed) => ed.setDevice('Desktop')
+                    });
+                    editor.Commands.add('dao:set-device-tablet', {
+                        run: (ed) => ed.setDevice('Tablet')
+                    });
+                    editor.Commands.add('dao:set-device-mobile', {
+                        run: (ed) => ed.setDevice('Mobile')
+                    });
+
                     // --- Drag & Drop Integration ---
                     const canvas = editor.Canvas;
                     const frameEl = canvas.getFrameEl();
@@ -507,8 +468,7 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
 
                     // --- Legacy Event Listeners for backward compatibility ---
                     // These allow external components to still use CustomEvent pattern
-                    const handleExternalUndo = () => editor.Commands.run('dao:undo');
-                    const handleExternalRedo = () => editor.Commands.run('dao:redo');
+                    // Note: undo/redo removed as they use runCommand via store
 
                     // --- Code Editor Integration ---
                     const handleGetCode = (e: CustomEvent) => {
@@ -530,8 +490,6 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                         }
                     };
 
-                    window.addEventListener('dao:undo', handleExternalUndo);
-                    window.addEventListener('dao:redo', handleExternalRedo);
                     window.addEventListener('dao:get-code', handleGetCode as EventListener);
                     window.addEventListener('dao:set-code', handleSetCode as EventListener);
 
@@ -540,8 +498,6 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
 
                     // Store cleanup function for unmount
                     (editor as any)._cleanupListeners = () => {
-                        window.removeEventListener('dao:undo', handleExternalUndo);
-                        window.removeEventListener('dao:redo', handleExternalRedo);
                         window.removeEventListener('dao:get-code', handleGetCode as EventListener);
                         window.removeEventListener('dao:set-code', handleSetCode as EventListener);
                         setEditorRef(null);
@@ -556,12 +512,12 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                         const html = editor.getHtml();
                         const css = editor.getCss();
 
-                        // Simple check to avoid loops
+                        // Simple check to avoid loops and redundant updates
                         if (html !== lastHtmlRef.current) {
                             lastHtmlRef.current = html;
                             onHtmlChange?.(html, css || '');
                         }
-                    }, 500); // 增加 debounce 时间
+                    }, 1000); // 增加 debounce 时间至 1s，减少同步开销
                 });
 
 
@@ -637,26 +593,6 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
 
         return () => clearTimeout(timer);
     }, [htmlContent]);
-
-    // Handle preview device changes
-    useEffect(() => {
-        if (!editorRef.current) return;
-
-        const deviceMap: Record<string, string> = {
-            'desktop': 'Desktop',
-            'tablet': 'Tablet',
-            'mobile': 'Mobile'
-        };
-
-        const targetDevice = deviceMap[previewDevice] || 'Desktop';
-        console.log('[GrapesEditor] Setting device to:', targetDevice);
-
-        try {
-            editorRef.current.setDevice(targetDevice);
-        } catch (e) {
-            console.error('[GrapesEditor] Error setting device:', e);
-        }
-    }, [previewDevice]);
 
     return (
         <div className="grapes-editor-wrapper w-full h-full relative">

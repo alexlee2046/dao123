@@ -1,13 +1,12 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { extractHtml, parseMultiPageResponse } from '@/lib/page-parser';
-import type { UIMessage as Message } from '@ai-sdk/react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip, Send, Sparkles, AlertCircle, Bot, User, Atom, Loader2, X, Bug, Layout, Grid, Mail, CreditCard } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Paperclip, Send, Sparkles, AlertCircle, User, Atom, Loader2, X, Bug, CreditCard, Layout, Grid, Mail } from "lucide-react";
 import {
     Select,
     SelectContent,
@@ -15,7 +14,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useStudioStore, type Page } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { getModels, type Model } from "@/lib/actions/models";
@@ -36,18 +34,17 @@ interface ChatAsset {
 
 export function ChatAssistant() {
     const t = useTranslations('studio');
-    const {
-        htmlContent,
-        setHtmlContent,
-        setPages,
-        selectedModel,
-        addAsset,
-        setSelectedModel,
-        pendingPrompt,
-        setPendingPrompt,
-        setAiGeneratedCache, // 缓存 AI 生成的内容
-    } = useStudioStore();
 
+    // Use selectors for performance
+    const htmlContent = useStudioStore(s => s.htmlContent);
+    const setHtmlContent = useStudioStore(s => s.setHtmlContent);
+    const setPages = useStudioStore(s => s.setPages);
+    const selectedModel = useStudioStore(s => s.selectedModel);
+    const addAsset = useStudioStore(s => s.addAsset);
+    const setSelectedModel = useStudioStore(s => s.setSelectedModel);
+    const pendingPrompt = useStudioStore(s => s.pendingPrompt);
+    const setPendingPrompt = useStudioStore(s => s.setPendingPrompt);
+    const setAiGeneratedCache = useStudioStore(s => s.setAiGeneratedCache);
 
     const { startGeneration, stopBuild, currentStep, progress, statusMessage } = useAgentOrchestrator();
 
@@ -73,47 +70,7 @@ export function ChatAssistant() {
     // Track if we've already processed the pending prompt
     const pendingPromptProcessedRef = useRef(false);
 
-    useEffect(() => {
-        getModels('chat').then(setModels);
-    }, []);
-
-    useEffect(() => {
-        if (models.length > 0) {
-            const isSelectedValid = models.some(m => m.id === selectedModel);
-            if (!isSelectedValid) {
-                setSelectedModel(models[0].id);
-            }
-        }
-    }, [models, selectedModel, setSelectedModel]);
-
-    // Auto-trigger generation if pendingPrompt exists (from project creation)
-    useEffect(() => {
-        // Wait for both models to be loaded AND selectedModel to be valid
-        const isModelValid = selectedModel && selectedModel.trim() !== '';
-        if (pendingPrompt && models.length > 0 && isModelValid && !pendingPromptProcessedRef.current) {
-            pendingPromptProcessedRef.current = true;
-
-            // Clear the pending prompt FIRST to avoid loops
-            setPendingPrompt(null);
-
-            // Call handleSend directly immediately
-            handleSend(pendingPrompt);
-        }
-    }, [pendingPrompt, models, selectedModel, setPendingPrompt]);
-
-    // Use refs to keep latest state accessible in event handlers if needed, 
-    // but for useChat body we can use the state directly as it re-renders.
-    const selectedModelRef = useRef(selectedModel);
-    const htmlContentRef = useRef(htmlContent);
-
-    useEffect(() => {
-        selectedModelRef.current = selectedModel;
-    }, [selectedModel]);
-    useEffect(() => {
-        htmlContentRef.current = htmlContent;
-    }, [htmlContent]);
-
-    const { messages, sendMessage, stop, status, error, setMessages } = useChat({
+    const { messages, sendMessage, stop, status } = useChat({
         transport: new DefaultChatTransport({
             api: '/api/chat',
             body: {
@@ -149,68 +106,20 @@ export function ChatAssistant() {
         // onFinish removed in favor of real-time monitoring below
     });
 
-    // Track previous message count to detect new messages
-    const lastMsgContentRef = useRef('');
-
-    // Real-time monitoring of the last assistant message
-    useEffect(() => {
-        const lastMsg = messages[messages.length - 1];
-
-        // Only proceed if it's an assistant message AND we are streaming or just finished
-        if (!lastMsg || lastMsg.role !== 'assistant') return;
-
-        let currentContent = '';
-        const msgAny = lastMsg as any;
-        if (typeof msgAny.content === 'string') {
-            currentContent = msgAny.content;
-        } else if (msgAny.parts) {
-            currentContent = msgAny.parts
-                .filter((part: any) => part.type === 'text')
-                .map((part: any) => part.text)
-                .join('');
-        }
-
-        if (!currentContent) return;
-
-        // Update debug info in real-time
-        if (currentContent.length !== lastMsgContentRef.current.length) {
-            lastMsgContentRef.current = currentContent;
-            setDebugInfo(prev => ({
-                ...prev,
-                length: currentContent.length,
-                extractStatus: 'Streaming...',
-                previewSnippet: currentContent.substring(0, 50) + '...' + currentContent.substring(currentContent.length - 50),
-            }));
-        }
-
-        // If status went from streaming to submitted/ready, OR if we have a significant length and status is no longer 'streaming'
-        // Note: useChat status can be 'streaming', 'submitted', 'ready', 'error'
-
-        if (status !== 'streaming' && currentContent.length > 0) {
-            // Debounce final parsing slightly to ensure we have everything
-            const timer = setTimeout(() => {
-                handleFinalParsing(currentContent);
-            }, 500);
-            return () => clearTimeout(timer);
-        }
-
-    }, [messages, status]);
-
-    const handleFinalParsing = async (content: string) => {
+    const handleFinalParsing = useCallback(async (content: string) => {
         console.log('[ChatAssistant] Starting final parsing, content length:', content.length);
 
         // Update debug info
         const extractedHtml = extractHtml(content);
-        setDebugInfo({
+        setDebugInfo(prev => ({
+            ...prev,
             length: content.length,
             extractStatus: extractedHtml ? 'Success (Client)' : 'Failed (Client)',
             previewSnippet: content.substring(0, 50) + '...' + content.substring(content.length - 50),
-        });
+        }));
 
         if (extractedHtml) {
             console.log('[ChatAssistant] Successfully extracted HTML on client side directly.');
-        } else {
-            console.warn('[ChatAssistant] Client-side extraction failed.');
         }
 
         try {
@@ -231,33 +140,12 @@ export function ChatAssistant() {
                 pages.forEach((p: Page) => mergedPagesMap.set(p.path, p));
                 const finalPages = Array.from(mergedPagesMap.values());
 
-                console.log('[ChatAssistant] Setting pages:', {
-                    count: finalPages.length,
-                    paths: finalPages.map(p => p.path),
-                    contentLengths: finalPages.map(p => ({ path: p.path, length: p.content?.length || 0 }))
-                });
-
                 setPages(finalPages);
 
                 // 缓存 AI 生成的 HTML（取第一个页面的内容）
                 const primaryPage = finalPages.find(p => p.path === 'index.html') || finalPages[0];
                 if (primaryPage?.content) {
                     setAiGeneratedCache(primaryPage.content);
-                    console.log('[ChatAssistant] ✅ Cached AI generated content:', {
-                        path: primaryPage.path,
-                        length: primaryPage.content.length,
-                        preview: primaryPage.content.substring(0, 100)
-                    });
-
-                    // 同时确保 htmlContent 也被更新
-                    const storeState = useStudioStore.getState();
-                    console.log('[ChatAssistant] Store state after cache:', {
-                        htmlContentLength: storeState.htmlContent?.length,
-                        cacheExists: !!storeState.aiGeneratedCache,
-                        cacheLength: storeState.aiGeneratedCache?.html?.length
-                    });
-                } else {
-                    console.warn('[ChatAssistant] ⚠️ No primary page content to cache!');
                 }
 
                 toast.success(t('chatPanel.previewUpdated'));
@@ -288,42 +176,20 @@ export function ChatAssistant() {
         // Final fallback
         if (extractedHtml) {
             setHtmlContent(extractedHtml);
-            setAiGeneratedCache(extractedHtml); // 也缓存这个
-            // Removed deprecated setBuilderData call
+            setAiGeneratedCache(extractedHtml); 
             toast.success(t('chatPanel.previewUpdated'));
         }
-    };
+    }, [setPages, setHtmlContent, setAiGeneratedCache, t]);
 
-    const isLoading = status === 'streaming' || status === 'submitted' || uploading;
-
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [messages]);
-
-
-    const handleStopBuild = () => {
-        setUploading(false); // Reuse this state or separate one?
-        // stop() is for useChat.
-        stop();
-        stopBuild();
-        toast.info(t('chatPanel.stopped'));
-    };
-
-    const handleSend = async (contentOverride?: string) => {
+    const handleSend = useCallback(async (contentOverride?: string) => {
         const contentToSend = typeof contentOverride === 'string' ? contentOverride : localInput;
         if (!contentToSend.trim()) return;
 
         // Validate model is selected before sending
         if (!selectedModel || selectedModel.trim() === '') {
             toast.error('请先选择一个模型');
-            console.error('[ChatAssistant] Cannot send: model not selected');
             return;
         }
-
-        // Reset stop flag
-        // isBuildingStopped.current = false; // Handled by hook
 
         if (mode === 'builder') {
             setLocalInput(''); // Clear input
@@ -346,11 +212,43 @@ export function ChatAssistant() {
             });
         } catch (error: any) {
             toast.error(error.message || t('chatPanel.serviceError'));
-            console.error('sendMessage error:', error);
         }
 
         setLocalInput('');
+    }, [localInput, selectedModel, mode, chatAssets, t, startGeneration, sendMessage]);
+
+    // Auto-trigger generation if pendingPrompt exists (from project creation)
+    useEffect(() => {
+        const isModelValid = selectedModel && selectedModel.trim() !== '';
+        if (pendingPrompt && models.length > 0 && isModelValid && !pendingPromptProcessedRef.current) {
+            pendingPromptProcessedRef.current = true;
+            setPendingPrompt(null);
+            handleSend(pendingPrompt);
+        }
+    }, [pendingPrompt, models, selectedModel, setPendingPrompt, handleSend]);
+
+    const isLoading = status === 'streaming' || status === 'submitted' || uploading;
+
+    const handleStopBuild = () => {
+        setUploading(false); // Reuse this state or separate one?
+        // stop() is for useChat.
+        stop();
+        stopBuild();
+        toast.info(t('chatPanel.stopped'));
     };
+
+    useEffect(() => {
+        getModels('chat').then(setModels);
+    }, []);
+
+    useEffect(() => {
+        if (models.length > 0) {
+            const isSelectedValid = models.some(m => m.id === selectedModel);
+            if (!isSelectedValid) {
+                setSelectedModel(models[0].id);
+            }
+        }
+    }, [models, selectedModel, setSelectedModel]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -521,7 +419,7 @@ export function ChatAssistant() {
                         </div>
                     )}
 
-                    {messages.map((msg: any) => {
+                    {useMemo(() => messages.map((msg: any) => {
                         const isUser = msg.role === 'user';
 
                         // 兼容新版 AI SDK: 内容可能在 content 或 parts 中
@@ -568,7 +466,7 @@ export function ChatAssistant() {
                                 </div>
                             </div>
                         );
-                    })}
+                    }), [messages, isLoading, t])}
 
                     {isLoading && (
                         <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2">

@@ -27,7 +27,14 @@ const emptyHtmlTemplate = `
 
 export const PagesPanel = () => {
     const t = useTranslations('studio');
-    const { pages, setPages, currentPage, setCurrentPage, htmlContent } = useStudioStore();
+    
+    // Use selectors for performance
+    const pages = useStudioStore(s => s.pages);
+    const setPages = useStudioStore(s => s.setPages);
+    const currentPage = useStudioStore(s => s.currentPage);
+    const setCurrentPage = useStudioStore(s => s.setCurrentPage);
+    const htmlContent = useStudioStore(s => s.htmlContent);
+
     const [isCreating, setIsCreating] = React.useState(false);
     const [newPageName, setNewPageName] = React.useState('');
     const [cloneCurrent, setCloneCurrent] = React.useState(false);

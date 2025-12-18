@@ -9,8 +9,8 @@ import {
     FileText,
     Box,
     Layers,
-    Settings,
-    LogOut
+    ChevronLeft,
+    ChevronRight
 } from "lucide-react";
 import {
     Tooltip,
@@ -23,16 +23,20 @@ import { useStudioStore } from "@/lib/store";
 interface SidebarRailProps {
     activeTab: string;
     onTabChange: (tab: string) => void;
+    isCollapsed?: boolean;
+    onToggleCollapse?: () => void;
     className?: string;
 }
 
 export function SidebarRail({
     activeTab,
     onTabChange,
+    isCollapsed = false,
+    onToggleCollapse,
     className
 }: SidebarRailProps) {
     const t = useTranslations('studio');
-    const { isBuilderMode } = useStudioStore();
+    const isBuilderMode = useStudioStore(s => s.isBuilderMode);
 
     const topItems = [
         { id: 'chat', icon: MessageSquare, label: t('chat') || 'Chat', visible: true },
@@ -98,6 +102,22 @@ export function SidebarRail({
                             </TooltipContent>
                         </Tooltip>
                     ))}
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                onClick={onToggleCollapse}
+                            >
+                                {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" sideOffset={10}>
+                            {isCollapsed ? t('expand') || 'Expand' : t('collapse') || 'Collapse'}
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
             </div>
         </TooltipProvider>

@@ -40,12 +40,6 @@ interface StudioState {
   previewDevice: 'desktop' | 'tablet' | 'mobile';
   setPreviewDevice: (device: 'desktop' | 'tablet' | 'mobile') => void;
 
-  // History
-  past: { pages: Page[], currentPage: string }[];
-  future: { pages: Page[], currentPage: string }[];
-  undo: () => void;
-  redo: () => void;
-
   // Settings
   openRouterApiKey: string;
   selectedModel: string;
@@ -96,6 +90,9 @@ interface StudioState {
   // Command Palette
   isCommandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
+
+  // Global Save Action
+  saveProject: () => Promise<void>;
 }
 
 export const useStudioStore = create<StudioState>((set) => {
@@ -158,8 +155,6 @@ export const useStudioStore = create<StudioState>((set) => {
     currentPage: 'index.html',
     messages: [] as Message[],
     assets: [] as Asset[],
-    past: [] as { pages: Page[], currentPage: string }[],
-    future: [] as { pages: Page[], currentPage: string }[],
     currentProject: null as StudioState['currentProject'],
     isBuilderMode: true,
     pendingPrompt: null as string | null,
@@ -190,8 +185,6 @@ export const useStudioStore = create<StudioState>((set) => {
       return {
         htmlContent: content,
         pages: newPages,
-        past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
-        future: []
       };
     }),
 
@@ -214,15 +207,13 @@ export const useStudioStore = create<StudioState>((set) => {
         currentPath,
         newCurrentPage,
         newHtmlContentLength: newHtmlContent?.length || 0,
-        isDefaultContent: newHtmlContent?.includes('欢迎来到您的新网站') || newHtmlContent?.includes('Welcome')
+        isDefaultContent: newHtmlContent?.includes('欢迎来到您的新网站') || newHtmlContent?.includes('Welcome'),
       });
 
       return {
         pages,
         currentPage: newCurrentPage,
         htmlContent: newHtmlContent,
-        past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
-        future: []
       };
     }),
 
@@ -245,33 +236,6 @@ export const useStudioStore = create<StudioState>((set) => {
     removeAsset: (id: string) => set((state) => ({ assets: state.assets.filter(a => a.id !== id) })),
 
     setPreviewDevice: (device) => set({ previewDevice: device }),
-
-    past: [],
-    future: [],
-    undo: () => set((state) => {
-      if (state.past.length === 0) return state;
-      const previous = state.past[state.past.length - 1];
-      const newPast = state.past.slice(0, state.past.length - 1);
-      return {
-        pages: previous.pages,
-        currentPage: previous.currentPage,
-        htmlContent: previous.pages.find(p => p.path === previous.currentPage)?.content || '',
-        past: newPast,
-        future: [{ pages: state.pages, currentPage: state.currentPage }, ...state.future]
-      };
-    }),
-    redo: () => set((state) => {
-      if (state.future.length === 0) return state;
-      const next = state.future[0];
-      const newFuture = state.future.slice(1);
-      return {
-        pages: next.pages,
-        currentPage: next.currentPage,
-        htmlContent: next.pages.find(p => p.path === next.currentPage)?.content || '',
-        past: [...state.past, { pages: state.pages, currentPage: state.currentPage }],
-        future: newFuture
-      };
-    }),
 
     // Settings
     setOpenRouterApiKey: (key) => {
@@ -356,5 +320,44 @@ export const useStudioStore = create<StudioState>((set) => {
     // Command Palette
     isCommandPaletteOpen: false,
     setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+
+    // Global Save Action
+    saveProject: async () => {
+      const state = useStudioStore.getState();
+      const { currentProject, htmlContent, pages, captureScreenshot, markAsSaved, setSaveStatus } = state;
+
+      if (!currentProject?.id) {
+        console.error('[Store.saveProject] No active project found');
+        return;
+      }
+
+      try {
+        setSaveStatus('saving');
+        const { updateProject, updateProjectMetadata } = await import("@/lib/actions/projects");
+        const { toast } = await import("sonner");
+
+        // 1. Capture screenshot (don't block the main save)
+        captureScreenshot().then(async (screenshot) => {
+          if (screenshot) {
+            await updateProjectMetadata(currentProject.id, { preview_image: screenshot });
+          }
+        }).catch(err => console.warn('[Store.saveProject] Screenshot failed:', err));
+
+        // 2. Save content
+        await updateProject(currentProject.id, {
+          html: htmlContent,
+          pages,
+          content_json: undefined
+        });
+
+        markAsSaved();
+        toast.success('Project saved');
+      } catch (error: any) {
+        console.error('[Store.saveProject] Error:', error);
+        setSaveStatus('error');
+        const { toast } = await import("sonner");
+        toast.error('Save failed: ' + error.message);
+      }
+    }
   };
 });

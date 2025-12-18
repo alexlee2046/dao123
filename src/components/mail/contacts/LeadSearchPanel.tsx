@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,9 +22,15 @@ import {
     Building2,
     Plus,
 } from 'lucide-react';
-import { searchDomain, findEmail, verifyEmail } from '@/lib/actions/lead-search/hunter';
+import { toast } from 'sonner';
+// import { searchDomain, findEmail, verifyEmail } from '@/lib/actions/lead-search/hunter';
+import { verifyEmail } from '@/lib/actions/lead-search/hunter';
+import { unifiedSearchDomain, unifiedFindEmail } from '@/lib/actions/lead-search/unified';
 import { LeadContact } from '@/lib/services/lead-search';
 import { cn } from '@/lib/utils';
+import { EmailVerifyBadge } from './EmailVerifyBadge';
+import { SmartSearchBar } from './SmartSearchBar';
+import { BatchVerifyPanel } from './BatchVerifyPanel';
 
 interface LeadSearchPanelProps {
     onAddContact?: (contact: LeadContact) => void;
@@ -32,10 +38,14 @@ interface LeadSearchPanelProps {
 }
 
 export function LeadSearchPanel({ onAddContact, onAddContacts }: LeadSearchPanelProps) {
-    const [activeTab, setActiveTab] = useState('domain');
     const [isLoading, setIsLoading] = useState(false);
     const [results, setResults] = useState<LeadContact[]>([]);
     const [error, setError] = useState<string | null>(null);
+
+    // Debug mount
+    useEffect(() => {
+        console.log('LeadSearchPanel Mounted - V2 PRO');
+    }, []);
 
     // 域名搜索表单状态
     const [domain, setDomain] = useState('');
@@ -62,11 +72,12 @@ export function LeadSearchPanel({ onAddContact, onAddContacts }: LeadSearchPanel
         setResults([]);
 
         try {
-            const result = await searchDomain({ domain: domain.trim(), limit: 20 });
+            // const result = await searchDomain({ domain: domain.trim(), limit: 20 });
+            const result = await unifiedSearchDomain({ domain: domain.trim(), limit: 20 });
 
-            if (result.success && result.contacts) {
-                setResults(result.contacts);
-                if (result.contacts.length === 0) {
+            if (result.success && result.data && result.data.contacts) {
+                setResults(result.data.contacts);
+                if (result.data.contacts.length === 0) {
                     setError('未找到任何邮箱地址');
                 }
             } else {
@@ -89,16 +100,17 @@ export function LeadSearchPanel({ onAddContact, onAddContacts }: LeadSearchPanel
         setResults([]);
 
         try {
-            const result = await findEmail({
+            // const result = await findEmail({
+            const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+            const result = await unifiedFindEmail({
                 domain: searchDomainName.trim(),
-                firstName: firstName.trim() || undefined,
-                lastName: lastName.trim() || undefined,
+                fullName: fullName,
             });
 
-            if (result.success && result.contact) {
-                setResults([result.contact]);
+            if (result.success && result.data && result.data.contact) {
+                setResults([result.data.contact]);
             } else {
-                setError(result.error || '未找到匹配的邮箱');
+                setError(result.error || '未找到该邮箱');
             }
         } catch (err) {
             setError('搜索过程中发生错误');
@@ -121,8 +133,8 @@ export function LeadSearchPanel({ onAddContact, onAddContacts }: LeadSearchPanel
 
             if (result.success && result.data) {
                 setVerifyResult({
-                    isValid: result.isValid || false,
-                    status: result.data.status,
+                    isValid: result.data.status === 'valid',
+                    status: result.data.status
                 });
             } else {
                 setError(result.error || '验证失败');
@@ -145,18 +157,31 @@ export function LeadSearchPanel({ onAddContact, onAddContacts }: LeadSearchPanel
     };
 
     return (
-        <Card className="w-full">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Search className="h-5 w-5" />
-                    线索搜索
-                </CardTitle>
-                <CardDescription>
-                    使用 Hunter.io 搜索潜在客户的邮箱地址
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex flex-col h-[600px] w-full">
+            <div className="flex-none p-6 pb-2">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xl font-semibold">线索搜索 Pro</h2>
+                        <p className="text-sm text-muted-foreground">
+                            全网以人搜企业、以企业搜人、邮箱验证
+                        </p>
+                    </div>
+                </div>
+
+                {/* Smart Search Bar */}
+                {/* Smart Search Bar */}
+                <SmartSearchBar
+                    onResults={(contacts) => {
+                        setResults(contacts);
+                        // Reset errors
+                        setError(null);
+                    }}
+                    onError={setError}
+                    isSearching={isLoading}
+                    setIsSearching={setIsLoading}
+                />
+
+                <Tabs defaultValue="domain" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="domain" className="flex items-center gap-1">
                             <Globe className="h-4 w-4" />
@@ -228,47 +253,9 @@ export function LeadSearchPanel({ onAddContact, onAddContacts }: LeadSearchPanel
                         </form>
                     </TabsContent>
 
-                    {/* 邮箱验证 */}
+                    {/* 邮箱验证 (Batch) */}
                     <TabsContent value="verify" className="space-y-4">
-                        <form onSubmit={handleVerifyEmail} className="flex gap-2">
-                            <Input
-                                type="email"
-                                placeholder="输入邮箱地址进行验证"
-                                value={emailToVerify}
-                                onChange={(e) => setEmailToVerify(e.target.value)}
-                                className="flex-1"
-                            />
-                            <Button type="submit" disabled={isLoading || !emailToVerify.trim()}>
-                                {isLoading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    '验证'
-                                )}
-                            </Button>
-                        </form>
-
-                        {verifyResult && (
-                            <div className={cn(
-                                'p-4 rounded-lg flex items-center gap-3',
-                                verifyResult.isValid
-                                    ? 'bg-green-500/10 text-green-600'
-                                    : 'bg-red-500/10 text-red-600'
-                            )}>
-                                {verifyResult.isValid ? (
-                                    <CheckCircle2 className="h-5 w-5" />
-                                ) : (
-                                    <XCircle className="h-5 w-5" />
-                                )}
-                                <div>
-                                    <p className="font-medium">
-                                        {verifyResult.isValid ? '邮箱有效' : '邮箱无效'}
-                                    </p>
-                                    <p className="text-sm opacity-80">
-                                        状态: {verifyResult.status}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
+                        <BatchVerifyPanel />
                     </TabsContent>
                 </Tabs>
 
@@ -307,8 +294,8 @@ export function LeadSearchPanel({ onAddContact, onAddContacts }: LeadSearchPanel
                         </ScrollArea>
                     </div>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 
@@ -328,9 +315,10 @@ function LeadContactCard({
                         <p className="font-medium truncate">
                             {contact.fullName || contact.email}
                         </p>
-                        {contact.emailVerified !== undefined && (
-                            <EmailVerifyBadge verified={contact.emailVerified} />
-                        )}
+                        <EmailVerifyBadge
+                            verified={contact.emailVerified}
+                            status={contact.emailVerificationStatus}
+                        />
                     </div>
 
                     {contact.position && (
@@ -386,25 +374,6 @@ function LeadContactCard({
                 )}
             </div>
         </div>
-    );
-}
-
-// 邮箱验证状态徽章
-function EmailVerifyBadge({ verified }: { verified: boolean }) {
-    if (verified) {
-        return (
-            <Badge variant="default" className="bg-green-500/20 text-green-600 border-green-500/30">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                已验证
-            </Badge>
-        );
-    }
-
-    return (
-        <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            未验证
-        </Badge>
     );
 }
 

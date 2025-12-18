@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Play, Save, Loader2, FileCode, Globe, Share } from "lucide-react";
+import { Play, Globe, Share } from "lucide-react";
 import { PublishModal } from "@/components/studio/PublishModal";
 // ImportCodeModal removed - duplicated functionality
 import { PublishToCommunityModal } from "@/components/studio/PublishToCommunityModal";
@@ -10,7 +10,6 @@ import { ShareModal } from "@/components/studio/ShareModal";
 import { useTranslations } from 'next-intl';
 import { ModeToggle } from "@/components/mode-toggle";
 import { useStudioStore } from "@/lib/store";
-import { toast } from "sonner";
 import {
     Tooltip,
     TooltipContent,
@@ -20,40 +19,9 @@ import {
 
 export function LeftPanelActions() {
     const t = useTranslations('studio');
-    const tCommon = useTranslations('common');
-    const [saving, setSaving] = React.useState(false);
 
-    const { currentProject, htmlContent, pages, captureScreenshot, markAsSaved } = useStudioStore();
-
-    const handleSave = useCallback(async () => {
-        try {
-            setSaving(true);
-            const { updateProject, updateProjectMetadata } = await import("@/lib/actions/projects");
-
-            const screenshot = await captureScreenshot();
-            const finalHtml = htmlContent;
-
-            if (currentProject?.id) {
-                await updateProject(currentProject.id, {
-                    html: finalHtml,
-                    pages,
-                    content_json: undefined
-                });
-                if (screenshot) {
-                    await updateProjectMetadata(currentProject.id, { preview_image: screenshot });
-                }
-                toast.success(t('saved'));
-                markAsSaved();
-            } else {
-                toast.error(t('saveFailed') + ": No active project found.");
-            }
-        } catch (error: any) {
-            console.error(error);
-            toast.error(t('saveFailed') + error.message);
-        } finally {
-            setSaving(false);
-        }
-    }, [currentProject, htmlContent, pages, captureScreenshot, markAsSaved, t]);
+    // Use selectors for performance
+    const saveStatus = useStudioStore(s => s.saveStatus);
 
     return (
         <TooltipProvider delayDuration={300}>

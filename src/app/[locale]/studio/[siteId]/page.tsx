@@ -19,8 +19,7 @@ import { getProject } from "@/lib/actions/projects";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from 'next-intl';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, FileText, Box, Layers } from "lucide-react";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { LeftPanelActions } from "@/components/studio/LeftPanelActions";
 import { AssetPickerModal } from "@/components/studio/AssetPickerModal";
 import { CommandPalette } from "@/components/studio/CommandPalette";
@@ -37,7 +36,15 @@ export default function StudioPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
 
-    const { setCurrentProject, setHtmlContent, setPages, isBuilderMode, resetForNewProject, htmlContent, pages, lastSavedAt, currentProject } = useStudioStore();
+    const setCurrentProject = useStudioStore(s => s.setCurrentProject);
+    const setHtmlContent = useStudioStore(s => s.setHtmlContent);
+    const setPages = useStudioStore(s => s.setPages);
+    const isBuilderMode = useStudioStore(s => s.isBuilderMode);
+    const resetForNewProject = useStudioStore(s => s.resetForNewProject);
+    const htmlContent = useStudioStore(s => s.htmlContent);
+    const pages = useStudioStore(s => s.pages);
+    const lastSavedAt = useStudioStore(s => s.lastSavedAt);
+    const currentProject = useStudioStore(s => s.currentProject);
 
     // Track unsaved changes
     const initialContentRef = useRef<string>('');
@@ -51,6 +58,19 @@ export default function StudioPage() {
 
     // Left Panel State
     const [activeLeftTab, setActiveLeftTab] = useState('chat');
+    const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+    const leftPanelRef = useRef<any>(null);
+
+    const toggleLeftPanel = () => {
+        const panel = leftPanelRef.current;
+        if (panel) {
+            if (leftPanelCollapsed) {
+                panel.expand();
+            } else {
+                panel.collapse();
+            }
+        }
+    };
 
     // Update left tab when entering builder mode
     useEffect(() => {
@@ -218,18 +238,28 @@ export default function StudioPage() {
                 {/* Vertical Navigation Rail */}
                 <SidebarRail
                     activeTab={activeLeftTab}
-                    onTabChange={setActiveLeftTab}
+                    onTabChange={(tab) => {
+                        setActiveLeftTab(tab);
+                        if (leftPanelCollapsed) {
+                            leftPanelRef.current?.expand();
+                        }
+                    }}
+                    isCollapsed={leftPanelCollapsed}
+                    onToggleCollapse={toggleLeftPanel}
                     className="flex-shrink-0"
                 />
 
                 <ResizablePanelGroup direction="horizontal" className="flex-1">
                     {/* Left Panel Drawer: Chat, Pages, Blocks, Layers */}
                     <ResizablePanel
+                        ref={leftPanelRef}
                         defaultSize={20}
                         minSize={15}
                         maxSize={30}
                         collapsible={true}
                         collapsedSize={0}
+                        onCollapse={() => setLeftPanelCollapsed(true)}
+                        onExpand={() => setLeftPanelCollapsed(false)}
                         className="transition-all duration-300 ease-in-out"
                     >
                         <div className="h-full flex flex-col bg-background border-r">
@@ -239,7 +269,7 @@ export default function StudioPage() {
                             <Tabs value={activeLeftTab} className="flex-1 flex flex-col h-full overflow-hidden">
                                 {/* TabsList removed - controlled by SidebarRail */}
 
-                                <TabsContent value="chat" forceMount={true} className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
+                                <TabsContent value="chat" className="flex-1 overflow-hidden mt-0 data-[state=inactive]:hidden h-full p-0 outline-none">
                                     <ChatAssistant />
                                 </TabsContent>
 

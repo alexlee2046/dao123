@@ -3,6 +3,19 @@
  * 文档: https://hunter.io/api-documentation/v2
  */
 
+export {
+    type HunterConfig,
+    type HunterDomainSearchParams,
+    type HunterDomainSearchResult,
+    type HunterEmailFinderParams,
+    type HunterEmailFinderResult,
+    type HunterVerifyParams,
+    type HunterVerifyResult,
+    type HunterEmailCountParams,
+    type HunterEmailCountResult,
+    type HunterApiResponse,
+} from './types';
+
 import {
     HunterConfig,
     HunterDomainSearchParams,
@@ -83,8 +96,8 @@ export class HunterClient {
      * @param params 搜索参数
      * @returns 域名搜索结果
      */
-    async domainSearch(params: HunterDomainSearchParams): Promise<HunterDomainSearchResult> {
-        const response = await this.request<HunterDomainSearchResult>('/domain-search', {
+    async domainSearch(params: HunterDomainSearchParams): Promise<HunterApiResponse<HunterDomainSearchResult>> {
+        const response = await this.request<any>('/domain-search', {
             domain: params.domain,
             limit: params.limit || 10,
             offset: params.offset || 0,
@@ -93,7 +106,10 @@ export class HunterClient {
             department: params.department,
         });
 
-        return this.transformDomainSearchResult(response.data);
+        return {
+            ...response,
+            data: this.transformDomainSearchResult(response.data)
+        };
     }
 
     /**
@@ -101,7 +117,7 @@ export class HunterClient {
      * @param params 查找参数
      * @returns 邮箱查找结果
      */
-    async findEmail(params: HunterEmailFinderParams): Promise<HunterEmailFinderResult | null> {
+    async findEmail(params: HunterEmailFinderParams): Promise<HunterApiResponse<HunterEmailFinderResult> | null> {
         try {
             const requestParams: Record<string, unknown> = {
                 domain: params.domain,
@@ -118,8 +134,11 @@ export class HunterClient {
                 requestParams.max_duration = params.maxDuration;
             }
 
-            const response = await this.request<HunterEmailFinderResult>('/email-finder', requestParams);
-            return this.transformEmailFinderResult(response.data);
+            const response = await this.request<any>('/email-finder', requestParams);
+            return {
+                ...response,
+                data: this.transformEmailFinderResult(response.data)
+            };
         } catch (error) {
             // 如果未找到邮箱，返回 null 而不是抛出错误
             if (error instanceof Error && error.message.includes('email address was not found')) {
@@ -134,12 +153,15 @@ export class HunterClient {
      * @param params 验证参数
      * @returns 验证结果
      */
-    async verifyEmail(params: HunterVerifyParams): Promise<HunterVerifyResult> {
-        const response = await this.request<HunterVerifyResult>('/email-verifier', {
+    async verifyEmail(params: HunterVerifyParams): Promise<HunterApiResponse<HunterVerifyResult>> {
+        const response = await this.request<any>('/email-verifier', {
             email: params.email,
         });
 
-        return this.transformVerifyResult(response.data);
+        return {
+            ...response,
+            data: this.transformVerifyResult(response.data)
+        };
     }
 
     /**
@@ -147,13 +169,16 @@ export class HunterClient {
      * @param params 计数参数
      * @returns 计数结果
      */
-    async emailCount(params: HunterEmailCountParams): Promise<HunterEmailCountResult> {
-        const response = await this.request<HunterEmailCountResult>('/email-count', {
+    async emailCount(params: HunterEmailCountParams): Promise<HunterApiResponse<HunterEmailCountResult>> {
+        const response = await this.request<any>('/email-count', {
             domain: params.domain,
             type: params.type,
         });
 
-        return this.transformEmailCountResult(response.data);
+        return {
+            ...response,
+            data: this.transformEmailCountResult(response.data)
+        };
     }
 
     /**

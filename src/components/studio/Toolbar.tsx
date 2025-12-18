@@ -2,18 +2,25 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
 import { DeviceSelector } from "@/components/studio/toolbar/DeviceSelector";
-import { Undo, Redo, ArrowLeft, Layers, Eye, Code, Command } from "lucide-react";
+import { Undo, Redo, ArrowLeft, Eye, Code, Command } from "lucide-react";
 import { CodeEditorModal } from "@/components/studio/CodeEditorModal";
 import { PreviewModal } from "@/components/studio/PreviewModal";
 
 import { AutosaveIndicator } from "@/components/studio/AutosaveIndicator";
 import { CanvasControls } from "@/components/studio/CanvasControls";
 import { useStudioStore } from "@/lib/store";
-import { toast } from "sonner";
 import { useTranslations } from 'next-intl';
 export function Toolbar() {
-  const { undo, redo, past, future, currentProject, htmlContent, pages, currentPage, setCurrentPage, captureScreenshot, markAsSaved, setHtmlContent, runCommand, setCommandPaletteOpen, isBuilderMode, saveStatus, lastSavedAt } = useStudioStore();
   const t = useTranslations('studio');
+
+  // Use selectors for performance
+  const currentProject = useStudioStore(s => s.currentProject);
+  const runCommand = useStudioStore(s => s.runCommand);
+  const setCommandPaletteOpen = useStudioStore(s => s.setCommandPaletteOpen);
+  const saveStatus = useStudioStore(s => s.saveStatus);
+  const lastSavedAt = useStudioStore(s => s.lastSavedAt);
+
+  const saveProject = useStudioStore(s => s.saveProject);
 
   // Code Editor Modal State
   const [codeEditorOpen, setCodeEditorOpen] = useState(false);
@@ -61,32 +68,6 @@ export function Toolbar() {
     window.dispatchEvent(event);
   }, []);
 
-  const handleSave = useCallback(async () => {
-    try {
-      const { updateProject, updateProjectMetadata } = await import("@/lib/actions/projects");
-      const screenshot = await captureScreenshot();
-      const finalHtml = htmlContent;
-
-      if (currentProject?.id) {
-        await updateProject(currentProject.id, {
-          html: finalHtml,
-          pages,
-          content_json: undefined
-        });
-        if (screenshot) {
-          await updateProjectMetadata(currentProject.id, { preview_image: screenshot });
-        }
-        toast.success(t('saved'));
-        markAsSaved();
-      } else {
-        toast.error(t('saveFailed') + ": No active project found.");
-      }
-    } catch (error: any) {
-      console.error(error);
-      toast.error(t('saveFailed') + error.message);
-    }
-  }, [currentProject, htmlContent, pages, captureScreenshot, markAsSaved, t]);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -96,14 +77,14 @@ export function Toolbar() {
         switch (e.key.toLowerCase()) {
           case 's':
             e.preventDefault();
-            handleSave();
+            saveProject();
             break;
           case 'z':
             e.preventDefault();
             if (e.shiftKey) {
-              redo();
+              runCommand('dao:redo');
             } else {
-              undo();
+              runCommand('dao:undo');
             }
             break;
         }
@@ -116,7 +97,7 @@ export function Toolbar() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('dao:open-code-editor', handleOpenCodeEditor);
     };
-  }, [handleSave, undo, redo, handleOpenCodeEditor]);
+  }, [saveProject, runCommand, handleOpenCodeEditor]);
 
   return (
     <div className="h-14 border-b border-border/40 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-50">
@@ -144,13 +125,8 @@ export function Toolbar() {
             size="icon"
             title={`${t('undo')} (Cmd+Z)`}
             onClick={() => {
-              if (isBuilderMode) {
-                runCommand('dao:undo');
-              } else {
-                undo();
-              }
+              runCommand('dao:undo');
             }}
-            disabled={past.length === 0 && !isBuilderMode}
             className="h-7 w-7 rounded-full hover:bg-background hover:shadow-sm"
           >
             <Undo className="h-3.5 w-3.5" />
@@ -160,13 +136,8 @@ export function Toolbar() {
             size="icon"
             title={`${t('redo')} (Cmd+Shift+Z)`}
             onClick={() => {
-              if (isBuilderMode) {
-                runCommand('dao:redo');
-              } else {
-                redo();
-              }
+              runCommand('dao:redo');
             }}
-            disabled={future.length === 0 && !isBuilderMode}
             className="h-7 w-7 rounded-full hover:bg-background hover:shadow-sm"
           >
             <Redo className="h-3.5 w-3.5" />
@@ -209,7 +180,7 @@ export function Toolbar() {
           variant="outline"
           size="sm"
           className="h-8 gap-2 bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300"
-          onClick={handleSave}
+          onClick={saveProject}
           title={`${t('save')} (Cmd+S)`}
         >
           <div className={`w-2 h-2 rounded-full ${currentProject ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-yellow-500'}`} />
