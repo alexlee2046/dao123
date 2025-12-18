@@ -4,6 +4,7 @@ import gjsPresetWebpage from 'grapesjs-preset-webpage';
 import gjsPluginForms from 'grapesjs-plugin-forms';
 import gjsPluginExport from 'grapesjs-plugin-export';
 import gjsCustomCode from 'grapesjs-custom-code';
+import leadFormPlugin from './plugins/lead-form-plugin';
 import { useLocale, useMessages } from 'next-intl';
 import { useStudioStore } from '@/lib/store';
 import 'grapesjs/dist/css/grapes.min.css'; // Standard GrapesJS Structural CSS
@@ -165,7 +166,7 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                     },
 
                     // Plugins
-                    plugins: [gjsPresetWebpage, gjsPluginForms, gjsPluginExport, gjsCustomCode],
+                    plugins: [gjsPresetWebpage, gjsPluginForms, gjsPluginExport, gjsCustomCode, leadFormPlugin],
                     pluginsOpts: {
                         [gjsPresetWebpage as any]: {
                             modalImportTitle: editorMessages?.modals?.import?.title || 'Import Code',
@@ -203,6 +204,11 @@ export const GrapesEditor: React.FC<GrapesEditorProps> = ({
                                 lineNumbers: true,
                             },
                             buttonLabel: editorMessages?.modals?.codeEdit?.button || 'Save',
+                        },
+                        [leadFormPlugin as any]: {
+                            category: editorMessages?.blockManager?.categories?.Forms || 'Forms',
+                            labelBlock: 'Lead Capture Form',
+                            apiEndpoint: '/api/forms/submit',
                         }
                     },
                     panels: { defaults: [] }
