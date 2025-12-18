@@ -3,13 +3,13 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, Settings2, Image as ImageIcon, Tag } from "lucide-react";
+import { Palette, Settings2, Image as ImageIcon, Layers } from "lucide-react";
 import { useStudioStore } from "@/lib/store";
 import { AssetManager } from "@/components/studio/AssetManager";
 
 export const RightPanel = () => {
     const t = useTranslations('studio');
-    const { isBuilderMode } = useStudioStore();
+    const isBuilderMode = useStudioStore(s => s.isBuilderMode);
     const [activeTab, setActiveTab] = React.useState('styles');
 
     // Listen for view switch events from Toolbar
@@ -42,16 +42,16 @@ export const RightPanel = () => {
 
     // In Builder Mode, show Selectors, Styles, and Traits tabs
     return (
-        <div className="h-full flex flex-col bg-background border-l">
+        <div className="h-full flex flex-col bg-background border-l w-80">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col h-full overflow-hidden">
                 <div className="px-2 pt-2 border-b bg-muted/30">
                     <TabsList className="w-full grid grid-cols-2 h-9 mb-2">
-                        <TabsTrigger value="styles" className="text-xs px-0">
-                            <Palette className="w-3.5 h-3.5 mr-1" />
+                        <TabsTrigger value="styles" className="text-[10px] px-0">
+                            <Palette className="w-3 h-3 mr-1" />
                             {t('styles') || 'Styles'}
                         </TabsTrigger>
-                        <TabsTrigger value="traits" className="text-xs px-0">
-                            <Settings2 className="w-3.5 h-3.5 mr-1" />
+                        <TabsTrigger value="traits" className="text-[10px] px-0">
+                            <Settings2 className="w-3 h-3 mr-1" />
                             {t('traits') || 'Traits'}
                         </TabsTrigger>
                     </TabsList>
