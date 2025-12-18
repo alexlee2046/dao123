@@ -70,7 +70,7 @@ export interface FormSettings {
 export interface Form {
   id: string;
   user_id: string;
-  site_id?: string | null;
+  project_id?: string | null;
   name: string;
   description?: string | null;
   fields: FormField[];
@@ -156,7 +156,7 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
 export async function createForm(data: {
   name: string;
   description?: string;
-  site_id?: string;
+  project_id?: string;
   fields?: FormField[];
   settings?: Partial<FormSettings>;
 }): Promise<{ success: boolean; form?: Form; error?: string }> {
@@ -169,7 +169,7 @@ export async function createForm(data: {
     user_id: user.id,
     name: data.name,
     description: data.description || null,
-    site_id: data.site_id || null,
+    project_id: data.project_id || null,
     fields: data.fields || DEFAULT_FORM_FIELDS,
     settings: { ...DEFAULT_FORM_SETTINGS, ...data.settings },
     status: 'draft' as const,
@@ -195,7 +195,7 @@ export async function createForm(data: {
  */
 export async function getForms(options?: {
   status?: Form['status'];
-  site_id?: string;
+  project_id?: string;
   limit?: number;
   offset?: number;
 }): Promise<{ forms: Form[]; total: number }> {
@@ -213,8 +213,8 @@ export async function getForms(options?: {
     query = query.eq('status', options.status);
   }
 
-  if (options?.site_id) {
-    query = query.eq('site_id', options.site_id);
+  if (options?.project_id) {
+    query = query.eq('project_id', options.project_id);
   }
 
   const limit = options?.limit || 50;
@@ -363,7 +363,7 @@ export async function duplicateForm(id: string): Promise<{ success: boolean; for
     .from('forms')
     .insert({
       user_id: user.id,
-      site_id: original.site_id,
+      project_id: original.project_id,
       name: `${original.name} (Copy)`,
       description: original.description,
       fields: original.fields,

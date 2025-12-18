@@ -8,7 +8,7 @@
 CREATE TABLE IF NOT EXISTS forms (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  site_id uuid REFERENCES sites(id) ON DELETE SET NULL,
+  project_id uuid REFERENCES projects(id) ON DELETE SET NULL,
 
   -- Basic Info
   name text NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS form_submissions (
 -- 3. Indexes
 -- =====================================================
 CREATE INDEX IF NOT EXISTS idx_forms_user_id ON forms(user_id);
-CREATE INDEX IF NOT EXISTS idx_forms_site_id ON forms(site_id);
+CREATE INDEX IF NOT EXISTS idx_forms_project_id ON forms(project_id);
 CREATE INDEX IF NOT EXISTS idx_forms_status ON forms(status);
 CREATE INDEX IF NOT EXISTS idx_form_submissions_form_id ON form_submissions(form_id);
 CREATE INDEX IF NOT EXISTS idx_form_submissions_contact_id ON form_submissions(contact_id);
