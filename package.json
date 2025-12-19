@@ -132,5 +132,8 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.0.15"
+  },
+  "optionalDependencies": {
+    "@next/swc-darwin-arm64": "^16.1.0"
   }
 }

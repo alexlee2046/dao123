@@ -4,8 +4,17 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Core Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Semantic Colors for Status */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --font-sans: var(--font-inter), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Heiti SC", "WenQuanYi Micro Hei", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -66,7 +75,32 @@
 }
 
 :root {
+  /* Base Radius */
   --radius: 0.75rem;
+
+  /* Standardized Spacing Scale */
+  --spacing-xs: 0.25rem;   /* 4px - gap-1 */
+  --spacing-sm: 0.5rem;    /* 8px - gap-2 */
+  --spacing-md: 0.75rem;   /* 12px - gap-3 */
+  --spacing-lg: 1rem;      /* 16px - gap-4 */
+  --spacing-xl: 1.5rem;    /* 24px - gap-6 */
+  --spacing-2xl: 2rem;     /* 32px - gap-8 */
+
+  /* Page Layout Spacing */
+  --page-padding-x: 1.5rem;
+  --page-padding-y: 2rem;
+  --card-padding: 1.25rem;
+  --section-gap: 2rem;
+
+  /* Semantic Colors */
+  --success: oklch(0.65 0.2 145);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.75 0.15 85);
+  --warning-foreground: oklch(0.2 0 0);
+  --info: oklch(0.6 0.15 240);
+  --info-foreground: oklch(0.985 0 0);
+
+  /* Core Colors */
   --background: oklch(0.985 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -101,6 +135,15 @@
 }
 
 .dark {
+  /* Semantic Colors - Dark Mode */
+  --success: oklch(0.7 0.18 145);
+  --success-foreground: oklch(0.15 0 0);
+  --warning: oklch(0.8 0.13 85);
+  --warning-foreground: oklch(0.15 0 0);
+  --info: oklch(0.65 0.13 240);
+  --info-foreground: oklch(0.985 0 0);
+
+  /* Core Colors - Dark Mode */
   --background: oklch(0.12 0.04 260);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.15 0.04 260);

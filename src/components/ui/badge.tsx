@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Check, Clock, Pencil, X, AlertCircle, Pause, Play } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -17,6 +18,13 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        // Status variants with semantic colors (accessible - not color-only)
+        success:
+          "border-transparent bg-success text-success-foreground",
+        warning:
+          "border-transparent bg-warning text-warning-foreground",
+        info:
+          "border-transparent bg-info text-info-foreground",
       },
     },
     defaultVariants: {
@@ -24,6 +32,20 @@ const badgeVariants = cva(
     },
   }
 )
+
+// Status icon mapping for accessibility
+const statusIcons = {
+  active: Check,
+  completed: Check,
+  pending: Clock,
+  draft: Pencil,
+  error: X,
+  warning: AlertCircle,
+  paused: Pause,
+  running: Play,
+} as const
+
+type StatusType = keyof typeof statusIcons
 
 function Badge({
   className,
@@ -43,4 +65,43 @@ function Badge({
   )
 }
 
-export { Badge, badgeVariants }
+/**
+ * StatusBadge - Accessible status badge with icon
+ * Uses icon + text for accessibility (not color-only)
+ */
+interface StatusBadgeProps {
+  status: StatusType;
+  label: string;
+  className?: string;
+}
+
+function StatusBadge({ status, label, className }: StatusBadgeProps) {
+  const Icon = statusIcons[status]
+
+  // Map status to variant
+  const variantMap: Record<StatusType, VariantProps<typeof badgeVariants>['variant']> = {
+    active: 'success',
+    completed: 'success',
+    running: 'success',
+    pending: 'warning',
+    warning: 'warning',
+    draft: 'secondary',
+    paused: 'secondary',
+    error: 'destructive',
+  }
+
+  const variant = variantMap[status]
+
+  return (
+    <Badge
+      variant={variant}
+      className={className}
+      aria-label={`Status: ${label}`}
+    >
+      <Icon className="size-3" aria-hidden="true" />
+      {label}
+    </Badge>
+  )
+}
+
+export { Badge, StatusBadge, badgeVariants, type StatusType }

@@ -23,7 +23,29 @@
         "credits": "Credits",
         "insufficientCredits": "Insufficient credits, please recharge.",
         "unauthorized": "Unauthorized, please login.",
-        "download": "Download"
+        "download": "Download",
+        "filter": "Filter",
+        "clearFilters": "Clear",
+        "selected": "selected",
+        "clear": "Clear",
+        "showing": "Showing",
+        "of": "of",
+        "items": "items",
+        "perPage": "per page",
+        "noResults": "No results found",
+        "tryDifferentSearch": "Try a different search term or adjust your filters.",
+        "all": "All",
+        "active": "Active",
+        "inactive": "Inactive",
+        "draft": "Draft",
+        "pending": "Pending",
+        "completed": "Completed",
+        "enable": "Enable",
+        "disable": "Disable",
+        "bulkEnable": "Enable Selected",
+        "bulkDisable": "Disable Selected",
+        "bulkDelete": "Delete Selected",
+        "confirmBulkAction": "Are you sure you want to perform this action on {count} items?"
     },
     "nav": {
         "studio": "Studio",
@@ -72,7 +94,24 @@
         "haveAccountLogin": "Already have an account? Login",
         "signupTermsDesc": "By clicking sign up you agree to our",
         "signupQuote": "A journey of a thousand miles begins with a single step. Start building your digital world here.",
-        "signupQuoteAuthor": "Start Small, Dream Big"
+        "signupQuoteAuthor": "Start Small, Dream Big",
+        "rememberMe": "Remember me",
+        "invalidCredentials": "Invalid email or password",
+        "accountNotVerified": "Please verify your email first",
+        "passwordStrength": {
+            "veryWeak": "Very weak",
+            "weak": "Weak",
+            "fair": "Fair",
+            "strong": "Strong",
+            "veryStrong": "Very strong"
+        },
+        "passwordRequirements": {
+            "minLength": "At least 8 characters",
+            "hasUppercase": "Contains uppercase letter",
+            "hasLowercase": "Contains lowercase letter",
+            "hasNumber": "Contains number",
+            "hasSpecial": "Contains special character"
+        }
     },
     "dashboard": {
         "title": "Dashboard",
@@ -102,7 +141,27 @@
         "edit": "Edit",
         "aiImage": "AI Image",
         "aiVideo": "AI Video",
-        "logout": "Logout"
+        "logout": "Logout",
+        "quickStart": "Quick Start",
+        "untitledProject": "Untitled Project",
+        "projectCreated": "Project created",
+        "createFailed": "Creation failed",
+        "recentActivity": "Recent Activity",
+        "quickEntry": "Quick Actions",
+        "viewAll": "View All",
+        "quickActions": {
+            "aiWebsite": "AI Website Generator",
+            "studio": "Studio",
+            "studioDesc": "Visual Editor",
+            "h5Invitation": "H5 Invitation",
+            "makeEventPage": "Create Event Page",
+            "daoMail": "DaoMail",
+            "emailMarketing": "Email Marketing",
+            "aiImageTitle": "AI Image",
+            "textToImage": "Text to Image",
+            "community": "Community",
+            "discoverInspiration": "Discover Inspiration"
+        }
     },
     "projects": {
         "title": "My Projects",
@@ -119,6 +178,84 @@
         "unpublish": "Unpublish",
         "preview": "Preview",
         "duplicate": "Duplicate"
+    },
+    "mail": {
+        "common": {
+            "backToConsole": "Back to Console",
+            "searchPlaceholder": "Search...",
+            "filterByStatus": "Filter by status",
+            "allStatuses": "All Statuses",
+            "running": "Running",
+            "paused": "Paused"
+        },
+        "automations": {
+            "title": "Automation Workflows",
+            "description": "Create automated email sequences for efficient lead nurturing",
+            "badge": "Automation",
+            "createNew": "Create Automation",
+            "viewRecords": "View Records",
+            "emptyTitle": "No automations yet",
+            "emptyDesc": "Create your first automation workflow to automatically send welcome email sequences after form submissions",
+            "triggers": {
+                "formSubmission": "Form Submission",
+                "contactCreated": "Contact Created",
+                "tagAdded": "Tag Added",
+                "manual": "Manual Trigger"
+            },
+            "steps": {
+                "sendEmail": "Send Email",
+                "wait": "Wait",
+                "addTag": "Add Tag",
+                "removeTag": "Remove Tag",
+                "noSteps": "No steps",
+                "moreSteps": "+{count} more",
+                "days": "days",
+                "hours": "hours",
+                "minutes": "minutes"
+            },
+            "stats": {
+                "enrolled": "enrolled",
+                "active": "active",
+                "completed": "completed"
+            },
+            "actions": {
+                "edit": "Edit",
+                "pause": "Pause",
+                "enable": "Enable",
+                "duplicate": "Duplicate",
+                "delete": "Delete",
+                "duplicated": "Automation duplicated",
+                "duplicateFailed": "Failed to duplicate",
+                "paused": "Automation paused",
+                "enabled": "Automation enabled",
+                "toggleFailed": "Action failed",
+                "deleted": "Automation deleted",
+                "deleteFailed": "Failed to delete",
+                "loadFailed": "Failed to load"
+            },
+            "deleteDialog": {
+                "title": "Confirm Delete",
+                "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone and all related execution records will be deleted.",
+                "cancel": "Cancel",
+                "confirm": "Delete",
+                "deleting": "Deleting..."
+            }
+        },
+        "forms": {
+            "title": "Form Management",
+            "description": "Create and manage your forms",
+            "createNew": "Create Form"
+        },
+        "campaigns": {
+            "title": "Email Campaigns",
+            "description": "Create and send email campaigns",
+            "createNew": "Create Campaign"
+        },
+        "contacts": {
+            "title": "Contacts",
+            "description": "Manage your contacts",
+            "addNew": "Add Contact"
+        }
     },
     "marketing": {
         "nav": {
@@ -181,6 +318,74 @@
             "noCreditCard": "No Credit Card Required",
             "freeExport": "Free Code Export",
             "support": "24/7 Support"
+        },
+        "pricing": {
+            "title": "Simple, Transparent Pricing",
+            "desc": "Whether you're just starting out or growing your team, we have a plan for you.",
+            "monthly": "Monthly",
+            "yearly": "Yearly",
+            "savePercent": "Save 20%",
+            "free": {
+                "name": "Free",
+                "price": "$0",
+                "period": "/month",
+                "desc": "Perfect for individuals and small projects",
+                "cta": "Get Started Free",
+                "features": [
+                    "100 credits per month",
+                    "Up to 3 projects",
+                    "Basic AI generation",
+                    "Community templates",
+                    "Code export"
+                ]
+            },
+            "pro": {
+                "name": "Pro",
+                "price": "$19",
+                "period": "/month",
+                "desc": "For SMBs and professional teams",
+                "cta": "Upgrade to Pro",
+                "popular": "Most Popular",
+                "features": [
+                    "2000 credits per month",
+                    "Unlimited projects",
+                    "Advanced AI models",
+                    "Custom domain",
+                    "Email marketing tools",
+                    "Lead capture forms",
+                    "Priority support"
+                ]
+            }
+        },
+        "useCases": {
+            "title": "Built for Small Businesses",
+            "desc": "Whatever your business, dao123 helps you establish your online presence quickly.",
+            "cases": {
+                "localBiz": {
+                    "title": "Local Business",
+                    "desc": "Restaurants, salons, gyms... create a pro site in 5 minutes"
+                },
+                "emailMarketing": {
+                    "title": "Email Marketing",
+                    "desc": "Automated email sequences to boost conversions"
+                },
+                "leadCapture": {
+                    "title": "Lead Capture",
+                    "desc": "Visual form builder to collect potential customers"
+                },
+                "landingPage": {
+                    "title": "Landing Pages",
+                    "desc": "Promotions, product launches, go live fast"
+                }
+            }
+        },
+        "stats": {
+            "users": "10,000+",
+            "usersLabel": "Active Users",
+            "projects": "50,000+",
+            "projectsLabel": "Projects Created",
+            "satisfaction": "98%",
+            "satisfactionLabel": "Satisfaction Rate"
         },
         "footer": {
             "slogan": "Dao Begets One, One Begets Two, Two Begets Three, Three Begets All.\nRedefine website building with AI.",

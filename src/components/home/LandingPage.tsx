@@ -2,13 +2,14 @@
 
 import { Link } from '@/components/link';
 import { Button } from "@/components/ui/button";
-import { Sparkles, Zap, Palette, Code2, ArrowRight, CheckCircle2, Infinity as InfinityIcon, Layers, Share2, Github } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, Suspense } from 'react';
+import { Sparkles, Zap, Palette, Code2, ArrowRight, CheckCircle2, Infinity as InfinityIcon, Layers, Share2, Github, Menu, X, Store, Mail, FileText, Megaphone, Check } from "lucide-react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useRef, Suspense, useState } from 'react';
 
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { FeaturedProjects, type FeaturedProject } from '@/components/home/FeaturedProjects';
+import { Badge } from "@/components/ui/badge";
 
 interface LandingPageProps {
     featuredProjects: FeaturedProject[];
@@ -17,6 +18,7 @@ interface LandingPageProps {
 export function LandingPage({ featuredProjects }: LandingPageProps) {
     const t = useTranslations('marketing');
     const targetRef = useRef<HTMLDivElement>(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { scrollYProgress } = useScroll({
         target: targetRef,
         offset: ["start start", "end start"],
@@ -25,6 +27,14 @@ export function LandingPage({ featuredProjects }: LandingPageProps) {
     const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
     const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
     const y = useTransform(scrollYProgress, [0, 0.5], [0, 100]);
+
+    // Use case icons mapping
+    const useCaseIcons = {
+        localBiz: Store,
+        emailMarketing: Mail,
+        leadCapture: FileText,
+        landingPage: Megaphone,
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/20 selection:text-primary">
@@ -37,25 +47,76 @@ export function LandingPage({ featuredProjects }: LandingPageProps) {
                     <span className="font-bold text-xl tracking-tight">dao123</span>
                 </Link>
                 <nav className="ml-auto flex gap-6 sm:gap-8 items-center">
-                    <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:block" href="#philosophy">
+                    <Link className="text-sm font-medium hover:text-primary transition-colors hidden md:block" href="#philosophy">
                         {t('nav.philosophy')}
                     </Link>
-                    <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:block" href="#features">
+                    <Link className="text-sm font-medium hover:text-primary transition-colors hidden md:block" href="#features">
                         {t('nav.features')}
                     </Link>
-                    <Link className="text-sm font-medium hover:text-primary transition-colors hidden sm:block" href="#pricing">
+                    <Link className="text-sm font-medium hover:text-primary transition-colors hidden md:block" href="#pricing">
                         {t('nav.pricing')}
                     </Link>
                     <Suspense fallback={<div className="w-[140px]" />}>
                         <LanguageSwitcher />
                     </Suspense>
-                    <Button asChild variant="default" size="sm" className="rounded-full px-6">
+                    <Button asChild variant="default" size="sm" className="rounded-full px-6 hidden sm:flex">
                         <Link href="/dashboard">
                             {t('nav.loginSignup')}
                         </Link>
                     </Button>
+                    {/* Mobile Menu Toggle */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        aria-label="Toggle menu"
+                    >
+                        {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    </Button>
                 </nav>
             </header>
+
+            {/* Mobile Menu */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="fixed top-16 left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border/40 z-40 md:hidden"
+                    >
+                        <nav className="flex flex-col p-6 gap-4">
+                            <Link
+                                className="text-lg font-medium hover:text-primary transition-colors"
+                                href="#philosophy"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {t('nav.philosophy')}
+                            </Link>
+                            <Link
+                                className="text-lg font-medium hover:text-primary transition-colors"
+                                href="#features"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {t('nav.features')}
+                            </Link>
+                            <Link
+                                className="text-lg font-medium hover:text-primary transition-colors"
+                                href="#pricing"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {t('nav.pricing')}
+                            </Link>
+                            <Button asChild className="rounded-full mt-2">
+                                <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                                    {t('nav.loginSignup')}
+                                </Link>
+                            </Button>
+                        </nav>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <main className="flex-1">
                 {/* Hero Section: Dao begets One */}
@@ -280,6 +341,115 @@ export function LandingPage({ featuredProjects }: LandingPageProps) {
                             projectLabel={t('community.project', { i: '{i}' })}
                             byUserLabel={t('community.byUserDynamic', { user: '{user}' })}
                         />
+                    </div>
+                </section>
+
+                {/* Use Cases Section - SMB Focused */}
+                <section className="w-full py-24 bg-muted/10">
+                    <div className="container px-4 md:px-6 mx-auto">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">{t('useCases.title')}</h2>
+                            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                                {t('useCases.desc')}
+                            </p>
+                        </div>
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                            {(['localBiz', 'emailMarketing', 'leadCapture', 'landingPage'] as const).map((caseKey, index) => {
+                                const IconComponent = useCaseIcons[caseKey];
+                                return (
+                                    <motion.div
+                                        key={caseKey}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: index * 0.1 }}
+                                        whileHover={{ y: -5 }}
+                                        className="flex flex-col items-center text-center p-6 rounded-2xl bg-background border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all"
+                                    >
+                                        <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+                                            <IconComponent className="h-7 w-7" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold mb-2">{t(`useCases.cases.${caseKey}.title`)}</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            {t(`useCases.cases.${caseKey}.desc`)}
+                                        </p>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Pricing Section */}
+                <section id="pricing" className="w-full py-24">
+                    <div className="container px-4 md:px-6 mx-auto">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">{t('pricing.title')}</h2>
+                            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                                {t('pricing.desc')}
+                            </p>
+                        </div>
+
+                        <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+                            {/* Free Plan */}
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                className="flex flex-col p-8 rounded-3xl bg-muted/30 border border-border/50"
+                            >
+                                <div className="mb-6">
+                                    <h3 className="text-2xl font-bold mb-2">{t('pricing.free.name')}</h3>
+                                    <p className="text-muted-foreground">{t('pricing.free.desc')}</p>
+                                </div>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold">{t('pricing.free.price')}</span>
+                                    <span className="text-muted-foreground">{t('pricing.free.period')}</span>
+                                </div>
+                                <ul className="space-y-3 mb-8 flex-grow">
+                                    {(t.raw('pricing.free.features') as string[]).map((feature: string, i: number) => (
+                                        <li key={i} className="flex items-center gap-2 text-sm">
+                                            <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                                            {feature}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Button asChild variant="outline" className="rounded-full h-12">
+                                    <Link href="/signup">{t('pricing.free.cta')}</Link>
+                                </Button>
+                            </motion.div>
+
+                            {/* Pro Plan */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                className="flex flex-col p-8 rounded-3xl bg-primary/5 border-2 border-primary relative"
+                            >
+                                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4">
+                                    {t('pricing.pro.popular')}
+                                </Badge>
+                                <div className="mb-6">
+                                    <h3 className="text-2xl font-bold mb-2">{t('pricing.pro.name')}</h3>
+                                    <p className="text-muted-foreground">{t('pricing.pro.desc')}</p>
+                                </div>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold">{t('pricing.pro.price')}</span>
+                                    <span className="text-muted-foreground">{t('pricing.pro.period')}</span>
+                                </div>
+                                <ul className="space-y-3 mb-8 flex-grow">
+                                    {(t.raw('pricing.pro.features') as string[]).map((feature: string, i: number) => (
+                                        <li key={i} className="flex items-center gap-2 text-sm">
+                                            <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                                            {feature}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Button asChild className="rounded-full h-12 shadow-lg shadow-primary/25">
+                                    <Link href="/signup">{t('pricing.pro.cta')}</Link>
+                                </Button>
+                            </motion.div>
+                        </div>
                     </div>
                 </section>
 

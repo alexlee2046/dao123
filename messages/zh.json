@@ -23,7 +23,29 @@
         "credits": "积分",
         "insufficientCredits": "积分不足，请充值。",
         "unauthorized": "未授权，请先登录。",
-        "download": "下载"
+        "download": "下载",
+        "filter": "筛选",
+        "clearFilters": "清除",
+        "selected": "已选择",
+        "clear": "清除",
+        "showing": "显示",
+        "of": "/",
+        "items": "条",
+        "perPage": "条/页",
+        "noResults": "未找到结果",
+        "tryDifferentSearch": "请尝试其他搜索词或调整筛选条件。",
+        "all": "全部",
+        "active": "已启用",
+        "inactive": "已停用",
+        "draft": "草稿",
+        "pending": "待处理",
+        "completed": "已完成",
+        "enable": "启用",
+        "disable": "停用",
+        "bulkEnable": "批量启用",
+        "bulkDisable": "批量停用",
+        "bulkDelete": "批量删除",
+        "confirmBulkAction": "确定要对 {count} 个项目执行此操作吗？"
     },
     "nav": {
         "studio": "工作室",
@@ -72,7 +94,24 @@
         "haveAccountLogin": "已有账户？登录",
         "signupTermsDesc": "点击注册即表示您同意我们的",
         "signupQuote": "合抱之木，生于毫末；九层之台，起于累土。从这里开始，构建你的数字世界。",
-        "signupQuoteAuthor": "Start Small, Dream Big"
+        "signupQuoteAuthor": "Start Small, Dream Big",
+        "rememberMe": "记住我",
+        "invalidCredentials": "邮箱或密码错误",
+        "accountNotVerified": "请先验证您的邮箱",
+        "passwordStrength": {
+            "veryWeak": "非常弱",
+            "weak": "弱",
+            "fair": "一般",
+            "strong": "强",
+            "veryStrong": "非常强"
+        },
+        "passwordRequirements": {
+            "minLength": "至少 8 个字符",
+            "hasUppercase": "包含大写字母",
+            "hasLowercase": "包含小写字母",
+            "hasNumber": "包含数字",
+            "hasSpecial": "包含特殊字符"
+        }
     },
     "dashboard": {
         "title": "仪表板",
@@ -106,7 +145,101 @@
         "quickStart": "快速开始",
         "untitledProject": "未命名项目",
         "projectCreated": "项目已创建",
-        "createFailed": "创建失败"
+        "createFailed": "创建失败",
+        "recentActivity": "最近活跃",
+        "quickEntry": "快捷入口",
+        "viewAll": "查看全部",
+        "quickActions": {
+            "aiWebsite": "AI 生成网站",
+            "studio": "工作室",
+            "studioDesc": "可视化编辑器",
+            "h5Invitation": "H5 邀请函",
+            "makeEventPage": "制作活动页",
+            "daoMail": "DaoMail",
+            "emailMarketing": "邮件营销",
+            "aiImageTitle": "AI 图片",
+            "textToImage": "文生图 / 图生图",
+            "community": "社区",
+            "discoverInspiration": "发现灵感"
+        }
+    },
+    "mail": {
+        "common": {
+            "backToConsole": "返回控制台",
+            "searchPlaceholder": "搜索...",
+            "filterByStatus": "按状态筛选",
+            "allStatuses": "全部状态",
+            "running": "运行中",
+            "paused": "已暂停"
+        },
+        "automations": {
+            "title": "自动化工作流",
+            "description": "创建自动化邮件序列，让获客更高效",
+            "badge": "自动化",
+            "createNew": "创建自动化",
+            "viewRecords": "执行记录",
+            "emptyTitle": "还没有自动化",
+            "emptyDesc": "创建您的第一个自动化工作流，当访客提交表单后自动发送欢迎邮件序列",
+            "triggers": {
+                "formSubmission": "表单提交",
+                "contactCreated": "新建联系人",
+                "tagAdded": "添加标签",
+                "manual": "手动触发"
+            },
+            "steps": {
+                "sendEmail": "发送邮件",
+                "wait": "等待",
+                "addTag": "添加标签",
+                "removeTag": "移除标签",
+                "noSteps": "暂无步骤",
+                "moreSteps": "+{count} 步",
+                "days": "天",
+                "hours": "小时",
+                "minutes": "分钟"
+            },
+            "stats": {
+                "enrolled": "人参与",
+                "active": "进行中",
+                "completed": "已完成"
+            },
+            "actions": {
+                "edit": "编辑",
+                "pause": "暂停",
+                "enable": "启用",
+                "duplicate": "复制",
+                "delete": "删除",
+                "duplicated": "已复制自动化",
+                "duplicateFailed": "复制失败",
+                "paused": "已暂停自动化",
+                "enabled": "已启用自动化",
+                "toggleFailed": "操作失败",
+                "deleted": "已删除自动化",
+                "deleteFailed": "删除失败",
+                "loadFailed": "加载失败"
+            },
+            "deleteDialog": {
+                "title": "确认删除",
+                "description": "确定要删除自动化「{name}」吗？此操作无法撤销，所有相关的执行记录也将被删除。",
+                "cancel": "取消",
+                "confirm": "确认删除",
+                "deleting": "删除中..."
+            }
+        },
+        "forms": {
+            "title": "表单管理",
+            "description": "创建和管理您的表单",
+            "createNew": "创建表单"
+        },
+        "campaigns": {
+            "title": "邮件活动",
+            "description": "创建和发送邮件活动",
+            "createNew": "创建活动"
+        },
+        "contacts": {
+            "title": "联系人",
+            "description": "管理您的联系人",
+            "addNew": "添加联系人"
+        }
     },
     "marketing": {
         "nav": {
@@ -169,6 +302,74 @@
             "noCreditCard": "无需信用卡",
             "freeExport": "免费导出代码",
             "support": "7x24小时支持"
+        },
+        "pricing": {
+            "title": "简单透明的定价",
+            "desc": "无论您是刚起步的创业者还是成长中的团队，我们都有适合您的方案。",
+            "monthly": "月付",
+            "yearly": "年付",
+            "savePercent": "省 20%",
+            "free": {
+                "name": "免费版",
+                "price": "¥0",
+                "period": "/月",
+                "desc": "适合个人用户和小型项目",
+                "cta": "免费开始",
+                "features": [
+                    "每月 100 积分",
+                    "最多 3 个项目",
+                    "基础 AI 生成",
+                    "社区模板",
+                    "代码导出"
+                ]
+            },
+            "pro": {
+                "name": "专业版",
+                "price": "¥99",
+                "period": "/月",
+                "desc": "适合中小企业和专业团队",
+                "cta": "升级专业版",
+                "popular": "最受欢迎",
+                "features": [
+                    "每月 2000 积分",
+                    "无限项目",
+                    "高级 AI 模型",
+                    "自定义域名",
+                    "邮件营销工具",
+                    "表单收集",
+                    "优先客服支持"
+                ]
+            }
+        },
+        "useCases": {
+            "title": "为中小企业量身打造",
+            "desc": "无论您经营什么业务，dao123 都能帮您快速建立在线形象。",
+            "cases": {
+                "localBiz": {
+                    "title": "本地商家",
+                    "desc": "餐厅、美容院、健身房...5分钟创建专业网站"
+                },
+                "emailMarketing": {
+                    "title": "邮件营销",
+                    "desc": "自动化邮件序列，提升客户转化率"
+                },
+                "leadCapture": {
+                    "title": "线索收集",
+                    "desc": "可视化表单设计，自动收集潜在客户"
+                },
+                "landingPage": {
+                    "title": "活动落地页",
+                    "desc": "促销活动、产品发布，快速上线"
+                }
+            }
+        },
+        "stats": {
+            "users": "10,000+",
+            "usersLabel": "活跃用户",
+            "projects": "50,000+",
+            "projectsLabel": "已创建项目",
+            "satisfaction": "98%",
+            "satisfactionLabel": "用户满意度"
         },
         "footer": {
             "slogan": "道生一，一生二，二生三，三生万物。\n用 AI 重新定义网站构建。",

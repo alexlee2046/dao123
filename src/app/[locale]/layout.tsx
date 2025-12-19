@@ -20,9 +20,45 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const { locale } = await params;
     const messages = await getMessages({ locale });
 
+    const title = (messages as any).metadata?.title || "dao123 - AI Website Builder";
+    const description = (messages as any).metadata?.description || "Generate AI-powered websites in seconds.";
+
     return {
-        title: (messages as any).metadata?.title || "dao123 - AI Website Builder",
-        description: (messages as any).metadata?.description || "Generate AI-powered websites in seconds.",
+        title,
+        description,
+        keywords: locale === 'zh'
+            ? ['AI网站', '网站生成器', '邮件营销', '落地页', '表单收集', '中小企业']
+            : ['AI website', 'website builder', 'email marketing', 'landing page', 'lead capture', 'SMB'],
+        authors: [{ name: 'dao123' }],
+        creator: 'dao123',
+        publisher: 'dao123',
+        robots: {
+            index: true,
+            follow: true,
+        },
+        openGraph: {
+            type: 'website',
+            locale: locale === 'zh' ? 'zh_CN' : 'en_US',
+            url: 'https://www.dao123.me',
+            siteName: 'dao123',
+            title,
+            description,
+            images: [
+                {
+                    url: '/og-image.png',
+                    width: 1200,
+                    height: 630,
+                    alt: 'dao123 - AI Website Builder',
+                },
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: ['/og-image.png'],
+        },
+        metadataBase: new URL('https://www.dao123.me'),
     };
 }
 

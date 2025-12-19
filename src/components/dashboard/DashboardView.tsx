@@ -65,42 +65,42 @@ export function DashboardView({ projects }: DashboardViewProps) {
         {
             icon: Zap,
             label: t('quickStart'),
-            description: "AI 生成网站",
+            description: t('quickActions.aiWebsite'),
             onClick: handleQuickStart,
             color: "from-violet-500 to-purple-500"
         },
         {
             icon: Palette,
-            label: "工作室",
-            description: "可视化编辑器",
+            label: t('quickActions.studio'),
+            description: t('quickActions.studioDesc'),
             href: "/studio",
             color: "from-blue-500 to-indigo-500"
         },
         {
             icon: Heart,
-            label: "H5 邀请函",
-            description: "制作活动页",
+            label: t('quickActions.h5Invitation'),
+            description: t('quickActions.makeEventPage'),
             href: "/h5",
             color: "from-pink-500 to-rose-500"
         },
         {
             icon: Mail,
-            label: "DaoMail",
-            description: "邮件营销",
+            label: t('quickActions.daoMail'),
+            description: t('quickActions.emailMarketing'),
             href: "/mail",
             color: "from-green-500 to-emerald-500"
         },
         {
             icon: ImageIcon,
-            label: "AI 图片",
-            description: "文生图 / 图生图",
+            label: t('quickActions.aiImageTitle'),
+            description: t('quickActions.textToImage'),
             href: "/generate/image",
             color: "from-orange-500 to-amber-500"
         },
         {
             icon: Globe,
-            label: "社区",
-            description: "发现灵感",
+            label: t('quickActions.community'),
+            description: t('quickActions.discoverInspiration'),
             href: "/community",
             color: "from-cyan-500 to-teal-500"
         },
@@ -173,7 +173,7 @@ export function DashboardView({ projects }: DashboardViewProps) {
                             <Clock className="h-6 w-6 text-green-500" />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">最近活跃</p>
+                            <p className="text-sm text-muted-foreground">{t('recentActivity')}</p>
                             <p className="text-2xl font-bold">
                                 {projects.length > 0
                                     ? formatDistanceToNow(new Date(projects[0].updated_at), { addSuffix: true })
@@ -191,7 +191,7 @@ export function DashboardView({ projects }: DashboardViewProps) {
                 animate="show"
                 className="mb-8"
             >
-                <h2 className="text-lg font-semibold mb-4">快捷入口</h2>
+                <h2 className="text-lg font-semibold mb-4">{t('quickEntry')}</h2>
                 <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                     {quickActions.map((action, index) => {
                         const cardContent = (
@@ -238,7 +238,7 @@ export function DashboardView({ projects }: DashboardViewProps) {
                     {projects.length > 4 && (
                         <Button variant="ghost" size="sm" asChild>
                             <Link href="/projects">
-                                查看全部 <ArrowRight className="ml-1 h-4 w-4" />
+                                {t('viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
                             </Link>
                         </Button>
                     )}
