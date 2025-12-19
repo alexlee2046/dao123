@@ -4,14 +4,15 @@ import { createClient } from '@/lib/supabase/server';
 import { sendEmail } from '@/lib/mail/sender';
 
 // Types
-export type StepType = 'send_email' | 'wait' | 'add_tag' | 'remove_tag';
+export type StepType = 'send_email' | 'wait' | 'add_tag' | 'remove_tag' | 'condition' | 'split';
 export type TriggerType = 'form_submission' | 'contact_created' | 'tag_added' | 'manual';
 export type EnrollmentStatus = 'active' | 'completed' | 'stopped' | 'error';
+export type ConditionType = 'email_opened' | 'email_clicked' | 'tag_exists' | 'field_equals';
 
 export interface AutomationStep {
   id: string;
   type: StepType;
-  config: SendEmailConfig | WaitConfig | TagConfig;
+  config: SendEmailConfig | WaitConfig | TagConfig | ConditionConfig | SplitConfig;
   order: number;
 }
 
@@ -28,6 +29,28 @@ export interface WaitConfig {
 
 export interface TagConfig {
   tag: string;
+}
+
+export interface ConditionConfig {
+  conditionType: ConditionType;
+  params: {
+    emailStepId?: string;   // For email_opened/email_clicked: which email step to check
+    tag?: string;           // For tag_exists
+    field?: string;         // For field_equals
+    value?: string;         // For field_equals
+    waitDays?: number;      // How long to wait before checking (default: 1)
+  };
+  trueBranch: AutomationStep[];   // Steps to execute if condition is true
+  falseBranch: AutomationStep[];  // Steps to execute if condition is false
+}
+
+export interface SplitConfig {
+  variants: Array<{
+    id: string;
+    name: string;
+    percentage: number;  // 0-100, should sum to 100
+    steps: AutomationStep[];
+  }>;
 }
 
 export interface Automation {
@@ -53,6 +76,8 @@ export interface AutomationEnrollment {
   trigger_data: Record<string, any>;
   enrolled_at: string;
   completed_at: string | null;
+  branch_path?: string[];      // Track branch decisions: ["step_1:true", "step_3:false"]
+  variant_id?: string;         // For A/B split tracking
 }
 
 // ============================================
@@ -247,7 +272,8 @@ export async function executeNextStep(enrollmentId: string): Promise<void> {
       currentStep,
       enrollment.contact_id,
       automation.user_id,
-      enrollment.trigger_data
+      enrollment.trigger_data,
+      enrollmentId
     );
 
     // Log the step execution
@@ -330,7 +356,8 @@ async function executeStep(
   step: AutomationStep,
   contactId: string,
   userId: string,
-  triggerData: Record<string, any>
+  triggerData: Record<string, any>,
+  enrollmentId?: string
 ): Promise<any> {
   const supabase = await createClient();
 
@@ -441,6 +468,87 @@ async function executeStep(
       return { removed_tag: tag };
     }
 
+    case 'condition': {
+      const config = step.config as ConditionConfig;
+
+      if (!enrollmentId) {
+        throw new Error('Enrollment ID required for condition steps');
+      }
+
+      // Evaluate the condition
+      const conditionResult = await evaluateCondition(config, contactId, enrollmentId);
+
+      // Update branch path in enrollment
+      const { data: currentEnrollment } = await supabase
+        .from('automation_enrollments')
+        .select('branch_path')
+        .eq('id', enrollmentId)
+        .single();
+
+      const currentPath = currentEnrollment?.branch_path || [];
+      await supabase
+        .from('automation_enrollments')
+        .update({
+          branch_path: [...currentPath, `${step.id}:${conditionResult}`],
+        })
+        .eq('id', enrollmentId);
+
+      // Execute the appropriate branch
+      const branch = conditionResult ? config.trueBranch : config.falseBranch;
+
+      if (branch && branch.length > 0) {
+        const branchResult = await executeBranch(branch, contactId, userId, triggerData, enrollmentId);
+        return {
+          condition: config.conditionType,
+          result: conditionResult,
+          branchExecuted: conditionResult ? 'true' : 'false',
+          branchResult
+        };
+      }
+
+      return {
+        condition: config.conditionType,
+        result: conditionResult,
+        branchExecuted: conditionResult ? 'true' : 'false',
+        branchResult: { completed: true, results: [] }
+      };
+    }
+
+    case 'split': {
+      const config = step.config as SplitConfig;
+
+      if (!enrollmentId) {
+        throw new Error('Enrollment ID required for split steps');
+      }
+
+      // Select a variant based on percentages
+      const selectedVariantId = selectVariant(config.variants);
+      const selectedVariant = config.variants.find(v => v.id === selectedVariantId);
+
+      // Update enrollment with selected variant
+      await supabase
+        .from('automation_enrollments')
+        .update({ variant_id: selectedVariantId })
+        .eq('id', enrollmentId);
+
+      if (selectedVariant && selectedVariant.steps.length > 0) {
+        const variantResult = await executeBranch(selectedVariant.steps, contactId, userId, triggerData, enrollmentId);
+        return {
+          split: true,
+          selectedVariant: selectedVariantId,
+          variantName: selectedVariant.name,
+          variantResult
+        };
+      }
+
+      return {
+        split: true,
+        selectedVariant: selectedVariantId,
+        variantName: selectedVariant?.name || 'unknown',
+        variantResult: { completed: true, results: [] }
+      };
+    }
+
     default:
       throw new Error(`Unknown step type: ${step.type}`);
   }
@@ -469,6 +577,117 @@ function calculateNextActionTime(step: AutomationStep): Date {
 
   // Non-wait steps execute immediately
   return new Date();
+}
+
+/**
+ * Evaluate a condition for a contact
+ */
+async function evaluateCondition(
+  config: ConditionConfig,
+  contactId: string,
+  enrollmentId: string
+): Promise<boolean> {
+  const supabase = await createClient();
+
+  switch (config.conditionType) {
+    case 'email_opened': {
+      // Check if the contact opened the email from the specified step
+      const { data: logs } = await supabase
+        .from('email_logs')
+        .select('id')
+        .eq('contact_id', contactId)
+        .eq('step_id', config.params.emailStepId)
+        .not('opened_at', 'is', null)
+        .limit(1);
+
+      return (logs?.length || 0) > 0;
+    }
+
+    case 'email_clicked': {
+      // Check if the contact clicked any link in the email
+      const { data: logs } = await supabase
+        .from('email_logs')
+        .select('id')
+        .eq('contact_id', contactId)
+        .eq('step_id', config.params.emailStepId)
+        .not('clicked_at', 'is', null)
+        .limit(1);
+
+      return (logs?.length || 0) > 0;
+    }
+
+    case 'tag_exists': {
+      // Check if the contact has a specific tag
+      const { data: contact } = await supabase
+        .from('contacts')
+        .select('tags')
+        .eq('id', contactId)
+        .single();
+
+      const tags = contact?.tags || [];
+      return tags.includes(config.params.tag);
+    }
+
+    case 'field_equals': {
+      // Check if a contact field equals a specific value
+      const { data: contact } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', contactId)
+        .single();
+
+      if (!contact || !config.params.field) return false;
+
+      const fieldValue = contact[config.params.field];
+      return String(fieldValue) === String(config.params.value);
+    }
+
+    default:
+      return false;
+  }
+}
+
+/**
+ * Execute a branch (array of steps) for a contact
+ */
+async function executeBranch(
+  steps: AutomationStep[],
+  contactId: string,
+  userId: string,
+  triggerData: Record<string, any>,
+  enrollmentId: string
+): Promise<{ completed: boolean; results: any[] }> {
+  const results: any[] = [];
+
+  for (const step of steps) {
+    try {
+      const result = await executeStep(step, contactId, userId, triggerData, enrollmentId);
+      results.push({ stepId: step.id, success: true, result });
+    } catch (error) {
+      results.push({ stepId: step.id, success: false, error: (error as Error).message });
+      return { completed: false, results };
+    }
+  }
+
+  return { completed: true, results };
+}
+
+/**
+ * Select a random variant based on percentages
+ */
+function selectVariant(variants: SplitConfig['variants']): string {
+  const random = Math.random() * 100;
+  let cumulative = 0;
+
+  for (const variant of variants) {
+    cumulative += variant.percentage;
+    if (random < cumulative) {
+      return variant.id;
+    }
+  }
+
+  // Fallback to first variant
+  return variants[0]?.id || '';
 }
 
 // ============================================

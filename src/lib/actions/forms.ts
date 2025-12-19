@@ -2,149 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-
-// =====================================================
-// Types
-// =====================================================
-
-export type FieldType =
-  | 'text'
-  | 'email'
-  | 'phone'
-  | 'textarea'
-  | 'select'
-  | 'radio'
-  | 'checkbox'
-  | 'number'
-  | 'date';
-
-export type ContactFieldMapping =
-  | 'email'
-  | 'first_name'
-  | 'last_name'
-  | 'company_name'
-  | 'phone'
-  | 'position'
-  | 'country'
-  | 'none';
-
-export interface FormFieldOption {
-  label: string;
-  value: string;
-}
-
-export interface FormFieldValidation {
-  pattern?: string;
-  message?: string;
-  min?: number;
-  max?: number;
-}
-
-export interface FormField {
-  id: string;
-  type: FieldType;
-  label: string;
-  placeholder?: string;
-  required: boolean;
-  validation?: FormFieldValidation;
-  options?: FormFieldOption[];
-  mapping: ContactFieldMapping;
-}
-
-export interface FormSettings {
-  theme: {
-    primaryColor: string;
-    backgroundColor: string;
-    borderRadius: number;
-  };
-  submitButton: {
-    text: string;
-    loadingText: string;
-  };
-  successMessage: string;
-  redirectUrl?: string | null;
-  notifyEmail?: string | null;
-  automationId?: string | null;
-}
-
-export interface Form {
-  id: string;
-  user_id: string;
-  project_id?: string | null;
-  name: string;
-  description?: string | null;
-  fields: FormField[];
-  settings: FormSettings;
-  status: 'draft' | 'published' | 'archived';
-  submission_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface FormSubmission {
-  id: string;
-  form_id: string;
-  contact_id?: string | null;
-  data: Record<string, any>;
-  metadata: {
-    ip?: string;
-    userAgent?: string;
-    referrer?: string;
-    timestamp?: string;
-  };
-  created_at: string;
-}
-
-// =====================================================
-// Default Form Configuration
-// =====================================================
-
-export const DEFAULT_FORM_FIELDS: FormField[] = [
-  {
-    id: 'field_name',
-    type: 'text',
-    label: 'Full Name',
-    placeholder: 'Enter your name',
-    required: true,
-    mapping: 'first_name',
-  },
-  {
-    id: 'field_email',
-    type: 'email',
-    label: 'Email Address',
-    placeholder: 'you@example.com',
-    required: true,
-    validation: {
-      pattern: '^[^@]+@[^@]+\\.[^@]+$',
-      message: 'Please enter a valid email address',
-    },
-    mapping: 'email',
-  },
-  {
-    id: 'field_company',
-    type: 'text',
-    label: 'Company',
-    placeholder: 'Your company name',
-    required: false,
-    mapping: 'company_name',
-  },
-];
-
-export const DEFAULT_FORM_SETTINGS: FormSettings = {
-  theme: {
-    primaryColor: '#3b82f6',
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-  },
-  submitButton: {
-    text: 'Submit',
-    loadingText: 'Submitting...',
-  },
-  successMessage: 'Thank you! We will be in touch soon.',
-  redirectUrl: null,
-  notifyEmail: null,
-  automationId: null,
-};
+import type { Form, FormField, FormSettings, FormSubmission } from '@/lib/forms/types';
+import { DEFAULT_FORM_FIELDS, DEFAULT_FORM_SETTINGS } from '@/lib/forms/types';
 
 // =====================================================
 // Form CRUD Operations
@@ -592,15 +451,15 @@ async function syncSubmissionToContact(
 /**
  * Generate embed code for a form
  */
-export function generateFormEmbedCode(formId: string, baseUrl: string): {
+export async function generateFormEmbedCode(formId: string, baseUrl?: string): Promise<{
   iframe: string;
   script: string;
-} {
-  const formUrl = `${baseUrl}/forms/embed/${formId}`;
+}> {
+  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://dao123.com');
+  const formUrl = `${base}/f/${formId}`;
 
   return {
     iframe: `<iframe src="${formUrl}" width="100%" height="500" frameborder="0" style="border: none; border-radius: 8px;"></iframe>`,
-    script: `<div id="dao-form-${formId}"></div>
-<script src="${baseUrl}/forms/embed.js" data-form-id="${formId}"></script>`,
+    script: `<div id="dao-form-${formId}"></div>\n<script src="${base}/forms/embed.js" data-form-id="${formId}"></script>`,
   };
 }

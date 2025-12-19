@@ -12,7 +12,8 @@ import {
     TrendingUp,
     MousePointerClick,
     Calendar,
-    ArrowRight
+    ArrowRight,
+    Zap,
 } from "lucide-react";
 import { Link } from "@/components/link";
 import { getCampaignStats, getCampaigns, type Campaign } from "@/lib/actions/mail/campaigns";
@@ -231,6 +232,13 @@ export default async function MailDashboardPage() {
             description: "按条件筛选目标受众",
             href: "/mail/segments",
             color: "from-orange-500 to-amber-500"
+        },
+        {
+            icon: Zap,
+            title: "自动化",
+            description: "设置自动邮件序列",
+            href: "/mail/automations",
+            color: "from-pink-500 to-rose-500"
         }
     ];
 
