@@ -228,17 +228,196 @@
         "forms": {
             "title": "表单管理",
             "description": "创建和管理您的表单",
-            "createNew": "创建表单"
+            "createNew": "创建表单",
+            "fieldTypes": {
+                "text": "单行文本",
+                "email": "邮箱",
+                "phone": "电话",
+                "textarea": "多行文本",
+                "select": "下拉选择",
+                "radio": "单选",
+                "checkbox": "多选",
+                "number": "数字"
+            },
+            "fieldMappings": {
+                "email": "邮箱 (必填)",
+                "first_name": "名",
+                "last_name": "姓",
+                "company_name": "公司",
+                "phone": "电话",
+                "position": "职位",
+                "country": "国家",
+                "none": "不映射"
+            },
+            "editor": {
+                "fieldLabel": "字段标签",
+                "fieldType": "字段类型",
+                "placeholder": "占位文本",
+                "placeholderHint": "输入提示文字",
+                "mapToContact": "映射到联系人",
+                "required": "必填",
+                "newField": "新字段",
+                "addField": "添加字段",
+                "basicInfo": "基本信息",
+                "formName": "表单名称",
+                "formNamePlaceholder": "如：联系我们",
+                "formDescription": "表单描述",
+                "formDescPlaceholder": "表单用途说明（可选）",
+                "formFields": "表单字段",
+                "formSettings": "表单设置",
+                "submitButtonText": "提交按钮文字",
+                "submitButtonDefault": "提交",
+                "loadingButtonText": "提交中按钮文字",
+                "loadingButtonDefault": "提交中...",
+                "successMessage": "成功提示语",
+                "successMessagePlaceholder": "感谢提交！我们会尽快联系您。",
+                "redirectUrl": "提交后跳转链接（可选）",
+                "redirectUrlPlaceholder": "https://example.com/thank-you",
+                "notifyEmail": "通知邮箱（可选）",
+                "notifyEmailPlaceholder": "新提交时发送通知",
+                "backToList": "返回列表",
+                "editForm": "编辑表单",
+                "createForm": "创建表单",
+                "designForm": "设计您的获客表单",
+                "preview": "预览",
+                "saveDraft": "保存草稿",
+                "publish": "发布表单",
+                "saving": "保存中...",
+                "noFields": "暂无字段",
+                "addFirstField": "添加第一个字段",
+                "enterFormName": "请输入表单名称",
+                "requireEmailField": "表单必须包含映射到邮箱的字段",
+                "formSaved": "表单已保存",
+                "formPublished": "表单已发布",
+                "formCreated": "表单已创建并发布",
+                "saveFailed": "保存失败",
+                "createFailed": "创建失败"
+            }
         },
         "campaigns": {
             "title": "邮件活动",
             "description": "创建和发送邮件活动",
-            "createNew": "创建活动"
+            "createNew": "创建活动",
+            "wizard": {
+                "steps": {
+                    "settings": "设置",
+                    "settingsDesc": "活动详情",
+                    "audience": "受众",
+                    "audienceDesc": "发送对象",
+                    "content": "内容",
+                    "contentDesc": "邮件设计",
+                    "schedule": "计划",
+                    "scheduleDesc": "审核并发送"
+                },
+                "validation": {
+                    "fillRequired": "请填写所有必填字段",
+                    "selectRecipient": "请至少选择一个收件人"
+                },
+                "actions": {
+                    "back": "上一步",
+                    "saveDraft": "保存草稿",
+                    "nextStep": "下一步",
+                    "launch": "发起活动"
+                },
+                "toast": {
+                    "creating": "正在创建活动...",
+                    "success": "活动已成功安排！",
+                    "failed": "创建活动失败"
+                },
+                "settings": {
+                    "title": "活动设置",
+                    "description": "设置邮件活动的基本信息。",
+                    "campaignName": "活动名称",
+                    "campaignNamePlaceholder": "例如：月度新闻简报",
+                    "campaignNameHint": "内部名称，收件人不可见。",
+                    "emailSubject": "邮件主题",
+                    "emailSubjectPlaceholder": "例如：看看我们的新功能！",
+                    "fromName": "发件人名称",
+                    "fromNamePlaceholder": "例如：DaoMail 团队",
+                    "fromEmail": "发件人邮箱",
+                    "fromEmailPlaceholder": "例如：hello@daomail.com"
+                },
+                "audience": {
+                    "title": "选择受众",
+                    "description": "谁应该收到这封邮件？",
+                    "selectAll": "全选",
+                    "deselectAll": "取消全选",
+                    "selected": "已选择：{count}",
+                    "aiSuggestion": "AI 建议：您共有 {count} 个联系人。尝试根据互动情况创建细分群组。"
+                },
+                "content": {
+                    "title": "邮件内容",
+                    "description": "设计您的邮件内容。使用模板或 AI 助手。",
+                    "selectTemplate": "选择模板",
+                    "chooseFromGallery": "从模板库中选择",
+                    "aiWriter": "AI 写作助手",
+                    "generateDraft": "即刻生成草稿",
+                    "templateComingSoon": "模板选择功能即将推出",
+                    "contentApplied": "内容已应用到编辑器！",
+                    "editorPreview": "编辑器预览区域",
+                    "openFullEditor": "打开完整编辑器",
+                    "openingEditor": "正在打开编辑器..."
+                },
+                "schedule": {
+                    "title": "计划与发送",
+                    "description": "什么时候发送这个活动？",
+                    "sendNow": "立即发送",
+                    "sendNowDesc": "立即开始发送",
+                    "scheduleLater": "定时发送",
+                    "scheduleLaterDesc": "选择日期和时间",
+                    "sendDate": "发送日期",
+                    "selectDateHint": "选择一个日期进行安排。",
+                    "recipients": "收件人：",
+                    "contacts": "{count} 个联系人",
+                    "estimatedCost": "预估费用：",
+                    "credits": "{count} 积分"
+                },
+                "aiWriter": {
+                    "title": "AI 写作助手",
+                    "description": "几秒钟内生成高转化的邮件内容。",
+                    "prompt": "这封邮件是关于什么的？",
+                    "promptPlaceholder": "例如：宣布我们的夏季大促，全场 5 折优惠...",
+                    "tone": "语气",
+                    "tones": {
+                        "professional": "专业",
+                        "friendly": "友好",
+                        "urgent": "紧急",
+                        "luxury": "奢华",
+                        "witty": "机智"
+                    },
+                    "generating": "生成中...",
+                    "generate": "生成",
+                    "result": "结果",
+                    "copied": "已复制",
+                    "copy": "复制",
+                    "copiedToClipboard": "已复制到剪贴板",
+                    "generationFailed": "AI 生成失败：{message}",
+                    "cancel": "取消",
+                    "useContent": "使用此内容"
+                }
+            }
         },
         "contacts": {
             "title": "联系人",
             "description": "管理您的联系人",
-            "addNew": "添加联系人"
+            "addNew": "添加联系人",
+            "deleted": "联系人已删除",
+            "deleteFailed": "删除失败",
+            "bulkDeleted": "已删除 {count} 个联系人",
+            "bulkDeleteFailed": "批量删除失败",
+            "noContacts": "暂无联系人",
+            "noContactsDesc": "使用搜客引擎查找联系人，或手动添加",
+            "selectedCount": "已选择 {count} 个联系人",
+            "cancelSelection": "取消选择",
+            "bulkDelete": "批量删除",
+            "contact": "联系人",
+            "email": "邮箱",
+            "position": "职位",
+            "tags": "标签",
+            "source": "来源",
+            "edit": "编辑",
+            "addTag": "添加标签",
+            "delete": "删除"
         }
     },
     "marketing": {

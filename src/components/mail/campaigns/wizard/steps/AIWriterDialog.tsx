@@ -10,6 +10,9 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Loader2, Sparkles, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
+
+const TONE_KEYS = ['professional', 'friendly', 'urgent', 'luxury', 'witty'] as const;
 
 interface AIWriterDialogProps {
     open: boolean;
@@ -18,9 +21,10 @@ interface AIWriterDialogProps {
 }
 
 export function AIWriterDialog({ open, onOpenChange, onUseContent }: AIWriterDialogProps) {
-    const [tone, setTone] = useState('Professional');
+    const [tone, setTone] = useState('professional');
     const [copied, setCopied] = useState(false);
     const [prompt, setPrompt] = useState('');
+    const t = useTranslations('mail.campaigns.wizard.aiWriter');
 
     const { messages, sendMessage, status, setMessages } = useChat({
         transport: new DefaultChatTransport({
@@ -28,7 +32,7 @@ export function AIWriterDialog({ open, onOpenChange, onUseContent }: AIWriterDia
             body: { tone },
         }),
         onError: (err: Error) => {
-            toast.error('AI generation failed: ' + err.message);
+            toast.error(t('generationFailed', { message: err.message }));
             console.error(err);
         }
     });
@@ -60,7 +64,7 @@ export function AIWriterDialog({ open, onOpenChange, onUseContent }: AIWriterDia
         navigator.clipboard.writeText(completion);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-        toast.success('Copied to clipboard');
+        toast.success(t('copiedToClipboard'));
     };
 
     return (
@@ -69,36 +73,36 @@ export function AIWriterDialog({ open, onOpenChange, onUseContent }: AIWriterDia
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Sparkles className="h-5 w-5 text-purple-600" />
-                        AI Writer Assistant
+                        {t('title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Generate high-converting email content in seconds.
+                        {t('description')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 gap-4">
                         <div className="col-span-3 space-y-2">
-                            <Label>What is this email about?</Label>
+                            <Label>{t('prompt')}</Label>
                             <Textarea
-                                placeholder="e.g. Announcing our new summer sale with 50% discount..."
+                                placeholder={t('promptPlaceholder')}
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
                                 className="h-24 resize-none"
                             />
                         </div>
                         <div className="col-span-1 space-y-2">
-                            <Label>Tone</Label>
+                            <Label>{t('tone')}</Label>
                             <Select value={tone} onValueChange={setTone}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Professional">Professional</SelectItem>
-                                    <SelectItem value="Friendly">Friendly</SelectItem>
-                                    <SelectItem value="Urgent">Urgent</SelectItem>
-                                    <SelectItem value="Luxury">Luxury</SelectItem>
-                                    <SelectItem value="Witty">Witty</SelectItem>
+                                    {TONE_KEYS.map((toneKey) => (
+                                        <SelectItem key={toneKey} value={toneKey}>
+                                            {t(`tones.${toneKey}`)}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -109,12 +113,12 @@ export function AIWriterDialog({ open, onOpenChange, onUseContent }: AIWriterDia
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Generating...
+                                    {t('generating')}
                                 </>
                             ) : (
                                 <>
                                     <Sparkles className="mr-2 h-4 w-4" />
-                                    Generate
+                                    {t('generate')}
                                 </>
                             )}
                         </Button>
@@ -123,10 +127,10 @@ export function AIWriterDialog({ open, onOpenChange, onUseContent }: AIWriterDia
                     {completion && (
                         <div className="mt-4 rounded-md border bg-muted/50 p-4 space-y-2">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-xs font-medium text-muted-foreground uppercase">Result</span>
+                                <span className="text-xs font-medium text-muted-foreground uppercase">{t('result')}</span>
                                 <Button variant="ghost" size="sm" onClick={handleCopy} className="h-6 px-2">
                                     {copied ? <Check className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
-                                    {copied ? 'Copied' : 'Copy'}
+                                    {copied ? t('copied') : t('copy')}
                                 </Button>
                             </div>
                             <div className="text-sm whitespace-pre-wrap font-mono bg-background p-3 rounded border max-h-[300px] overflow-y-auto">
@@ -137,12 +141,12 @@ export function AIWriterDialog({ open, onOpenChange, onUseContent }: AIWriterDia
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>{t('cancel')}</Button>
                     <Button onClick={() => {
                         onUseContent(completion);
                         onOpenChange(false);
                     }} disabled={!completion}>
-                        Use This Content
+                        {t('useContent')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

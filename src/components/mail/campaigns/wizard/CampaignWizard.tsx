@@ -10,30 +10,32 @@ import { ChevronRight, ChevronLeft, Send, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
-const STEPS = [
-    { id: 1, title: 'Settings', description: 'Campaign details' },
-    { id: 2, title: 'Audience', description: 'Who to send to' },
-    { id: 3, title: 'Content', description: 'Email design' },
-    { id: 4, title: 'Schedule', description: 'Review & Send' },
-];
+const STEP_KEYS = [
+    { id: 1, titleKey: 'settings', descKey: 'settingsDesc' },
+    { id: 2, titleKey: 'audience', descKey: 'audienceDesc' },
+    { id: 3, titleKey: 'content', descKey: 'contentDesc' },
+    { id: 4, titleKey: 'schedule', descKey: 'scheduleDesc' },
+] as const;
 
 export function CampaignWizard() {
     const { step, setStep, data } = useWizardStore();
     const router = useRouter();
+    const t = useTranslations('mail.campaigns.wizard');
 
     const handleNext = () => {
         if (step === 1 && (!data.name || !data.subject || !data.fromEmail)) {
-            toast.error('Please fill in all required fields');
+            toast.error(t('validation.fillRequired'));
             return;
         }
         if (step === 2 && data.audienceIds.length === 0) {
-            toast.error('Please select at least one recipient');
+            toast.error(t('validation.selectRecipient'));
             return;
         }
         // Step 3 validation (content) skipped for now as it's a placeholder
 
-        if (step < STEPS.length) {
+        if (step < STEP_KEYS.length) {
             setStep(step + 1);
         } else {
             handleFinish();
@@ -50,12 +52,12 @@ export function CampaignWizard() {
         toast.promise(
             new Promise((resolve) => setTimeout(resolve, 2000)),
             {
-                loading: 'Creating campaign...',
+                loading: t('toast.creating'),
                 success: () => {
                     router.push('/mail/campaigns');
-                    return 'Campaign scheduled successfully!';
+                    return t('toast.success');
                 },
-                error: 'Failed to create campaign',
+                error: t('toast.failed'),
             }
         );
     };
@@ -75,7 +77,7 @@ export function CampaignWizard() {
             {/* Stepper */}
             <div className="relative flex justify-between items-center px-10">
                 <div className="absolute left-0 top-1/2 w-full h-0.5 bg-muted -z-10" />
-                {STEPS.map((s) => {
+                {STEP_KEYS.map((s) => {
                     const isActive = s.id === step;
                     const isCompleted = s.id < step;
 
@@ -90,9 +92,12 @@ export function CampaignWizard() {
                             </div>
                             <div className="text-center">
                                 <p className={cn("text-sm font-medium", isActive ? "text-foreground" : "text-muted-foreground")}>
-                                    {s.title}
+                                    {t(`steps.${s.titleKey}`)}
                                 </p>
-                                <p className="text-xs text-muted-foreground hidden md:block">{s.description}</p>
+                                <p className={cn(
+                                    "text-xs text-muted-foreground",
+                                    isActive ? "block" : "hidden md:block"
+                                )}>{t(`steps.${s.descKey}`)}</p>
                             </div>
                         </div>
                     );
@@ -108,20 +113,20 @@ export function CampaignWizard() {
             <div className="flex justify-between items-center pt-6 border-t">
                 <Button variant="outline" onClick={handleBack} disabled={step === 1}>
                     <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back
+                    {t('actions.back')}
                 </Button>
 
                 <div className="flex gap-2">
-                    <Button variant="ghost">Save Draft</Button>
+                    <Button variant="ghost">{t('actions.saveDraft')}</Button>
                     <Button onClick={handleNext}>
-                        {step === STEPS.length ? (
+                        {step === STEP_KEYS.length ? (
                             <>
                                 <Send className="mr-2 h-4 w-4" />
-                                Launch Campaign
+                                {t('actions.launch')}
                             </>
                         ) : (
                             <>
-                                Next Step
+                                {t('actions.nextStep')}
                                 <ChevronRight className="ml-2 h-4 w-4" />
                             </>
                         )}

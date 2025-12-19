@@ -165,7 +165,7 @@ export const PagesPanel = () => {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg scale-90 group-hover:scale-100"
+                                    className="h-7 w-7 opacity-50 hover:opacity-100 focus:opacity-100 transition-all text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
                                     onClick={(e) => handleDelete(e, page.path)}
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />

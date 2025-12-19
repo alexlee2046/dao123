@@ -6,14 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Contact, getContacts } from '@/lib/actions/mail/contacts';
 import { useEffect, useState } from 'react';
-import { Users, Tag, Check, Loader2 } from 'lucide-react';
+import { Users, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTranslations } from 'next-intl';
 
 export function StepAudience() {
     const { data, updateData } = useWizardStore();
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [loading, setLoading] = useState(true);
+    const t = useTranslations('mail.campaigns.wizard.audience');
 
     useEffect(() => {
         const fetchContacts = async () => {
@@ -45,14 +47,14 @@ export function StepAudience() {
     return (
         <Card className="h-full flex flex-col">
             <CardHeader>
-                <CardTitle>Select Audience</CardTitle>
-                <CardDescription>Who should receive this email?</CardDescription>
+                <CardTitle>{t('title')}</CardTitle>
+                <CardDescription>{t('description')}</CardDescription>
                 <div className="flex justify-between items-center mt-2">
                     <Button variant="outline" size="sm" onClick={selectAll}>
-                        {data.audienceIds.length === contacts.length ? 'Deselect All' : 'Select All'}
+                        {data.audienceIds.length === contacts.length ? t('deselectAll') : t('selectAll')}
                     </Button>
                     <span className="text-sm text-muted-foreground">
-                        Selected: {data.audienceIds.length}
+                        {t('selected', { count: data.audienceIds.length })}
                     </span>
                 </div>
             </CardHeader>
@@ -108,7 +110,7 @@ export function StepAudience() {
                 <div className="p-4 bg-muted/20">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Users className="h-4 w-4" />
-                        <span>AI Suggestion: You have {contacts.length} total contacts. Try creating segments based on engagement.</span>
+                        <span>{t('aiSuggestion', { count: contacts.length })}</span>
                     </div>
                 </div>
             </CardContent>

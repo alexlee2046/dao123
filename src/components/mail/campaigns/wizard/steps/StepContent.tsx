@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Sparkles, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export function StepContent() {
-    const { data, updateData, setStep } = useWizardStore();
+    const { data, updateData } = useWizardStore();
     const [showAI, setShowAI] = useState(false);
+    const t = useTranslations('mail.campaigns.wizard.content');
 
     const handleAIWrite = () => {
         setShowAI(true);
@@ -18,27 +20,27 @@ export function StepContent() {
 
     const handleUseContent = (content: string) => {
         updateData({ contentJson: { html: content } }); // Simple mock structure
-        toast.success("Content applied to editor!");
+        toast.success(t('contentApplied'));
     };
 
     return (
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Email Content</CardTitle>
-                    <CardDescription>Design your email content. Use templates or AI assistant.</CardDescription>
+                    <CardTitle>{t('title')}</CardTitle>
+                    <CardDescription>{t('description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-4">
                     <div
                         className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-muted/50 transition-all text-center space-y-3"
-                        onClick={() => toast.info("Template selection coming soon")}
+                        onClick={() => toast.info(t('templateComingSoon'))}
                     >
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                             <FileText className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-semibold">Select Template</h3>
-                            <p className="text-sm text-muted-foreground">Choose from our gallery</p>
+                            <h3 className="font-semibold">{t('selectTemplate')}</h3>
+                            <p className="text-sm text-muted-foreground">{t('chooseFromGallery')}</p>
                         </div>
                     </div>
 
@@ -50,8 +52,8 @@ export function StepContent() {
                             <Sparkles className="h-6 w-6 text-purple-600" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-purple-900">AI Writer</h3>
-                            <p className="text-sm text-purple-700">Generate draft instantly</p>
+                            <h3 className="font-semibold text-purple-900">{t('aiWriter')}</h3>
+                            <p className="text-sm text-purple-700">{t('generateDraft')}</p>
                         </div>
                     </div>
                 </CardContent>
@@ -63,9 +65,9 @@ export function StepContent() {
                         <div className="text-left prose max-w-none bg-white p-6 rounded shadow-sm" dangerouslySetInnerHTML={{ __html: data.contentJson.html }} />
                     ) : (
                         <>
-                            <p>Editor Preview Placeholder</p>
-                            <Button variant="link" className="mt-2" onClick={() => toast.info("Opening Editor...")}>
-                                Open Full Editor
+                            <p>{t('editorPreview')}</p>
+                            <Button variant="link" className="mt-2" onClick={() => toast.info(t('openingEditor'))}>
+                                {t('openFullEditor')}
                             </Button>
                         </>
                     )}

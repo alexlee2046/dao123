@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
     Table,
     TableBody,
@@ -40,6 +41,7 @@ interface ContactsTableProps {
 }
 
 export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProps) {
+    const t = useTranslations('mail.contacts');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -64,10 +66,10 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
     const handleDelete = async (id: string) => {
         const result = await deleteContact(id);
         if (result.success) {
-            toast.success('联系人已删除');
+            toast.success(t('deleted'));
             onRefresh();
         } else {
-            toast.error(result.error || '删除失败');
+            toast.error(result.error || t('deleteFailed'));
         }
     };
 
@@ -79,11 +81,11 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
         setIsDeleting(false);
 
         if (result.success) {
-            toast.success(`已删除 ${selectedIds.size} 个联系人`);
+            toast.success(t('bulkDeleted', { count: selectedIds.size }));
             setSelectedIds(new Set());
             onRefresh();
         } else {
-            toast.error(result.error || '批量删除失败');
+            toast.error(result.error || t('bulkDeleteFailed'));
         }
     };
 
@@ -108,9 +110,9 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                 <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
                     <User className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium mb-1">暂无联系人</h3>
+                <h3 className="text-lg font-medium mb-1">{t('noContacts')}</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                    使用搜客引擎查找联系人，或手动添加
+                    {t('noContactsDesc')}
                 </p>
             </div>
         );
@@ -122,7 +124,7 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
             {selectedIds.size > 0 && (
                 <div className="flex items-center gap-4 p-3 mb-4 bg-muted/50 rounded-lg border">
                     <span className="text-sm font-medium">
-                        已选择 {selectedIds.size} 个联系人
+                        {t('selectedCount', { count: selectedIds.size })}
                     </span>
                     <div className="flex-1" />
                     <Button
@@ -130,7 +132,7 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                         size="sm"
                         onClick={() => setSelectedIds(new Set())}
                     >
-                        取消选择
+                        {t('cancelSelection')}
                     </Button>
                     <Button
                         variant="destructive"
@@ -143,7 +145,7 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                         ) : (
                             <Trash2 className="mr-2 h-4 w-4" />
                         )}
-                        批量删除
+                        {t('bulkDelete')}
                     </Button>
                 </div>
             )}
@@ -157,13 +159,14 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                                 <Checkbox
                                     checked={selectedIds.size === contacts.length && contacts.length > 0}
                                     onCheckedChange={toggleSelectAll}
+                                    aria-label="Select all contacts"
                                 />
                             </TableHead>
-                            <TableHead>联系人</TableHead>
-                            <TableHead>邮箱</TableHead>
-                            <TableHead>职位</TableHead>
-                            <TableHead>标签</TableHead>
-                            <TableHead>来源</TableHead>
+                            <TableHead>{t('contact')}</TableHead>
+                            <TableHead>{t('email')}</TableHead>
+                            <TableHead>{t('position')}</TableHead>
+                            <TableHead>{t('tags')}</TableHead>
+                            <TableHead>{t('source')}</TableHead>
                             <TableHead className="w-12"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -241,7 +244,7 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="opacity-50 hover:opacity-100 focus:opacity-100 transition-opacity"
                                             >
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
@@ -249,11 +252,11 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem onClick={() => onEdit?.(contact)}>
                                                 <Edit className="mr-2 h-4 w-4" />
-                                                编辑
+                                                {t('edit')}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem>
                                                 <Tag className="mr-2 h-4 w-4" />
-                                                添加标签
+                                                {t('addTag')}
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
@@ -261,7 +264,7 @@ export function ContactsTable({ contacts, onRefresh, onEdit }: ContactsTableProp
                                                 onClick={() => handleDelete(contact.id)}
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
-                                                删除
+                                                {t('delete')}
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>

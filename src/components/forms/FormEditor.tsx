@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,36 +48,19 @@ import type { Form, FormField, FormSettings } from '@/lib/forms/types';
 import { DEFAULT_FORM_FIELDS, DEFAULT_FORM_SETTINGS } from '@/lib/forms/types';
 import { toast } from 'sonner';
 
-const fieldTypes = [
-  { value: 'text', label: '单行文本' },
-  { value: 'email', label: '邮箱' },
-  { value: 'phone', label: '电话' },
-  { value: 'textarea', label: '多行文本' },
-  { value: 'select', label: '下拉选择' },
-  { value: 'radio', label: '单选' },
-  { value: 'checkbox', label: '多选' },
-  { value: 'number', label: '数字' },
-];
-
-const fieldMappings = [
-  { value: 'email', label: '邮箱 (必需)' },
-  { value: 'first_name', label: '名字' },
-  { value: 'last_name', label: '姓氏' },
-  { value: 'company_name', label: '公司' },
-  { value: 'phone', label: '电话' },
-  { value: 'position', label: '职位' },
-  { value: 'country', label: '国家' },
-  { value: 'none', label: '不映射' },
-];
+const FIELD_TYPE_KEYS = ['text', 'email', 'phone', 'textarea', 'select', 'radio', 'checkbox', 'number'] as const;
+const FIELD_MAPPING_KEYS = ['email', 'first_name', 'last_name', 'company_name', 'phone', 'position', 'country', 'none'] as const;
 
 function SortableFieldItem({
   field,
   onUpdate,
   onDelete,
+  t,
 }: {
   field: FormField;
   onUpdate: (field: FormField) => void;
   onDelete: () => void;
+  t: ReturnType<typeof useTranslations<'mail.forms'>>;
 }) {
   const {
     attributes,
@@ -104,22 +88,23 @@ function SortableFieldItem({
           {...attributes}
           {...listeners}
           className="mt-2 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+          aria-label="Drag to reorder"
         >
           <GripVertical className="h-5 w-5" />
         </button>
 
         <div className="flex-1 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label>字段标签</Label>
+            <Label>{t('editor.fieldLabel')}</Label>
             <Input
               value={field.label}
               onChange={(e) => onUpdate({ ...field, label: e.target.value })}
-              placeholder="字段名称"
+              placeholder={t('editor.newField')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>字段类型</Label>
+            <Label>{t('editor.fieldType')}</Label>
             <Select
               value={field.type}
               onValueChange={(value) => onUpdate({ ...field, type: value as FormField['type'] })}
@@ -128,9 +113,9 @@ function SortableFieldItem({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {fieldTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
+                {FIELD_TYPE_KEYS.map((typeKey) => (
+                  <SelectItem key={typeKey} value={typeKey}>
+                    {t(`fieldTypes.${typeKey}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -138,16 +123,16 @@ function SortableFieldItem({
           </div>
 
           <div className="space-y-2">
-            <Label>占位符</Label>
+            <Label>{t('editor.placeholder')}</Label>
             <Input
               value={field.placeholder || ''}
               onChange={(e) => onUpdate({ ...field, placeholder: e.target.value })}
-              placeholder="输入提示文字"
+              placeholder={t('editor.placeholderHint')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>映射到联系人</Label>
+            <Label>{t('editor.mapToContact')}</Label>
             <Select
               value={field.mapping || 'none'}
               onValueChange={(value) => onUpdate({ ...field, mapping: value as FormField['mapping'] })}
@@ -156,9 +141,9 @@ function SortableFieldItem({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {fieldMappings.map((mapping) => (
-                  <SelectItem key={mapping.value} value={mapping.value}>
-                    {mapping.label}
+                {FIELD_MAPPING_KEYS.map((mappingKey) => (
+                  <SelectItem key={mappingKey} value={mappingKey}>
+                    {t(`fieldMappings.${mappingKey}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -170,7 +155,7 @@ function SortableFieldItem({
               checked={field.required}
               onCheckedChange={(checked) => onUpdate({ ...field, required: checked })}
             />
-            <Label>必填</Label>
+            <Label>{t('editor.required')}</Label>
           </div>
         </div>
 
@@ -179,6 +164,7 @@ function SortableFieldItem({
           size="icon"
           className="text-destructive hover:text-destructive"
           onClick={onDelete}
+          aria-label="Delete field"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -193,6 +179,7 @@ interface FormEditorProps {
 
 export default function FormEditor({ form }: FormEditorProps) {
   const router = useRouter();
+  const t = useTranslations('mail.forms');
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(form?.name || '');
   const [description, setDescription] = useState(form?.description || '');
@@ -228,7 +215,7 @@ export default function FormEditor({ form }: FormEditorProps) {
     const newField: FormField = {
       id: `field_${Date.now()}`,
       type: 'text',
-      label: '新字段',
+      label: t('editor.newField'),
       placeholder: '',
       required: false,
       mapping: 'none',
@@ -248,14 +235,14 @@ export default function FormEditor({ form }: FormEditorProps) {
 
   const handleSave = async (publish = false) => {
     if (!name.trim()) {
-      toast.error('请输入表单名称');
+      toast.error(t('editor.enterFormName'));
       return;
     }
 
-    // 验证必须有 email 字段
+    // Validate must have email field
     const hasEmail = fields.some((f) => f.mapping === 'email');
     if (!hasEmail) {
-      toast.error('表单必须包含一个映射到邮箱的字段');
+      toast.error(t('editor.requireEmailField'));
       return;
     }
 
@@ -272,24 +259,24 @@ export default function FormEditor({ form }: FormEditorProps) {
       if (form) {
         const result = await updateForm(form.id, formData);
         if (result.success) {
-          toast.success(publish ? '表单已发布' : '表单已保存');
+          toast.success(publish ? t('editor.formPublished') : t('editor.formSaved'));
           if (publish) {
             router.push('/mail/forms');
           }
         } else {
-          toast.error(result.error || '保存失败');
+          toast.error(result.error || t('editor.saveFailed'));
         }
       } else {
         const result = await createForm(formData as any);
         if (result.success && result.form) {
-          toast.success(publish ? '表单已创建并发布' : '表单已创建');
+          toast.success(publish ? t('editor.formCreated') : t('editor.formSaved'));
           router.push(`/mail/forms/${result.form.id}`);
         } else {
-          toast.error(result.error || '创建失败');
+          toast.error(result.error || t('editor.createFailed'));
         }
       }
     } catch (error) {
-      toast.error('操作失败');
+      toast.error(t('editor.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -302,17 +289,17 @@ export default function FormEditor({ form }: FormEditorProps) {
         <Button variant="ghost" asChild className="mb-4">
           <Link href="/mail/forms">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            返回列表
+            {t('editor.backToList')}
           </Link>
         </Button>
 
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              {form ? '编辑表单' : '创建表单'}
+              {form ? t('editor.editForm') : t('editor.createForm')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              设计您的线索收集表单
+              {t('editor.designForm')}
             </p>
           </div>
 
@@ -320,15 +307,15 @@ export default function FormEditor({ form }: FormEditorProps) {
             {form?.status === 'published' && (
               <Button variant="outline" onClick={() => window.open(`/f/${form.id}`, '_blank')}>
                 <Eye className="h-4 w-4 mr-2" />
-                预览
+                {t('editor.preview')}
               </Button>
             )}
             <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
               <Save className="h-4 w-4 mr-2" />
-              保存草稿
+              {t('editor.saveDraft')}
             </Button>
             <Button onClick={() => handleSave(true)} disabled={saving}>
-              {saving ? '保存中...' : '发布表单'}
+              {saving ? t('editor.saving') : t('editor.publish')}
             </Button>
           </div>
         </div>
@@ -337,23 +324,23 @@ export default function FormEditor({ form }: FormEditorProps) {
       {/* Basic Info */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>基本信息</CardTitle>
+          <CardTitle>{t('editor.basicInfo')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>表单名称 *</Label>
+            <Label>{t('editor.formName')} *</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="例如：联系我们"
+              placeholder={t('editor.formNamePlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label>描述</Label>
+            <Label>{t('editor.formDescription')}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="表单用途描述（可选）"
+              placeholder={t('editor.formDescPlaceholder')}
               rows={2}
             />
           </div>
@@ -363,10 +350,10 @@ export default function FormEditor({ form }: FormEditorProps) {
       {/* Fields */}
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>表单字段</CardTitle>
+          <CardTitle>{t('editor.formFields')}</CardTitle>
           <Button variant="outline" size="sm" onClick={addField}>
             <Plus className="h-4 w-4 mr-2" />
-            添加字段
+            {t('editor.addField')}
           </Button>
         </CardHeader>
         <CardContent>
@@ -382,6 +369,7 @@ export default function FormEditor({ form }: FormEditorProps) {
                   field={field}
                   onUpdate={(updated) => updateField(index, updated)}
                   onDelete={() => deleteField(index)}
+                  t={t}
                 />
               ))}
             </SortableContext>
@@ -389,10 +377,10 @@ export default function FormEditor({ form }: FormEditorProps) {
 
           {fields.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              <p>还没有字段</p>
+              <p>{t('editor.noFields')}</p>
               <Button variant="outline" size="sm" className="mt-2" onClick={addField}>
                 <Plus className="h-4 w-4 mr-2" />
-                添加第一个字段
+                {t('editor.addFirstField')}
               </Button>
             </div>
           )}
@@ -404,65 +392,65 @@ export default function FormEditor({ form }: FormEditorProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            表单设置
+            {t('editor.formSettings')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>提交按钮文字</Label>
+              <Label>{t('editor.submitButtonText')}</Label>
               <Input
-                value={settings.submitButton?.text || '提交'}
+                value={settings.submitButton?.text || t('editor.submitButtonDefault')}
                 onChange={(e) =>
                   setSettings({
                     ...settings,
                     submitButton: { ...settings.submitButton, text: e.target.value },
                   })
                 }
-                placeholder="提交"
+                placeholder={t('editor.submitButtonDefault')}
               />
             </div>
             <div className="space-y-2">
-              <Label>提交中按钮文字</Label>
+              <Label>{t('editor.loadingButtonText')}</Label>
               <Input
-                value={settings.submitButton?.loadingText || '提交中...'}
+                value={settings.submitButton?.loadingText || t('editor.loadingButtonDefault')}
                 onChange={(e) =>
                   setSettings({
                     ...settings,
                     submitButton: { ...settings.submitButton, loadingText: e.target.value },
                   })
                 }
-                placeholder="提交中..."
+                placeholder={t('editor.loadingButtonDefault')}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>成功提示消息</Label>
+            <Label>{t('editor.successMessage')}</Label>
             <Textarea
               value={settings.successMessage || ''}
               onChange={(e) => setSettings({ ...settings, successMessage: e.target.value })}
-              placeholder="感谢您的提交！我们会尽快与您联系。"
+              placeholder={t('editor.successMessagePlaceholder')}
               rows={2}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>提交后跳转链接（可选）</Label>
+            <Label>{t('editor.redirectUrl')}</Label>
             <Input
               value={settings.redirectUrl || ''}
               onChange={(e) => setSettings({ ...settings, redirectUrl: e.target.value })}
-              placeholder="https://example.com/thank-you"
+              placeholder={t('editor.redirectUrlPlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>通知邮箱（可选）</Label>
+            <Label>{t('editor.notifyEmail')}</Label>
             <Input
               type="email"
               value={settings.notifyEmail || ''}
               onChange={(e) => setSettings({ ...settings, notifyEmail: e.target.value })}
-              placeholder="有新提交时发送通知"
+              placeholder={t('editor.notifyEmailPlaceholder')}
             />
           </div>
         </CardContent>

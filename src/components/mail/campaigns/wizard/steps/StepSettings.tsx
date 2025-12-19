@@ -1,37 +1,38 @@
 'use client';
 
 import { useWizardStore } from '../store';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
 
 export function StepSettings() {
     const { data, updateData } = useWizardStore();
+    const t = useTranslations('mail.campaigns.wizard.settings');
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Campaign Settings</CardTitle>
-                <CardDescription>Setup the basic information for your email campaign.</CardDescription>
+                <CardTitle>{t('title')}</CardTitle>
+                <CardDescription>{t('description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">
-                    <Label htmlFor="name">Campaign Name</Label>
+                    <Label htmlFor="name">{t('campaignName')}</Label>
                     <Input
                         id="name"
-                        placeholder="e.g. Monthly Newsletter"
+                        placeholder={t('campaignNamePlaceholder')}
                         value={data.name}
                         onChange={(e) => updateData({ name: e.target.value })}
                     />
-                    <p className="text-xs text-muted-foreground">Internal name, not visible to recipients.</p>
+                    <p className="text-xs text-muted-foreground">{t('campaignNameHint')}</p>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="subject">Email Subject</Label>
+                    <Label htmlFor="subject">{t('emailSubject')}</Label>
                     <Input
                         id="subject"
-                        placeholder="e.g. Check out our new features!"
+                        placeholder={t('emailSubjectPlaceholder')}
                         value={data.subject}
                         onChange={(e) => updateData({ subject: e.target.value })}
                     />
@@ -39,20 +40,20 @@ export function StepSettings() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="fromName">From Name</Label>
+                        <Label htmlFor="fromName">{t('fromName')}</Label>
                         <Input
                             id="fromName"
-                            placeholder="e.g. DaoMail Team"
+                            placeholder={t('fromNamePlaceholder')}
                             value={data.fromName}
                             onChange={(e) => updateData({ fromName: e.target.value })}
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="fromEmail">From Email</Label>
+                        <Label htmlFor="fromEmail">{t('fromEmail')}</Label>
                         <Input
                             id="fromEmail"
                             type="email"
-                            placeholder="e.g. hello@daomail.com"
+                            placeholder={t('fromEmailPlaceholder')}
                             value={data.fromEmail}
                             onChange={(e) => updateData({ fromEmail: e.target.value })}
                         />

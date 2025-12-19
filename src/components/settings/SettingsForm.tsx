@@ -12,6 +12,17 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Loader2, User, Shield, Palette, Bell, Crown, Bot } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -33,6 +44,7 @@ interface Profile {
 
 export function SettingsForm() {
     const t = useTranslations('settings');
+    const tCommon = useTranslations('common');
     const [activeTab, setActiveTab] = useState('profile');
     const [loading, setLoading] = useState(true);
     const [upgrading, setUpgrading] = useState(false);
@@ -42,6 +54,12 @@ export function SettingsForm() {
     const { selectedModel, setSelectedModel } = useStudioStore();
     const supabase = createClient();
     const { theme, setTheme } = useTheme();
+
+    // Password change state (controlled inputs)
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordChanging, setPasswordChanging] = useState(false);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
 
     useEffect(() => {
         loadProfile();
@@ -175,7 +193,7 @@ export function SettingsForm() {
 
     return (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
-            <TabsList className="grid w-full grid-cols-5 lg:w-[500px]">
+            <TabsList className="flex w-full overflow-x-auto lg:grid lg:grid-cols-5 lg:w-[500px] scrollbar-hide">
                 <TabsTrigger value="profile"><User className="mr-2 h-4 w-4" />{t('profile')}</TabsTrigger>
                 <TabsTrigger value="account"><Shield className="mr-2 h-4 w-4" />{t('account')}</TabsTrigger>
                 <TabsTrigger value="membership"><Crown className="mr-2 h-4 w-4" />{t('membership')}</TabsTrigger>
@@ -249,7 +267,16 @@ export function SettingsForm() {
                                     id="new-password"
                                     type="password"
                                     placeholder={t('newPassword')}
+                                    value={newPassword}
+                                    onChange={(e) => {
+                                        setNewPassword(e.target.value);
+                                        setPasswordError(null);
+                                    }}
+                                    aria-invalid={!!passwordError}
                                 />
+                                {newPassword && newPassword.length < 8 && (
+                                    <p className="text-sm text-muted-foreground">{t('passwordMinLength') || 'Password must be at least 8 characters'}</p>
+                                )}
                             </div>
                             <div className="grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="confirm-password">{t('confirmPassword')}</Label>
@@ -257,22 +284,47 @@ export function SettingsForm() {
                                     id="confirm-password"
                                     type="password"
                                     placeholder={t('confirmPassword')}
+                                    value={confirmPassword}
+                                    onChange={(e) => {
+                                        setConfirmPassword(e.target.value);
+                                        setPasswordError(null);
+                                    }}
+                                    aria-invalid={!!passwordError && confirmPassword !== newPassword}
                                 />
+                                {confirmPassword && confirmPassword !== newPassword && (
+                                    <p className="text-sm text-destructive">{t('passwordMismatch') || 'Passwords do not match'}</p>
+                                )}
                             </div>
-                            <Button onClick={async () => {
-                                const newPass = (document.getElementById('new-password') as HTMLInputElement).value;
-                                const confirmPass = (document.getElementById('confirm-password') as HTMLInputElement).value;
-                                if (!newPass) return toast.error("Password cannot be empty");
-                                if (newPass !== confirmPass) return toast.error("Passwords do not match");
+                            <Button
+                                onClick={async () => {
+                                    if (!newPassword) {
+                                        setPasswordError('empty');
+                                        return toast.error(t('passwordEmpty') || 'Password cannot be empty');
+                                    }
+                                    if (newPassword.length < 8) {
+                                        setPasswordError('short');
+                                        return toast.error(t('passwordMinLength') || 'Password must be at least 8 characters');
+                                    }
+                                    if (newPassword !== confirmPassword) {
+                                        setPasswordError('mismatch');
+                                        return toast.error(t('passwordMismatch') || 'Passwords do not match');
+                                    }
 
-                                const { error } = await supabase.auth.updateUser({ password: newPass });
-                                if (error) toast.error(error.message);
-                                else {
-                                    toast.success(t('passwordUpdated'));
-                                    (document.getElementById('new-password') as HTMLInputElement).value = '';
-                                    (document.getElementById('confirm-password') as HTMLInputElement).value = '';
-                                }
-                            }}>
+                                    setPasswordChanging(true);
+                                    const { error } = await supabase.auth.updateUser({ password: newPassword });
+                                    setPasswordChanging(false);
+
+                                    if (error) {
+                                        toast.error(error.message);
+                                    } else {
+                                        toast.success(t('passwordUpdated'));
+                                        setNewPassword('');
+                                        setConfirmPassword('');
+                                    }
+                                }}
+                                disabled={passwordChanging || !newPassword || newPassword !== confirmPassword}
+                            >
+                                {passwordChanging && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {t('changePassword')}
                             </Button>
                         </div>
@@ -284,13 +336,32 @@ export function SettingsForm() {
                                     <h4 className="font-medium text-destructive">{t('deleteAccount')}</h4>
                                     <p className="text-sm text-destructive/80">{t('deleteAccountDesc')}</p>
                                 </div>
-                                <Button variant="destructive" onClick={() => {
-                                    if (confirm(t('confirmDeleteAccount'))) {
-                                        toast.error("Please contact support to delete your account.");
-                                    }
-                                }}>
-                                    {t('deleteAccount')}
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive">
+                                            {t('deleteAccount')}
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>{t('deleteAccount')}</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                {t('confirmDeleteAccount')}
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                onClick={() => {
+                                                    toast.error("Please contact support to delete your account.");
+                                                }}
+                                            >
+                                                {t('deleteAccount')}
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                         </div>
                     </CardContent>

@@ -75,8 +75,8 @@ function ContactRow({ contact, onSave }: { contact: ContactResult; onSave?: () =
                 </div>
             </div>
 
-            {/* 操作按钮 */}
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 opacity-50 hover:opacity-100 focus-within:opacity-100 transition-opacity">
                 {contact.linkedin_url && (
                     <Button variant="ghost" size="icon" asChild>
                         <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer">

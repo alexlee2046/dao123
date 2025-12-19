@@ -244,17 +244,196 @@
         "forms": {
             "title": "Form Management",
             "description": "Create and manage your forms",
-            "createNew": "Create Form"
+            "createNew": "Create Form",
+            "fieldTypes": {
+                "text": "Single Line Text",
+                "email": "Email",
+                "phone": "Phone",
+                "textarea": "Multi-line Text",
+                "select": "Dropdown",
+                "radio": "Radio",
+                "checkbox": "Checkbox",
+                "number": "Number"
+            },
+            "fieldMappings": {
+                "email": "Email (Required)",
+                "first_name": "First Name",
+                "last_name": "Last Name",
+                "company_name": "Company",
+                "phone": "Phone",
+                "position": "Position",
+                "country": "Country",
+                "none": "No Mapping"
+            },
+            "editor": {
+                "fieldLabel": "Field Label",
+                "fieldType": "Field Type",
+                "placeholder": "Placeholder",
+                "placeholderHint": "Enter hint text",
+                "mapToContact": "Map to Contact",
+                "required": "Required",
+                "newField": "New Field",
+                "addField": "Add Field",
+                "basicInfo": "Basic Info",
+                "formName": "Form Name",
+                "formNamePlaceholder": "e.g., Contact Us",
+                "formDescription": "Description",
+                "formDescPlaceholder": "Form purpose (optional)",
+                "formFields": "Form Fields",
+                "formSettings": "Form Settings",
+                "submitButtonText": "Submit Button Text",
+                "submitButtonDefault": "Submit",
+                "loadingButtonText": "Loading Button Text",
+                "loadingButtonDefault": "Submitting...",
+                "successMessage": "Success Message",
+                "successMessagePlaceholder": "Thank you! We'll contact you soon.",
+                "redirectUrl": "Redirect URL (optional)",
+                "redirectUrlPlaceholder": "https://example.com/thank-you",
+                "notifyEmail": "Notification Email (optional)",
+                "notifyEmailPlaceholder": "Send notification on new submissions",
+                "backToList": "Back to List",
+                "editForm": "Edit Form",
+                "createForm": "Create Form",
+                "designForm": "Design your lead collection form",
+                "preview": "Preview",
+                "saveDraft": "Save Draft",
+                "publish": "Publish Form",
+                "saving": "Saving...",
+                "noFields": "No fields yet",
+                "addFirstField": "Add First Field",
+                "enterFormName": "Please enter form name",
+                "requireEmailField": "Form must have a field mapped to email",
+                "formSaved": "Form saved",
+                "formPublished": "Form published",
+                "formCreated": "Form created and published",
+                "saveFailed": "Save failed",
+                "createFailed": "Create failed"
+            }
         },
         "campaigns": {
             "title": "Email Campaigns",
             "description": "Create and send email campaigns",
-            "createNew": "Create Campaign"
+            "createNew": "Create Campaign",
+            "wizard": {
+                "steps": {
+                    "settings": "Settings",
+                    "settingsDesc": "Campaign details",
+                    "audience": "Audience",
+                    "audienceDesc": "Who to send to",
+                    "content": "Content",
+                    "contentDesc": "Email design",
+                    "schedule": "Schedule",
+                    "scheduleDesc": "Review & Send"
+                },
+                "validation": {
+                    "fillRequired": "Please fill in all required fields",
+                    "selectRecipient": "Please select at least one recipient"
+                },
+                "actions": {
+                    "back": "Back",
+                    "saveDraft": "Save Draft",
+                    "nextStep": "Next Step",
+                    "launch": "Launch Campaign"
+                },
+                "toast": {
+                    "creating": "Creating campaign...",
+                    "success": "Campaign scheduled successfully!",
+                    "failed": "Failed to create campaign"
+                },
+                "settings": {
+                    "title": "Campaign Settings",
+                    "description": "Setup the basic information for your email campaign.",
+                    "campaignName": "Campaign Name",
+                    "campaignNamePlaceholder": "e.g. Monthly Newsletter",
+                    "campaignNameHint": "Internal name, not visible to recipients.",
+                    "emailSubject": "Email Subject",
+                    "emailSubjectPlaceholder": "e.g. Check out our new features!",
+                    "fromName": "From Name",
+                    "fromNamePlaceholder": "e.g. DaoMail Team",
+                    "fromEmail": "From Email",
+                    "fromEmailPlaceholder": "e.g. hello@daomail.com"
+                },
+                "audience": {
+                    "title": "Select Audience",
+                    "description": "Who should receive this email?",
+                    "selectAll": "Select All",
+                    "deselectAll": "Deselect All",
+                    "selected": "Selected: {count}",
+                    "aiSuggestion": "AI Suggestion: You have {count} total contacts. Try creating segments based on engagement."
+                },
+                "content": {
+                    "title": "Email Content",
+                    "description": "Design your email content. Use templates or AI assistant.",
+                    "selectTemplate": "Select Template",
+                    "chooseFromGallery": "Choose from our gallery",
+                    "aiWriter": "AI Writer",
+                    "generateDraft": "Generate draft instantly",
+                    "templateComingSoon": "Template selection coming soon",
+                    "contentApplied": "Content applied to editor!",
+                    "editorPreview": "Editor Preview Placeholder",
+                    "openFullEditor": "Open Full Editor",
+                    "openingEditor": "Opening Editor..."
+                },
+                "schedule": {
+                    "title": "Schedule & Send",
+                    "description": "When should this campaign be sent?",
+                    "sendNow": "Send Now",
+                    "sendNowDesc": "Start sending immediately",
+                    "scheduleLater": "Schedule Later",
+                    "scheduleLaterDesc": "Pick a date and time",
+                    "sendDate": "Send Date",
+                    "selectDateHint": "Select a date to schedule.",
+                    "recipients": "Recipients:",
+                    "contacts": "{count} contacts",
+                    "estimatedCost": "Estimated Cost:",
+                    "credits": "{count} Credits"
+                },
+                "aiWriter": {
+                    "title": "AI Writer Assistant",
+                    "description": "Generate high-converting email content in seconds.",
+                    "prompt": "What is this email about?",
+                    "promptPlaceholder": "e.g. Announcing our new summer sale with 50% discount...",
+                    "tone": "Tone",
+                    "tones": {
+                        "professional": "Professional",
+                        "friendly": "Friendly",
+                        "urgent": "Urgent",
+                        "luxury": "Luxury",
+                        "witty": "Witty"
+                    },
+                    "generating": "Generating...",
+                    "generate": "Generate",
+                    "result": "Result",
+                    "copied": "Copied",
+                    "copy": "Copy",
+                    "copiedToClipboard": "Copied to clipboard",
+                    "generationFailed": "AI generation failed: {message}",
+                    "cancel": "Cancel",
+                    "useContent": "Use This Content"
+                }
+            }
         },
         "contacts": {
             "title": "Contacts",
             "description": "Manage your contacts",
-            "addNew": "Add Contact"
+            "addNew": "Add Contact",
+            "deleted": "Contact deleted",
+            "deleteFailed": "Delete failed",
+            "bulkDeleted": "{count} contacts deleted",
+            "bulkDeleteFailed": "Bulk delete failed",
+            "noContacts": "No contacts yet",
+            "noContactsDesc": "Use the Lead Finder to discover contacts, or add them manually",
+            "selectedCount": "{count} contacts selected",
+            "cancelSelection": "Cancel selection",
+            "bulkDelete": "Bulk delete",
+            "contact": "Contact",
+            "email": "Email",
+            "position": "Position",
+            "tags": "Tags",
+            "source": "Source",
+            "edit": "Edit",
+            "addTag": "Add tag",
+            "delete": "Delete"
         }
     },
     "marketing": {
