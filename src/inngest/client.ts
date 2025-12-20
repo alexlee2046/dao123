@@ -118,6 +118,46 @@ type Events = {
       body?: unknown;
     };
   };
+
+  // Workflow 模块事件 (DAG 工作流)
+  'workflow/execute': {
+    data: {
+      workflowId: string;
+      userId: string;
+      contactId?: string;
+      triggerData?: Record<string, unknown>;
+    };
+  };
+  'workflow/approval-required': {
+    data: {
+      runId: string;
+      nodeId: string;
+      message: string;
+      options?: Array<{ label: string; value: string }>;
+      timeout?: string;
+    };
+  };
+  'workflow/approval-response': {
+    data: {
+      runId: string;
+      approved: boolean;
+      response?: string;
+      userId: string;
+    };
+  };
+  'workflow/foreach': {
+    data: {
+      runId: string;
+      nodeId: string;
+      items: unknown[];
+      bodyNodeIds: string[];
+      concurrency?: number;
+      userId: string;
+      contactId?: string;
+      workflow: unknown;
+      stepsData: Record<string, Record<string, unknown>>;
+    };
+  };
 };
 
 // ============================================

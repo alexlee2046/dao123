@@ -30,6 +30,14 @@ export type { InngestEvents } from './client';
 
 // 核心
 export { nodeRegistry, registerNode, registerNodes, executeNode } from './core/registry';
+export {
+  DAGParser,
+  parseWorkflow,
+  validateWorkflow,
+  getParallelGroups,
+  resolveConfigReferences,
+  resolveReference,
+} from './core/dag-parser';
 export type {
   NodeDefinition,
   NodeMeta,
@@ -39,6 +47,11 @@ export type {
   WorkflowStep,
   WorkflowDefinition,
   WorkflowTrigger,
+  DAGWorkflowDefinition,
+  WorkflowNode,
+  WorkflowEdge,
+  WorkflowRun,
+  NodeExecution,
   AINodeDescription,
   AIWorkflowIntent,
 } from './core/types';

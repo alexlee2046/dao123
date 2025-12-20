@@ -243,8 +243,8 @@ export interface DAGWorkflowDefinition {
   variables?: Record<string, unknown>;
   /** 是否激活 */
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 // ============================================
