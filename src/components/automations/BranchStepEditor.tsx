@@ -47,8 +47,8 @@ interface EmailStepConfig {
 }
 
 interface WaitStepConfig {
-  duration: number;
-  unit: 'minutes' | 'hours' | 'days';
+  duration?: number;
+  unit?: 'minutes' | 'hours' | 'days';
 }
 
 interface TagStepConfig {
@@ -109,7 +109,7 @@ export default function BranchStepEditor({
   const [isOpen, setIsOpen] = useState(true);
   const [showAddStep, setShowAddStep] = useState(false);
   const [editingStep, setEditingStep] = useState<{ index: number; step: AutomationStep } | null>(null);
-  const [editedConfig, setEditedConfig] = useState<Record<string, unknown>>({});
+  const [editedConfig, setEditedConfig] = useState<StepConfig>({});
 
   // Get all email steps for condition selection (parent + current branch)
   const allEmailSteps = [...parentSteps, ...steps].filter(s => s.type === 'send_email');
@@ -136,7 +136,8 @@ export default function BranchStepEditor({
       case 'wait': {
         const waitConfig = step.config as WaitStepConfig;
         const unitLabels: Record<string, string> = { minutes: '分钟', hours: '小时', days: '天' };
-        return `等待 ${waitConfig.duration} ${unitLabels[waitConfig.unit] || waitConfig.unit}`;
+        const unit = waitConfig.unit || 'hours';
+        return `等待 ${waitConfig.duration || 1} ${unitLabels[unit] || unit}`;
       }
       case 'add_tag':
         return `添加标签: ${(step.config as TagStepConfig).tag}`;
