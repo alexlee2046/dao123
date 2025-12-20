@@ -57,7 +57,8 @@
         "profile": "个人资料",
         "aiImage": "AI 图片",
         "aiVideo": "AI 视频",
-        "mail": "邮件营销"
+        "mail": "邮件营销",
+        "workflow": "工作流"
     },
     "auth": {
         "loginTitle": "登录到您的账户",

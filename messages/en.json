@@ -57,7 +57,8 @@
         "profile": "Profile",
         "aiImage": "AI Image",
         "aiVideo": "AI Video",
-        "mail": "DaoMail"
+        "mail": "DaoMail",
+        "workflow": "Workflow"
     },
     "auth": {
         "loginTitle": "Login to Your Account",

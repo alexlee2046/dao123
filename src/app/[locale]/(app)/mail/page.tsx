@@ -14,6 +14,7 @@ import {
     Calendar,
     ArrowRight,
     Zap,
+    FormInput,
 } from "lucide-react";
 import { Link } from "@/components/link";
 import { getCampaignStats, getCampaigns, type Campaign } from "@/lib/actions/mail/campaigns";
@@ -239,6 +240,13 @@ export default async function MailDashboardPage() {
             description: "设置自动邮件序列",
             href: "/mail/automations",
             color: "from-pink-500 to-rose-500"
+        },
+        {
+            icon: FormInput,
+            title: "表单收集",
+            description: "创建表单收集线索",
+            href: "/mail/forms",
+            color: "from-teal-500 to-cyan-500"
         }
     ];
 
