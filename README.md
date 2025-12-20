@@ -5,7 +5,7 @@
 <h1 align="center">Dao123</h1>
 
 <p align="center">
-  <strong>AI-Powered Website Builder & CMS Platform</strong>
+  <strong>AI-Powered Website Builder & Marketing Automation Platform</strong>
 </p>
 
 <p align="center">
@@ -27,7 +27,7 @@
 
 ---
 
-面向普通用户的 **AI 网站生成器**，灵感源自 Google Stitch。通过简单的自然语言对话，秒级生成专业级多页面响应式网站。零代码基础即可创建个人主页、作品集、落地页。
+面向普通用户的 **AI 网站生成器 + 营销自动化平台**，灵感源自 Google Stitch 与 Mailchimp。通过简单的自然语言对话，秒级生成专业级多页面响应式网站，并配备完整的邮件营销、表单收集、自动化工作流功能。
 
 > 💡 **实测推荐**: Gemini 3 Pro / DeepSeek V3 表现最佳
 
@@ -49,6 +49,31 @@
 - **子域名分配** - 自动分配 `yoursite.dao123.com` 域名
 - **自定义域名** - 支持绑定自有域名
 - **SEO 友好** - 自动生成 meta 标签、sitemap
+
+### 📧 邮件营销
+- **模板编辑器** - 可视化邮件模板设计
+- **群发活动** - 创建营销活动，追踪打开/点击
+- **自动化触发** - 表单提交、标签变更自动发送
+- **A/B 测试** - 多变体测试，自动选出最优版本
+
+### 🔄 自动化工作流
+- **可视化编辑器** - React Flow 拖拽式 DAG 编辑
+- **AI 生成工作流** - 自然语言描述，AI 自动生成完整流程
+- **条件分支** - 基于邮件打开/点击/标签的条件路由
+- **人工审批** - 工作流中插入审批节点
+- **多步骤执行** - 等待、发邮件、打标签、条件判断
+
+### 🎨 AI 内容生成
+- **图片生成** - DALL-E 3 / Stable Diffusion 文生图
+- **视频生成** - Luma Dream Machine 文/图生视频
+- **邮件生成** - AI 生成营销邮件主题和正文
+- **媒体处理** - 图片缩放、合并、筛选
+
+### 📝 表单收集
+- **拖拽式表单** - 可视化表单构建器
+- **嵌入代码** - 一键嵌入任意网站
+- **联系人同步** - 表单提交自动创建联系人
+- **提交记录** - 完整提交历史查看
 
 ### 💼 商业化就绪
 - **用户系统** - 完整的注册、登录、个人中心
@@ -72,9 +97,12 @@
 | **语言** | TypeScript 5 |
 | **UI** | React 19 + Tailwind CSS 4 |
 | **组件** | Shadcn UI (Radix Primitives) |
-| **编辑器** | @craftjs/core (拖拽可视化) |
+| **网站编辑器** | @craftjs/core (拖拽可视化) |
+| **工作流编辑器** | @xyflow/react (React Flow DAG) |
 | **AI** | Vercel AI SDK + OpenRouter |
-| **后端** | Supabase (PostgreSQL + Auth) |
+| **后端** | Supabase (PostgreSQL + Auth + Storage) |
+| **任务队列** | Inngest (工作流执行引擎) |
+| **邮件** | Resend (邮件发送 + Webhooks) |
 | **支付** | Stripe |
 | **状态管理** | Zustand |
 | **国际化** | next-intl |
@@ -84,17 +112,39 @@
 ```
 src/
 ├── app/                  # Next.js App Router
-│   ├── (app)/            # 用户仪表盘
+│   ├── [locale]/(app)/   # 用户仪表盘 (多语言)
+│   │   ├── mail/         # 邮件营销模块
+│   │   │   ├── automations/   # 自动化工作流
+│   │   │   ├── campaigns/     # 群发活动
+│   │   │   ├── contacts/      # 联系人管理
+│   │   │   ├── forms/         # 表单收集
+│   │   │   └── templates/     # 邮件模板
+│   │   └── workflow/     # DAG 工作流编辑器
 │   ├── (marketing)/      # 营销落地页
-│   └── studio/           # AI 编辑器 (核心)
+│   ├── studio/           # AI 网站编辑器
+│   └── api/              # API 路由
+│       ├── ai/           # AI 生成接口
+│       ├── inngest/      # 任务队列 webhook
+│       └── webhooks/     # Resend/Stripe webhooks
 ├── components/
-│   ├── studio/           # 编辑器组件 (Canvas, Toolbar, Chat)
-│   ├── builder/          # 页面构建组件 (Hero, Features, Pricing...)
+│   ├── studio/           # 网站编辑器组件
+│   ├── builder/          # 页面构建组件
+│   ├── automations/      # 自动化 UI 组件
+│   ├── workflow/         # DAG 工作流编辑器
 │   └── ui/               # Shadcn UI 基础组件
+├── inngest/              # Inngest 工作流引擎
+│   ├── functions/        # 工作流函数 (DAG 执行器)
+│   ├── modules/          # 节点模块
+│   │   ├── ai/           # AI 生成节点 (图片/视频/文本)
+│   │   ├── email/        # 邮件发送节点
+│   │   ├── flow/         # 流程控制节点 (等待/条件/分流)
+│   │   └── media/        # 媒体处理节点
+│   └── core/             # 节点注册与类型定义
 ├── lib/
 │   ├── ai/               # AI Prompt 工程
+│   ├── actions/          # Server Actions
 │   ├── supabase/         # 数据库客户端
-│   └── store.ts          # Zustand 状态管理
+│   └── services/         # 第三方服务集成
 └── public/               # 静态资源
 ```
 
@@ -138,6 +188,14 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # AI (OpenRouter)
 OPENROUTER_API_KEY=your_openrouter_key
+
+# 邮件 (Resend)
+RESEND_API_KEY=your_resend_key
+RESEND_WEBHOOK_SECRET=your_webhook_secret
+
+# 任务队列 (Inngest)
+INNGEST_SIGNING_KEY=your_inngest_key
+INNGEST_EVENT_KEY=your_event_key
 
 # Stripe (可选)
 STRIPE_SECRET_KEY=...
