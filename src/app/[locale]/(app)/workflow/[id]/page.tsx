@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import { WorkflowEditorPage } from '@/components/workflow/WorkflowEditorPage';
 import type { SavedWorkflow, WorkflowFlowNode, WorkflowFlowEdge } from '@/components/workflow/types';
 
+// Force dynamic rendering since this page uses cookies for auth
+export const dynamic = 'force-dynamic';
+
 interface WorkflowEditPageProps {
   params: Promise<{ locale: string; id: string }>;
 }

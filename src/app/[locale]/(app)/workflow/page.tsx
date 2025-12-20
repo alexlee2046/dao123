@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from '@/components/link';
 import { EmptyState } from '@/components/common/EmptyState';
 
+// Force dynamic rendering since this page uses cookies for auth
+export const dynamic = 'force-dynamic';
+
 async function WorkflowList({ userId }: { userId: string }) {
   const supabase = await createClient();
 
