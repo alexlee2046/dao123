@@ -1,29 +1,31 @@
-
 /**
- * Pricing Strategy & Cost Analysis
- * 
+ * Pricing Strategy & Cost Analysis (Updated: 2025-12-20)
+ *
  * 1 Credit ~= $0.01 USD (Based on $10/1000 credits entry plan)
- * 
+ *
  * Infrastructure Costs (Estimated):
  * - Vercel Serverless Function: ~$0.000002 / request
  * - Supabase Database: Negligible per transaction
  * - Supabase Storage: ~$0.021 / GB / Month
- *   - Image (~2MB): Negligible storage cost, mainly bandwidth
- *   - Video (~10MB): Higher bandwidth
- * 
- * AI API Costs (OpenRouter/Providers):
- * - Chat (Input + Output):
- *   - GPT-4o/Claude 3.5: ~$0.01 - $0.03 per turn
- *   - Flash/Haiku/DeepSeek: < $0.001 per turn
- * - Image:
- *   - DALL-E 3: $0.04 - $0.08
- *   - Flux/Pro: $0.03 - $0.06
+ *
+ * AI API Costs (OpenRouter 2025-12 Pricing):
+ * - Chat (Input + Output per 1K in + 2K out tokens):
+ *   - DeepSeek V3.2: ~$0.001 (极致性价比)
+ *   - Gemini 3 Flash: ~$0.0065 (性价比之王)
+ *   - Gemini 3 Pro: ~$0.026
+ *   - Claude Sonnet 4.5: ~$0.033
+ *   - GPT-5.1: ~$0.022
+ * - Image (按分辨率计费，以下为1K分辨率):
+ *   - Nano Banana (2.5 Flash Image): ~$0.039/张 (1290 tokens @ $30/M)
+ *   - Nano Banana Pro (3 Pro Image): ~$0.134/张 (1K-2K), ~$0.24/张 (4K)
+ *   - Flux 2 Pro: $0.03/MP首个 + $0.015/MP后续 (1K=$0.03, 2K=$0.075)
+ *   - Flux 2 Max: $0.07/MP首个 + $0.03/MP后续 (1K=$0.07, 2K=$0.16)
  * - Video:
- *   - Luma/Runway: $0.10 - $0.50 (High variance)
- * 
+ *   - Luma/Runway: $0.30 - $0.50 (需验证可用性)
+ *
  * Formula:
- * Cost = (API_Price / Value_Per_Credit) * Margin_Multiplier + Infrastructure_Buffer
- * Margin_Multiplier: 1.5x to 2.0x (to cover free users, failed gens, development)
+ * Cost = (API_Price / VALUE_PER_CREDIT) * Margin_Multiplier + INFRA_BUFFER
+ * Margin_Multiplier: 1.5x to 3.0x (varies by model tier)
  */
 
 export const PRICING_CONSTANTS = {
@@ -32,33 +34,41 @@ export const PRICING_CONSTANTS = {
 };
 
 export const MODEL_COSTS: Record<string, number> = {
-    // Chat Models (Per Message)
-    // Premium Flagships
-    'openai/gpt-5.1': 20,           // OpenAI Flagship
-    'openai/gpt-5': 20,             // Legacy Flagship
-    'openai/gpt-5-mini': 5,         // Efficient Premium
-    'google/gemini-3-pro-preview': 15, // Google Flagship (LMArena #1)
-    'anthropic/claude-sonnet-4.5': 15, // Coding Flagship
+    // ============ Chat Models (Per Turn) ============
+    // Free Tier (成本 < $0.002)
+    'deepseek/deepseek-v3.2': 1,              // $0.001, 利润率 900%+
+    'google/gemini-2.5-flash-lite-preview': 1, // $0.001, 利润率 900%+
+    'qwen/qwen-2.5-72b-instruct': 1,          // $0.0013, 利润率 669%
 
-    // Efficient/Free-tier Models
-    'deepseek/deepseek-v3.2': 1,         // Free tier standard
-    'qwen/qwen-2.5-72b-instruct': 2,      // Best Open Model
+    // Best Value (成本 $0.005-0.01)
+    'google/gemini-3-flash-preview': 5,        // $0.0065, 利润率 669%, 12月17日发布
+    'openai/gpt-5-mini': 8,                   // $0.0085, 利润率 841%
 
-    // Image Models (Per Generation)
-    'openai/gpt-5-image': 25,
-    'google/gemini-2.5-flash-image': 2,    // Efficient Image ("Nano Banana")
-    'black-forest-labs/flux-1.1-pro': 25,
-    'stabilityai/stable-diffusion-xl-beta-v2-2-2': 15,
+    // Flagship (成本 $0.02-0.04)
+    'google/gemini-3-pro-preview': 15,         // $0.026, 利润率 477%
+    'anthropic/claude-sonnet-4.5': 20,         // $0.033, 利润率 506%
+    'openai/gpt-5.1': 25,                     // $0.022, 利润率 1036%
+    'openai/gpt-5': 25,                       // Legacy
 
-    // Video Models (Per Generation)
-    'luma/dream-machine': 200,
-    'runway/gen-3-alpha': 250,
+    // ============ Image Models (Per Generation, 1K分辨率基准) ============
+    // 注意: 图像按分辨率计费，高分辨率成本更高，建议限制或分级收费
+    'google/gemini-2.5-flash-image': 8,        // Nano Banana, $0.039/张, 利润率 105%
+    'google/gemini-3-pro-image-preview': 20,   // Nano Banana Pro, $0.134/张(1K), 利润率 49%
+    'black-forest-labs/flux.2-pro': 15,        // $0.03/张(1K), 利润率 400%
+    'black-forest-labs/flux.2-max': 25,        // $0.07/张(1K), 利润率 257%
+
+    // Legacy (保留兼容性，但建议迁移)
+    'black-forest-labs/flux-1.1-pro': 15,      // 已下架，保留避免报错
+
+    // ============ Video Models (Per Generation) ============
+    'luma/dream-machine': 150,                 // $0.30-0.50, 需验证可用性
+    'runway/gen-3-alpha': 180,                 // 需验证可用性
 };
 
 export const DEFAULT_COSTS = {
-    chat: 5,
-    image: 25,
-    video: 200,
+    chat: 5,     // 默认使用 Gemini 3 Flash 级别
+    image: 20,   // 默认使用 Nano Banana Pro 级别 (安全边际)
+    video: 150,
 };
 
 export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architect' | 'agent_designer' | 'agent_builder' | 'h5', modelId: string): number {
@@ -89,7 +99,7 @@ export function calculateCost(type: 'chat' | 'image' | 'video' | 'agent_architec
         return 2; // Default for others (Flash, Haiku, open source)
     }
 
-    if (type === 'image') return 20;
+    if (type === 'image') return 20; // 安全默认值，覆盖大部分图像模型成本
     if (type === 'video') return 200;
     if (type === 'h5') return 5;
 

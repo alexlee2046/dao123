@@ -1,16 +1,17 @@
 # 模型定价与积分消耗指南 (Model Pricing & Credits Guide)
 
-*Last Updated: 2025-12-09*
+*Last Updated: 2025-12-20*
 
-本文档详细列出了系统当前配置的 AI 模型清单、预估 API 成本以及对应的积分消耗策略。
+本文档详细列出了系统当前配置的 AI 模型清单、OpenRouter 实际成本以及对应的积分消耗策略。
 
 ## 1. 定价策略概述 (Pricing Strategy)
 
 系统采用 **积分 (Credits)** 作为内部计费单位。
 
 *   **汇率基准**: 1 积分 (Credit) ≈ $0.01 USD (约合 ¥0.07 RMB)
-*   **计算公式**: `积分消耗 = (API 成本 + 基础设施缓冲) * 利润率`
-*   其中，旗舰模型由于支持超长上下文 (1M+ Tokens)，其单次请求的潜在成本波动较大，因此定价包含了高负载请求的缓冲费用。
+*   **计算公式**: `积分消耗 = (API 成本 / $0.01) * 利润率`
+*   **目标利润率**: 免费模型 500%+，高端模型 150-500%
+*   **促销空间**: 免费层模型有大量促销空间，高端模型谨慎打折
 
 ---
 
@@ -19,76 +20,148 @@
 ### 2.1 聊天模型 (Chat Models)
 
 **计费方式**: 按每次对话回合 (Per Turn) 计费。
-*注：预估 API 成本基于典型混合负载（含部分长上下文或复杂推理），而非仅短文本。*
+*成本基于典型对话 (1K input + 2K output tokens)*
 
-| 模型 ID (Model ID) | 名称 (Name) | 类型 | 预估 API 成本 | **积分消耗 (Credits)** | 说明 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `deepseek/deepseek-v3.2` | DeepSeek V3.2 | Chat | < $0.001 | **1** | **极致性价比** (免费用户可用) |
-| `qwen/qwen-2.5-72b-instruct` | Qwen 2.5 72B | Chat | ~$0.002 | **2** | 开源之王，中文能力及指令遵循强 |
-| `openai/gpt-5-mini` | GPT-5 Mini | Chat | ~$0.01 - 0.03 | **5** | 高级模型入门款 (高性价比) |
-| `anthropic/claude-sonnet-4.5` | Claude Sonnet 4.5 | Chat | ~$0.08 | **15** | **编程专家**，逻辑超越 3.5/3.7 系列 |
-| `google/gemini-3-pro-preview` | Gemini 3.0 Pro | Chat | ~$0.08 | **15** | **当前榜首 (LMArena No.1)**，1M 上下文 |
-| `openai/gpt-5.1` | GPT-5.1 | Chat | ~$0.15+ | **20** | **OpenAI 旗舰**，综合能力极强 |
+#### 免费层 (Free Tier) - 成本 < $0.002
 
-### 2.2 视觉与多模态模型 (Vision & Multimodal Models)
+| 模型 ID | 名称 | OpenRouter 成本 | **积分** | 利润率 | 说明 |
+|---------|------|----------------|---------|--------|------|
+| `deepseek/deepseek-v3.2` | DeepSeek V3.2 | $0.001 | **1** | 900% | 极致性价比，免费用户首选 |
+| `google/gemini-2.5-flash-lite-preview` | Gemini 2.5 Flash Lite | $0.001 | **1** | 900% | Google 轻量级，速度快 |
+| `qwen/qwen-2.5-72b-instruct` | Qwen 2.5 72B | $0.0013 | **1** | 669% | 中文能力最强 |
 
-**设计理念**: 现代旗舰模型 (如 Gemini 3, GPT-5) 原生具备多模态能力，既能对话也能画图。**不应人为割裂它们的能力。**
+#### 性价比层 (Best Value) - 成本 $0.005-0.01
 
-#### A. 原生多模态旗舰 (Native Multimodal Flagships)
-*这些模型 ID 与聊天模型相同，但在图片生成场景下表现依然顶尖。*
+| 模型 ID | 名称 | OpenRouter 成本 | **积分** | 利润率 | 说明 |
+|---------|------|----------------|---------|--------|------|
+| `google/gemini-3-flash-preview` | **Gemini 3 Flash** ⭐ | $0.0065 | **5** | 669% | **主力推荐**，12月17日发布，性能超Pro |
+| `openai/gpt-5-mini` | GPT-5 Mini | $0.0085 | **8** | 841% | OpenAI 高性价比入门 |
 
-| 模型 ID (Model ID) | 名称 (Name) | 预估 API 成本 | **积分消耗** | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `google/gemini-3-pro-preview` | **Gemini 3.0 Pro** | ~$0.08 | **15** | **全能王者**。物理规律感知强，支持复杂指令绘图。 |
-| `anthropic/claude-sonnet-4.5` | **Claude Sonnet 4.5** | ~$0.08 | **15** | **视觉理解**。虽然主要用于代码/文本，但具备极强的图片理解能力。 |
-| `openai/gpt-5.1` | **GPT-5.1** | ~$0.15 | **20** | OpenAI 旗舰，多模态理解与生成一体化。 |
+#### 旗舰层 (Flagship) - 成本 $0.02-0.04
 
-#### B. 专业/高效绘图模型 (Specialized & Efficient)
-*专门针对图片生成优化的模型，或高性价比选项。*
+| 模型 ID | 名称 | OpenRouter 成本 | **积分** | 利润率 | 说明 |
+|---------|------|----------------|---------|--------|------|
+| `google/gemini-3-pro-preview` | Gemini 3 Pro | $0.026 | **15** | 477% | 1M 上下文，WebDev Arena 榜首 |
+| `anthropic/claude-sonnet-4.5` | Claude Sonnet 4.5 | $0.033 | **20** | 506% | **编程专家**，代码质量最高 |
+| `openai/gpt-5.1` | GPT-5.1 | $0.022 | **25** | 1036% | OpenAI 旗舰，综合能力强 |
 
-| 模型 ID (Model ID) | 名称 (Name) | 预估 API 成本 | **积分消耗** | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `google/gemini-2.5-flash-image` | Gemini 2.5 Flash Image (**Nano Banana**) | ~$0.001 | **2** | **极速/高一致性**。人像与编辑能力极强，成本极低。 |
-| `black-forest-labs/flux-1.1-pro` | Flux 1.1 Pro | $0.04 | **25** | **画面极致**。专注于生成超高细节的艺术图像。 |
-| `stabilityai/stable-diffusion-xl-beta-v2-2-2` | Stable Diffusion XL | ~$0.05 | **15** | 经典基础绘图模型。 |
+---
+
+### 2.2 图像生成模型 (Image Models)
+
+**计费方式**: 按每张图片 (Per Image) 计费，**成本随分辨率增加**。
+
+> ⚠️ **重要**: 图像模型按分辨率/百万像素计费，以下成本基于 1K (1024x1024) 分辨率。
+> 高分辨率 (2K/4K) 成本会显著增加，建议在产品层面限制输出分辨率。
+
+| 模型 ID | 名称 | 分辨率 | OpenRouter 成本 | **积分** | 利润率 | 说明 |
+|---------|------|--------|----------------|---------|--------|------|
+| `google/gemini-2.5-flash-image` | Nano Banana | 1K | $0.039 | **8** | 105% | 性价比入门，1290 tokens/张 |
+| `google/gemini-3-pro-image-preview` | **Nano Banana Pro** ⭐ | 1K-2K | $0.134 | **20** | 49% | 高质量，文字渲染强 |
+| `google/gemini-3-pro-image-preview` | Nano Banana Pro | 4K | $0.24 | **35** | 46% | 4K 高清需额外收费 |
+| `black-forest-labs/flux.2-pro` | Flux 2 Pro | 1K | $0.03 | **15** | 400% | 专业级，按百万像素计费 |
+| `black-forest-labs/flux.2-pro` | Flux 2 Pro | 2K | $0.075 | **15** | 100% | 2K 分辨率利润较薄 |
+| `black-forest-labs/flux.2-max` | Flux 2 Max | 1K | $0.07 | **25** | 257% | 极致画质 |
+| `black-forest-labs/flux.2-max` | Flux 2 Max | 4K | $0.16 | **30** | 87% | 4K 商业用途 |
+
+#### 定价策略说明
+
+- **Nano Banana Pro**: 利润率较低 (49%)，但作为主力图像模型，用于吸引用户
+- **Flux 系列**: 按百万像素计费，高分辨率成本上升快，建议产品限制为 1K 输出
+- **建议**: 前端默认输出 1K 分辨率，2K/4K 作为 Pro 用户专属功能
+
+#### 已移除的模型
+
+| 模型 ID | 原因 |
+|---------|------|
+| ~~`black-forest-labs/flux-1.1-pro`~~ | **已下架**，被 Flux 2 系列替代 |
+| ~~`stabilityai/stable-diffusion-xl`~~ | 2023年老模型，已被完全超越 |
+| ~~`openai/gpt-5-image`~~ | 与 Flux 重叠，无明显优势 |
+
+---
 
 ### 2.3 视频生成模型 (Video Models)
 
-**状态**: *实验性功能 (Experimental)*。视频生成消耗极大且 API 变动频繁，建议仅对 Pro 用户开放。
+**状态**: *实验性功能 (Experimental)*。视频 API 可用性需定期验证。
 
-| 模型 ID (Model ID) | 名称 (Name) | 类型 | 预估 API 成本 | **积分消耗 (Credits)** | 说明 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `luma/dream-machine` | Luma Dream Machine | Video | $0.30 - $0.50 | **200** | 视频生成，消耗较大 (需确认可用性) |
-| `runway/gen-3-alpha` | Runway Gen-3 | Video | $0.50+ | **250** | 顶级视频模型 (需确认可用性) |
+| 模型 ID | 名称 | 估算成本 | **积分** | 说明 |
+|---------|------|---------|---------|------|
+| `luma/dream-machine` | Luma Dream Machine | $0.30-0.50 | **150** | 暂时禁用，需验证可用性 |
+| ~~`runway/gen-3-alpha`~~ | ~~Runway Gen-3~~ | - | - | 已有 Gen-4.5，旧版本不推荐 |
 
 ---
 
 ## 3. Agent 智能体工作流消耗
 
-部分高级功能涉及多个模型协同工作（Agentic Workflow），其消耗不仅仅是单次 API 调用。
-
-| Agent 类型 | 描述 | 主要使用模型 | **积分消耗 (Credits)** |
-| :--- | :--- | :--- | :--- |
-| **Agent Architect** | 架构师智能体，负责项目规划 | GPT-5.1 / Gemini 3 | **30** (每次规划) |
-| **Agent Designer** | 设计师智能体，负责 UI/UX 设计 | GPT-5 / Claude 4.5 | **25** (每次设计) |
-| **Agent Builder** | 构建者智能体，负责代码生成 | DeepSeek / Qwen | **3** (每代码块) |
-| **H5 Page Generator** | H5 页面生成器 | Gemini 2.0 Flash Exp | **5** (每页) |
+| Agent 类型 | 描述 | 主要使用模型 | **积分** |
+|------------|------|-------------|---------|
+| **Agent Architect** | 架构师，项目规划 | Gemini 3 Pro / GPT-5.1 | **25** |
+| **Agent Designer** | 设计师，UI/UX 设计 | GPT-5 / Claude 4.5 | **20** |
+| **Agent Builder** | 构建者，代码生成 | DeepSeek / Gemini Flash | **2** |
+| **H5 Page Generator** | H5 页面生成 | Gemini 3 Flash | **5** |
 
 ---
 
-## 4. 配置来源说明
+## 4. 定价变更记录 (Change Log)
 
-系统中的模型配置和定价由两部分共同决定：
+### 2025-12-20 (v2) - 图像成本修正
 
-1.  **代码层默认值 (`src/lib/pricing.ts`)**:
-    *   定义了系统的核心定价逻辑和保底价格。
-    *   用于在数据库未配置或读取失败时的后备计算。
+**重大修正** - 图像模型成本重新核算:
+> ⚠️ 原成本估算有误 (Nano Banana Pro 误估为 $0.00012，实际 $0.134)，差距达 1000 倍！
 
-2.  **数据库配置 (`models` 表)**:
-    *   **优先级最高**。管理后台 (`/admin/models`) 的配置直接写入此处。
-    *   系统运行时（聊天、生成）会优先读取数据库中的 `cost_per_unit` 字段。
-    *   管理员可以随时在后台调整某个模型的积分消耗，无需通过代码审核或重新部署。
+**图像模型积分调整:**
+- `google/gemini-2.5-flash-image`: 2 → **8** 积分 (成本 $0.039，原估算错误)
+- `google/gemini-3-pro-image-preview`: 3 → **20** 积分 (成本 $0.134，原估算错误)
+- 默认图像积分: 15 → **20** (安全边际)
 
-3.  **推荐配置 (`src/app/[locale]/admin/models/page.tsx`)**:
-    *   仅用于管理后台的“一键导入”功能。
-    *   方便管理员快速将上述列表中的模型添加到数据库中。
+**新增分辨率说明:**
+- 图像模型按分辨率/百万像素计费
+- 高分辨率 (2K/4K) 成本会翻倍
+- 建议产品层面限制输出分辨率
+
+---
+
+### 2025-12-20 (v1) 更新
+
+**新增模型:**
+- ✅ `google/gemini-3-flash-preview` - 性价比之王，主力推荐
+- ✅ `google/gemini-2.5-flash-lite-preview` - 免费层新选项
+- ✅ `google/gemini-3-pro-image-preview` - Nano Banana Pro 图像生成
+- ✅ `black-forest-labs/flux.2-pro` - 替代已下架的 Flux 1.1
+- ✅ `black-forest-labs/flux.2-max` - 极致画质新选项
+
+**移除模型:**
+- ❌ `black-forest-labs/flux-1.1-pro` - OpenRouter 已下架
+- ❌ `stabilityai/stable-diffusion-xl-beta-v2-2-2` - 2023年老模型
+- ❌ `openai/gpt-5-image` - 与 Flux 重叠
+
+**定价调整:**
+- `qwen/qwen-2.5-72b-instruct`: 2 → **1** 积分 (与 DeepSeek 齐平)
+- `openai/gpt-5-mini`: 5 → **8** 积分 (保护利润)
+- `anthropic/claude-sonnet-4.5`: 15 → **20** 积分 (成本较高)
+- `openai/gpt-5.1`: 20 → **25** 积分 (旗舰定位)
+- `luma/dream-machine`: 200 → **150** 积分 (提升竞争力)
+
+---
+
+## 5. 配置来源说明
+
+1. **代码层默认值 (`src/lib/pricing.ts`)**:
+   - 定义核心定价逻辑和保底价格
+   - 用于数据库未配置时的后备计算
+
+2. **数据库配置 (`models` 表)**:
+   - **优先级最高**，管理后台配置直接写入此处
+   - 管理员可随时在 `/admin/models` 调整
+
+3. **推荐配置 (`src/app/[locale]/admin/models/page.tsx`)**:
+   - 用于管理后台的"一键导入"功能
+
+---
+
+## 6. OpenRouter 定价来源
+
+- [OpenRouter Models](https://openrouter.ai/models)
+- [OpenRouter Pricing](https://openrouter.ai/pricing)
+- [Gemini 3 Flash Announcement](https://blog.google/technology/developers/build-with-gemini-3-flash/)
+- [Flux 2 Pro on OpenRouter](https://openrouter.ai/black-forest-labs/flux.2-pro)

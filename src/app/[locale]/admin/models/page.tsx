@@ -21,21 +21,33 @@ interface Model extends ModelInput {
     cost_per_unit: number
 }
 
-// 2025年12月最新的OpenRouter推荐模型列表
+// 2025年12月20日更新 - 基于 OpenRouter 最新定价核算
 const RECOMMENDED_MODELS: ModelInput[] = [
-    // Chat Models (旗舰 & 高效)
-    { id: 'google/gemini-3-pro-preview', name: 'Gemini 3.0 Pro', provider: 'Google', type: 'chat', enabled: true, is_free: false, cost_per_unit: 15 },
-    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', provider: 'Anthropic', type: 'chat', enabled: true, is_free: false, cost_per_unit: 15 },
-    { id: 'openai/gpt-5.1', name: 'GPT-5.1', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 20 },
-    { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 5 },
+    // ============ Chat Models ============
+    // 免费层 (Free Tier) - 成本 < $0.002/对话
     { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', type: 'chat', enabled: true, is_free: true, cost_per_unit: 1 },
-    { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', provider: 'Qwen', type: 'chat', enabled: true, is_free: true, cost_per_unit: 2 },
+    { id: 'google/gemini-2.5-flash-lite-preview', name: 'Gemini 2.5 Flash Lite', provider: 'Google', type: 'chat', enabled: true, is_free: true, cost_per_unit: 1 },
+    { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', provider: 'Qwen', type: 'chat', enabled: true, is_free: true, cost_per_unit: 1 },
 
-    // Image Models (Vision & Multimodal)
-    { id: 'google/gemini-2.5-flash-image', name: 'Nano Banana', provider: 'Google', type: 'image', enabled: true, is_free: false, cost_per_unit: 2 },
-    { id: 'black-forest-labs/flux-1.1-pro', name: 'Flux 1.1 Pro', provider: 'Black Forest Labs', type: 'image', enabled: true, is_free: false, cost_per_unit: 25 },
-    { id: 'openai/gpt-5-image', name: 'GPT-5 Image', provider: 'OpenAI', type: 'image', enabled: true, is_free: false, cost_per_unit: 25 },
-    { id: 'stabilityai/stable-diffusion-xl-beta-v2-2-2', name: 'Stable Diffusion XL', provider: 'Stability AI', type: 'image', enabled: true, is_free: false, cost_per_unit: 15 },
+    // 性价比层 (Best Value) - 成本 $0.005-0.01/对话
+    { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash', provider: 'Google', type: 'chat', enabled: true, is_free: false, cost_per_unit: 5 },  // 12月17日发布，性能超Pro，价格1/4
+    { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 8 },
+
+    // 旗舰层 (Flagship) - 成本 $0.02-0.04/对话
+    { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro', provider: 'Google', type: 'chat', enabled: true, is_free: false, cost_per_unit: 15 },
+    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', provider: 'Anthropic', type: 'chat', enabled: true, is_free: false, cost_per_unit: 20 },  // 编程专家，成本较高需保护利润
+    { id: 'openai/gpt-5.1', name: 'GPT-5.1', provider: 'OpenAI', type: 'chat', enabled: true, is_free: false, cost_per_unit: 25 },
+
+    // ============ Image Models (按分辨率计费，以下为1K基准) ============
+    // 注意: 图像成本随分辨率增加，高分辨率建议在产品层面限制
+    { id: 'google/gemini-2.5-flash-image', name: 'Nano Banana', provider: 'Google', type: 'image', enabled: true, is_free: false, cost_per_unit: 8 },  // $0.039/张(1K)
+    { id: 'google/gemini-3-pro-image-preview', name: 'Nano Banana Pro', provider: 'Google', type: 'image', enabled: true, is_free: false, cost_per_unit: 20 },  // $0.134/张(1K-2K)
+    { id: 'black-forest-labs/flux.2-pro', name: 'Flux 2 Pro', provider: 'Black Forest Labs', type: 'image', enabled: true, is_free: false, cost_per_unit: 15 },  // $0.03/张(1K)
+    { id: 'black-forest-labs/flux.2-max', name: 'Flux 2 Max', provider: 'Black Forest Labs', type: 'image', enabled: true, is_free: false, cost_per_unit: 25 },  // $0.07/张(1K)
+
+    // ============ Video Models (实验性) ============
+    // 注意：视频 API 可用性需定期验证
+    { id: 'luma/dream-machine', name: 'Luma Dream Machine', provider: 'Luma', type: 'video', enabled: false, is_free: false, cost_per_unit: 150 },  // 暂时禁用，需验证可用性
 ]
 
 export default function AdminModelsPage() {
