@@ -10,11 +10,20 @@ import { EmptyState } from '@/components/common/EmptyState';
 async function WorkflowList({ userId }: { userId: string }) {
   const supabase = await createClient();
 
-  const { data: workflows } = await supabase
+  const { data: workflows, error } = await supabase
     .from('workflows')
     .select('*')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.error('[WorkflowList] Error fetching workflows:', error);
+    return (
+      <div className="text-center py-8 text-red-500">
+        Error loading workflows: {error.message}
+      </div>
+    );
+  }
 
   if (!workflows || workflows.length === 0) {
     return (
@@ -68,12 +77,13 @@ export default async function WorkflowPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    return null;
-  }
+    if (!user) {
+      return null;
+    }
 
   return (
     <div className="container mx-auto py-6">
@@ -97,4 +107,15 @@ export default async function WorkflowPage({
       </Suspense>
     </div>
   );
+  } catch (err) {
+    console.error('[WorkflowPage] Error:', err);
+    return (
+      <div className="container mx-auto py-6 text-center">
+        <h1 className="text-2xl font-bold text-red-500">Error Loading Workflows</h1>
+        <p className="text-muted-foreground mt-2">
+          {err instanceof Error ? err.message : 'An unexpected error occurred'}
+        </p>
+      </div>
+    );
+  }
 }
