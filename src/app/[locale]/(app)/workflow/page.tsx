@@ -1,11 +1,10 @@
 import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
-import { Plus, Workflow } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/components/link';
-import { EmptyState } from '@/components/common/EmptyState';
 
 // Force dynamic rendering since this page uses cookies for auth
 export const dynamic = 'force-dynamic';
@@ -30,15 +29,10 @@ async function WorkflowList({ userId }: { userId: string }) {
 
   if (!workflows || workflows.length === 0) {
     return (
-      <EmptyState
-        icon={Workflow}
-        title="No workflows yet"
-        description="Create your first workflow to automate tasks"
-        action={{
-          label: 'Create Workflow',
-          href: '/workflow/new',
-        }}
-      />
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No workflows yet</p>
+        <p className="text-sm text-muted-foreground mt-2">Create your first workflow to automate tasks</p>
+      </div>
     );
   }
 
