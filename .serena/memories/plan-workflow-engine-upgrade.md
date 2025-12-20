@@ -1,7 +1,7 @@
 # 工作流引擎升级计划
 
 **创建日期**: 2025-12-20
-**状态**: Phase 2 已完成 ✓
+**状态**: Phase 3 已完成 ✓
 **目标**: 将 dao123 打造成一站式 AI 营销平台，支持复杂多媒体工作流
 
 ---
@@ -95,15 +95,36 @@ commit `4493f91` - 6 files, +1022
 
 ---
 
-## Phase 3: 可视化工作流编辑器 [待开始]
+## Phase 3: 可视化工作流编辑器 [已完成 ✓]
 
 **目标**: 拖拽式 DAG 编辑器
 
-- 使用 @xyflow/react
-- WorkflowEditor / NodePalette / CustomNode / NodeConfigPanel
-- 动态表单生成
-- 数据引用选择器
-- 类型匹配连线
+### 已实现
+
+**组件**:
+- `WorkflowEditor` - 主编辑器组件 (React Flow)
+- `NodePalette` - 左侧节点面板 (分组、搜索、拖拽)
+- `WorkflowNode` - 自定义节点渲染 (图标、状态、配置预览)
+- `NodeConfigPanel` - 右侧配置面板 (动态表单生成)
+- `WorkflowEditorPage` - 完整编辑器页面 (保存/运行)
+
+**类型系统**:
+- `WorkflowNodeData` - 节点数据结构
+- `PaletteItem` - 面板节点项
+- `SavedWorkflow` - 保存格式
+
+**页面路由**:
+- `/workflow` - 工作流列表
+- `/workflow/new` - 新建工作流
+- `/workflow/[id]` - 编辑工作流
+
+**表单生成**:
+- 基于 JSON Schema 动态生成
+- 支持 string/number/boolean/object/array 类型
+- 支持 enum 下拉、slider 滑块
+- 支持数据引用模式 `{{stepId.output.field}}`
+
+commit `f2b8206` - 12 files, +2116
 
 ---
 
@@ -120,3 +141,4 @@ commit `4493f91` - 6 files, +1022
 | 2025-12-20 | Phase 0 | `89b2146` - Inngest 迁移完成 (25 files, +4775/-192) |
 | 2025-12-20 | Phase 1 | `40aedda` - AI + Media 节点 (5 files, +1154) |
 | 2025-12-20 | Phase 2 | `4493f91` - DAG 执行引擎 (6 files, +1022) |
+| 2025-12-20 | Phase 3 | `f2b8206` - 可视化工作流编辑器 (12 files, +2116) |

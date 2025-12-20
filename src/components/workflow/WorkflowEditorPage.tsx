@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { WorkflowEditor } from './WorkflowEditor';
+import { AIWorkflowChat } from './AIWorkflowChat';
 import type { WorkflowFlowNode, WorkflowFlowEdge, SavedWorkflow } from './types';
 
 interface WorkflowEditorPageProps {
@@ -146,6 +147,16 @@ export function WorkflowEditorPage({ workflow, locale }: WorkflowEditorPageProps
     []
   );
 
+  // Handle AI-generated workflow
+  const handleApplyWorkflow = useCallback(
+    (newNodes: WorkflowFlowNode[], newEdges: WorkflowFlowEdge[]) => {
+      setNodes(newNodes);
+      setEdges(newEdges);
+      toast.success('工作流已应用');
+    },
+    []
+  );
+
   return (
     <div className="flex h-screen flex-col">
       {/* Toolbar */}
@@ -240,6 +251,9 @@ export function WorkflowEditorPage({ workflow, locale }: WorkflowEditorPageProps
           onSave={handleEditorSave}
         />
       </div>
+
+      {/* AI Chat */}
+      <AIWorkflowChat onApplyWorkflow={handleApplyWorkflow} />
     </div>
   );
 }

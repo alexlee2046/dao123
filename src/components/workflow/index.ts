@@ -7,4 +7,5 @@ export { WorkflowEditorPage } from './WorkflowEditorPage';
 export { NodePalette } from './NodePalette';
 export { WorkflowNode } from './WorkflowNode';
 export { NodeConfigPanel } from './NodeConfigPanel';
+export { AIWorkflowChat } from './AIWorkflowChat';
 export * from './types';
