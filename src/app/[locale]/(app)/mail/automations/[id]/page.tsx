@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Zap } from 'lucide-react';
+import { ArrowLeft, Zap, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/components/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AutomationEditor from '@/components/automations/AutomationEditor';
+import { ABTestAnalyticsPanel } from '@/components/automations/ABTestAnalyticsPanel';
 import { createClient } from '@/lib/supabase/server';
-import { getAutomation } from '@/lib/actions/automations';
+import { getAutomation, type AutomationStep } from '@/lib/actions/automations';
 
 async function getTemplates() {
   const supabase = await createClient();
@@ -52,6 +54,10 @@ export default async function EditAutomationPage({
     notFound();
   }
 
+  // Check if automation has A/B test (split step)
+  const steps = automation.steps as AutomationStep[];
+  const hasABTest = steps.some(s => s.type === 'split');
+
   return (
     <div className="w-full max-w-4xl mx-auto py-8 px-6 md:px-12">
       {/* Header */}
@@ -73,11 +79,30 @@ export default async function EditAutomationPage({
         </p>
       </div>
 
-      <AutomationEditor
-        automation={automation}
-        templates={templates}
-        forms={forms}
-      />
+      <Tabs defaultValue="editor" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="editor">编辑器</TabsTrigger>
+          <TabsTrigger value="analytics" disabled={!hasABTest} className="gap-1.5">
+            <BarChart3 className="h-3.5 w-3.5" />
+            A/B 分析
+            {!hasABTest && (
+              <span className="text-xs text-muted-foreground">(无测试)</span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="editor">
+          <AutomationEditor
+            automation={automation}
+            templates={templates}
+            forms={forms}
+          />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <ABTestAnalyticsPanel automationId={automation.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

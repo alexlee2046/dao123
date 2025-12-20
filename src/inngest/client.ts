@@ -75,8 +75,27 @@ type Events = {
     data: {
       automationId: string;
       contactId: string;
-      triggerType: 'form_submission' | 'contact_created' | 'tag_added' | 'manual';
+      triggerType: 'form_submission' | 'contact_created' | 'tag_added' | 'manual' | 'page_visit' | 'scheduled';
       triggerData?: Record<string, unknown>;
+    };
+  };
+
+  // Phase 2: 页面访问触发
+  'contact/page.visited': {
+    data: {
+      contactId: string;
+      pageUrl: string;
+      pageTitle?: string;
+      userId: string;
+      visitedAt: string;
+      referrer?: string;
+    };
+  };
+
+  // Phase 2: 定时触发
+  'automation/scheduled.check': {
+    data: {
+      timestamp: string;
     };
   };
   'automation/step.execute': {

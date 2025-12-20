@@ -18,7 +18,13 @@ import { sendEmail } from '@/lib/mail/sender';
 
 // Types
 export type StepType = 'send_email' | 'wait' | 'add_tag' | 'remove_tag' | 'condition' | 'split';
-export type TriggerType = 'form_submission' | 'contact_created' | 'tag_added' | 'manual';
+export type TriggerType =
+  | 'form_submission'
+  | 'contact_created'
+  | 'tag_added'
+  | 'manual'
+  | 'page_visit'    // Phase 2: 页面访问触发
+  | 'scheduled';    // Phase 2: 定时触发
 export type EnrollmentStatus = 'active' | 'completed' | 'stopped' | 'error';
 export type ConditionType = 'email_opened' | 'email_clicked' | 'tag_exists' | 'field_equals';
 

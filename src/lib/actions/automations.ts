@@ -4,7 +4,13 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
 // Automation types (backwards compatible with engine.ts)
-export type TriggerType = 'form_submission' | 'contact_created' | 'tag_added' | 'manual';
+export type TriggerType =
+  | 'form_submission'
+  | 'contact_created'
+  | 'tag_added'
+  | 'manual'
+  | 'page_visit'    // Phase 2: 页面访问触发
+  | 'scheduled';    // Phase 2: 定时触发
 
 export interface AutomationStep {
   id: string;
@@ -74,6 +80,7 @@ export interface UpdateAutomationInput {
 
 /**
  * Get all automations for current user
+ * Optimized: Single query for enrollments stats instead of N+1
  */
 export async function getAutomations(): Promise<AutomationWithStats[]> {
   const supabase = await createClient();
@@ -95,28 +102,49 @@ export async function getAutomations(): Promise<AutomationWithStats[]> {
     throw new Error(error.message);
   }
 
-  // Get enrollment stats for each automation
-  const automationsWithStats: AutomationWithStats[] = [];
-
-  for (const automation of automations || []) {
-    const { data: enrollments } = await supabase
-      .from('automation_enrollments')
-      .select('status')
-      .eq('automation_id', automation.id);
-
-    const stats = {
-      enrollment_count: enrollments?.length || 0,
-      active_count: enrollments?.filter(e => e.status === 'active').length || 0,
-      completed_count: enrollments?.filter(e => e.status === 'completed').length || 0,
-    };
-
-    automationsWithStats.push({
-      ...automation,
-      ...stats,
-    });
+  if (!automations || automations.length === 0) {
+    return [];
   }
 
-  return automationsWithStats;
+  // Get all automation IDs
+  const automationIds = automations.map(a => a.id);
+
+  // Get all enrollments for these automations in a single query
+  const { data: allEnrollments } = await supabase
+    .from('automation_enrollments')
+    .select('automation_id, status')
+    .in('automation_id', automationIds);
+
+  // Build stats map from enrollments
+  const statsMap = new Map<string, { total: number; active: number; completed: number }>();
+
+  // Initialize all automations with zero stats
+  for (const id of automationIds) {
+    statsMap.set(id, { total: 0, active: 0, completed: 0 });
+  }
+
+  // Aggregate stats from enrollments
+  if (allEnrollments) {
+    for (const enrollment of allEnrollments) {
+      const stats = statsMap.get(enrollment.automation_id);
+      if (stats) {
+        stats.total++;
+        if (enrollment.status === 'active') stats.active++;
+        if (enrollment.status === 'completed') stats.completed++;
+      }
+    }
+  }
+
+  // Combine automations with stats
+  return automations.map(automation => {
+    const stats = statsMap.get(automation.id) || { total: 0, active: 0, completed: 0 };
+    return {
+      ...automation,
+      enrollment_count: stats.total,
+      active_count: stats.active,
+      completed_count: stats.completed,
+    };
+  });
 }
 
 /**
@@ -624,4 +652,260 @@ export async function getAutomationStats(): Promise<{
     totalEnrollments: enrollments?.length || 0,
     completedEnrollments: enrollments?.filter(e => e.status === 'completed').length || 0,
   };
+}
+
+// ============================================
+// A/B Test Analytics
+// ============================================
+
+export interface ABTestVariantStats {
+  id: string;
+  name: string;
+  percentage: number;
+  enrolled: number;
+  emailsSent: number;
+  opened: number;
+  clicked: number;
+  openRate: number;
+  clickRate: number;
+}
+
+export interface ABTestAnalytics {
+  automationId: string;
+  splitStepId: string;
+  splitStepName: string;
+  variants: ABTestVariantStats[];
+  totalEnrolled: number;
+  winner?: {
+    variantId: string;
+    variantName: string;
+    metric: 'openRate' | 'clickRate';
+    lift: number;  // Percentage lift over the loser
+    confidence: 'low' | 'medium' | 'high';  // Based on sample size
+  };
+}
+
+interface SplitVariantConfig {
+  id: string;
+  name: string;
+  percentage: number;
+  steps?: AutomationStep[];
+}
+
+interface SplitStepConfig {
+  variants: SplitVariantConfig[];
+}
+
+/**
+ * Get A/B test analytics for an automation
+ * Returns analytics for the first split step found in the automation
+ */
+export async function getABTestAnalytics(
+  automationId: string
+): Promise<ABTestAnalytics | null> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  // Get automation
+  const { data: automation, error: automationError } = await supabase
+    .from('automations')
+    .select('*')
+    .eq('id', automationId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (automationError || !automation) {
+    return null;
+  }
+
+  // Find split step (A/B test)
+  const steps = automation.steps as AutomationStep[];
+  const splitStep = steps.find(s => s.type === 'split');
+
+  if (!splitStep) {
+    return null;  // No A/B test in this automation
+  }
+
+  const splitConfig = splitStep.config as SplitStepConfig;
+  const variants = splitConfig.variants || [];
+
+  if (variants.length === 0) {
+    return null;
+  }
+
+  // Get enrollments with variant_id
+  const { data: enrollments } = await supabase
+    .from('automation_enrollments')
+    .select('id, contact_id, variant_id')
+    .eq('automation_id', automationId);
+
+  // Get email logs for this automation
+  const { data: emailLogs } = await supabase
+    .from('email_logs')
+    .select('contact_id, step_id, opened_at, clicked_at')
+    .eq('automation_id', automationId);
+
+  // Build variant stats
+  const variantStatsMap = new Map<string, {
+    enrolled: number;
+    contactIds: Set<string>;
+    emailsSent: number;
+    opened: number;
+    clicked: number;
+  }>();
+
+  // Initialize variants
+  for (const variant of variants) {
+    variantStatsMap.set(variant.id, {
+      enrolled: 0,
+      contactIds: new Set(),
+      emailsSent: 0,
+      opened: 0,
+      clicked: 0,
+    });
+  }
+
+  // Count enrollments per variant
+  if (enrollments) {
+    for (const enrollment of enrollments) {
+      const variantId = enrollment.variant_id;
+      if (variantId && variantStatsMap.has(variantId)) {
+        const stats = variantStatsMap.get(variantId)!;
+        stats.enrolled++;
+        stats.contactIds.add(enrollment.contact_id);
+      }
+    }
+  }
+
+  // Count email metrics per variant
+  if (emailLogs) {
+    for (const log of emailLogs) {
+      // Find which variant this contact belongs to
+      const enrollment = enrollments?.find(e => e.contact_id === log.contact_id);
+      if (enrollment?.variant_id && variantStatsMap.has(enrollment.variant_id)) {
+        const stats = variantStatsMap.get(enrollment.variant_id)!;
+        stats.emailsSent++;
+        if (log.opened_at) stats.opened++;
+        if (log.clicked_at) stats.clicked++;
+      }
+    }
+  }
+
+  // Build final variant stats
+  const variantStats: ABTestVariantStats[] = variants.map((variant: SplitVariantConfig) => {
+    const stats = variantStatsMap.get(variant.id) || {
+      enrolled: 0,
+      contactIds: new Set(),
+      emailsSent: 0,
+      opened: 0,
+      clicked: 0,
+    };
+
+    const openRate = stats.emailsSent > 0
+      ? Math.round((stats.opened / stats.emailsSent) * 1000) / 10
+      : 0;
+    const clickRate = stats.emailsSent > 0
+      ? Math.round((stats.clicked / stats.emailsSent) * 1000) / 10
+      : 0;
+
+    return {
+      id: variant.id,
+      name: variant.name,
+      percentage: variant.percentage,
+      enrolled: stats.enrolled,
+      emailsSent: stats.emailsSent,
+      opened: stats.opened,
+      clicked: stats.clicked,
+      openRate,
+      clickRate,
+    };
+  });
+
+  // Determine winner (based on click rate, with minimum sample size)
+  const totalEnrolled = variantStats.reduce((sum, v) => sum + v.enrolled, 0);
+  let winner: ABTestAnalytics['winner'] = undefined;
+
+  // Minimum 10 emails per variant for meaningful comparison
+  const eligibleVariants = variantStats.filter(v => v.emailsSent >= 10);
+
+  if (eligibleVariants.length >= 2) {
+    // Sort by click rate descending
+    const sorted = [...eligibleVariants].sort((a, b) => b.clickRate - a.clickRate);
+    const best = sorted[0];
+    const secondBest = sorted[1];
+
+    if (best.clickRate > secondBest.clickRate) {
+      const lift = secondBest.clickRate > 0
+        ? Math.round(((best.clickRate - secondBest.clickRate) / secondBest.clickRate) * 100)
+        : 100;
+
+      // Confidence based on sample size
+      let confidence: 'low' | 'medium' | 'high' = 'low';
+      if (best.emailsSent >= 100 && secondBest.emailsSent >= 100) {
+        confidence = 'high';
+      } else if (best.emailsSent >= 50 && secondBest.emailsSent >= 50) {
+        confidence = 'medium';
+      }
+
+      winner = {
+        variantId: best.id,
+        variantName: best.name,
+        metric: 'clickRate',
+        lift,
+        confidence,
+      };
+    }
+  }
+
+  return {
+    automationId,
+    splitStepId: splitStep.id,
+    splitStepName: `A/B 测试 (${variants.length} 个变体)`,
+    variants: variantStats,
+    totalEnrolled,
+    winner,
+  };
+}
+
+/**
+ * Get all A/B tests for current user
+ */
+export async function getAllABTests(): Promise<ABTestAnalytics[]> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  // Get all automations with split steps
+  const { data: automations } = await supabase
+    .from('automations')
+    .select('id, steps')
+    .eq('user_id', user.id);
+
+  if (!automations) {
+    return [];
+  }
+
+  // Filter automations that have A/B tests
+  const automationsWithABTest = automations.filter(a => {
+    const steps = a.steps as AutomationStep[];
+    return steps.some(s => s.type === 'split');
+  });
+
+  // Get analytics for each
+  const results: ABTestAnalytics[] = [];
+  for (const automation of automationsWithABTest) {
+    const analytics = await getABTestAnalytics(automation.id);
+    if (analytics) {
+      results.push(analytics);
+    }
+  }
+
+  return results;
 }

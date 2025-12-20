@@ -112,3 +112,92 @@ export function readRecentLogs(lines: number = 100): string {
 
 // Export a default logger for quick usage
 export const serverLog = createLogger('Server');
+
+// ============================================
+// Domain-specific loggers
+// ============================================
+
+/**
+ * Automation-specific logger
+ */
+export const automationLogger = {
+  triggerReceived: (automationId: string, contactId: string, triggerType: string) => {
+    const log = createLogger('Automation');
+    log.info('Trigger received', { automationId, contactId, triggerType });
+  },
+
+  stepStarted: (automationId: string, enrollmentId: string, stepIndex: number, stepType: string) => {
+    const log = createLogger('Automation');
+    log.info('Step started', { automationId, enrollmentId, stepIndex, stepType });
+  },
+
+  stepCompleted: (automationId: string, enrollmentId: string, stepIndex: number, duration: number) => {
+    const log = createLogger('Automation');
+    log.info('Step completed', { automationId, enrollmentId, stepIndex, duration });
+  },
+
+  stepFailed: (automationId: string, enrollmentId: string, stepIndex: number, error: string) => {
+    const log = createLogger('Automation');
+    log.error('Step failed', { automationId, enrollmentId, stepIndex, error });
+  },
+
+  enrollmentCompleted: (automationId: string, enrollmentId: string, totalSteps: number) => {
+    const log = createLogger('Automation');
+    log.info('Enrollment completed', { automationId, enrollmentId, totalSteps });
+  },
+
+  enrollmentError: (automationId: string, enrollmentId: string, error: string) => {
+    const log = createLogger('Automation');
+    log.error('Enrollment error', { automationId, enrollmentId, error });
+  },
+};
+
+/**
+ * Workflow-specific logger
+ */
+export const workflowLogger = {
+  runStarted: (workflowId: string, runId: string, userId: string) => {
+    const log = createLogger('Workflow');
+    log.info('Run started', { workflowId, runId, userId });
+  },
+
+  nodeExecuting: (workflowId: string, runId: string, nodeId: string, nodeType: string) => {
+    const log = createLogger('Workflow');
+    log.debug('Node executing', { workflowId, runId, nodeId, nodeType });
+  },
+
+  nodeCompleted: (workflowId: string, runId: string, nodeId: string, duration: number) => {
+    const log = createLogger('Workflow');
+    log.info('Node completed', { workflowId, runId, nodeId, duration });
+  },
+
+  nodeFailed: (workflowId: string, runId: string, nodeId: string, error: string) => {
+    const log = createLogger('Workflow');
+    log.error('Node failed', { workflowId, runId, nodeId, error });
+  },
+
+  runCompleted: (workflowId: string, runId: string, totalDuration: number, nodesExecuted: number) => {
+    const log = createLogger('Workflow');
+    log.info('Run completed', { workflowId, runId, duration: totalDuration, nodesExecuted });
+  },
+
+  runFailed: (workflowId: string, runId: string, error: string) => {
+    const log = createLogger('Workflow');
+    log.error('Run failed', { workflowId, runId, error });
+  },
+};
+
+/**
+ * Page tracking logger
+ */
+export const trackingLogger = {
+  pageVisitRecorded: (contactId: string, pageUrl: string, userId: string) => {
+    const log = createLogger('Tracking');
+    log.debug('Page visit recorded', { contactId, userId, pageUrl });
+  },
+
+  pageVisitError: (contactId: string, pageUrl: string, error: string) => {
+    const log = createLogger('Tracking');
+    log.error('Page visit tracking error', { contactId, pageUrl, error });
+  },
+};

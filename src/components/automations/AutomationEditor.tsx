@@ -42,6 +42,8 @@ import {
   MousePointerClick,
   Sparkles,
   Loader2,
+  Globe,
+  Calendar,
 } from 'lucide-react';
 import {
   createAutomation,
@@ -51,6 +53,7 @@ import {
 import type { AutomationStep, TriggerType, ConditionType, ConditionConfig, SplitConfig } from '@/lib/automation/engine';
 import { toast } from 'sonner';
 import { nanoid } from 'nanoid';
+import BranchStepEditor from './BranchStepEditor';
 
 interface AutomationEditorProps {
   automation?: Automation;
@@ -76,6 +79,18 @@ const triggerOptions: { value: TriggerType; label: string; description: string; 
     label: '添加标签',
     description: '当联系人被添加特定标签时触发',
     icon: Tag,
+  },
+  {
+    value: 'page_visit',
+    label: '页面访问',
+    description: '当联系人访问特定页面时触发',
+    icon: Globe,
+  },
+  {
+    value: 'scheduled',
+    label: '定时触发',
+    description: '按照设定的时间表自动触发',
+    icon: Calendar,
   },
   {
     value: 'manual',
@@ -107,12 +122,14 @@ function StepCard({
   onUpdate,
   onDelete,
   templates,
+  allSteps,
 }: {
   step: AutomationStep;
   index: number;
   onUpdate: (step: AutomationStep) => void;
   onDelete: () => void;
   templates?: { id: string; name: string }[];
+  allSteps: AutomationStep[];
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedConfig, setEditedConfig] = useState(step.config);
@@ -295,17 +312,38 @@ function StepCard({
                   (editedConfig as ConditionConfig).conditionType === 'email_clicked') && (
                   <div className="space-y-2">
                     <Label>检查哪个邮件步骤</Label>
-                    <Input
-                      value={(editedConfig as ConditionConfig).params?.emailStepId || ''}
-                      onChange={(e) => setEditedConfig({
-                        ...editedConfig,
-                        params: { ...(editedConfig as ConditionConfig).params, emailStepId: e.target.value }
-                      })}
-                      placeholder="输入邮件步骤ID"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      留空则检查序列中的上一封邮件
-                    </p>
+                    {(() => {
+                      const previousEmailSteps = allSteps.slice(0, index).filter((s: AutomationStep) => s.type === 'send_email');
+                      return previousEmailSteps.length > 0 ? (
+                        <Select
+                          value={(editedConfig as ConditionConfig).params?.emailStepId || ''}
+                          onValueChange={(value) => setEditedConfig({
+                            ...editedConfig,
+                            params: { ...(editedConfig as ConditionConfig).params, emailStepId: value }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="选择邮件步骤" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {previousEmailSteps.map((emailStep: AutomationStep, idx: number) => {
+                              const emailConfig = emailStep.config as Record<string, unknown>;
+                              const template = templates?.find(t => t.id === emailConfig.templateId);
+                              const label = template?.name || emailConfig.subject || '邮件';
+                              return (
+                                <SelectItem key={emailStep.id} value={emailStep.id}>
+                                  {idx + 1}. {label as string}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-sm text-amber-600 p-2 bg-amber-500/10 rounded">
+                          请先在条件之前添加发送邮件步骤
+                        </p>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -350,11 +388,31 @@ function StepCard({
                   </div>
                 )}
 
-                <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
-                  <p className="font-medium mb-1">分支说明</p>
-                  <p>• 条件为真: 执行 trueBranch 中的步骤</p>
-                  <p>• 条件为假: 执行 falseBranch 中的步骤</p>
-                  <p className="mt-2 text-xs">分支步骤需在保存后通过 API 配置</p>
+                {/* Branch step editors */}
+                <div className="space-y-3 pt-4 border-t">
+                  <Label>分支步骤</Label>
+                  <BranchStepEditor
+                    steps={(editedConfig as ConditionConfig).trueBranch || []}
+                    onUpdate={(newSteps) => setEditedConfig({
+                      ...editedConfig,
+                      trueBranch: newSteps
+                    })}
+                    branchLabel="条件为真"
+                    branchColor="green"
+                    templates={templates}
+                    parentSteps={allSteps.slice(0, index)}
+                  />
+                  <BranchStepEditor
+                    steps={(editedConfig as ConditionConfig).falseBranch || []}
+                    onUpdate={(newSteps) => setEditedConfig({
+                      ...editedConfig,
+                      falseBranch: newSteps
+                    })}
+                    branchLabel="条件为假"
+                    branchColor="red"
+                    templates={templates}
+                    parentSteps={allSteps.slice(0, index)}
+                  />
                 </div>
               </div>
             )}
@@ -410,38 +468,65 @@ function StepCard({
                 </div>
 
                 {((editedConfig as SplitConfig).variants || []).map((variant, idx) => (
-                  <div key={variant.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <Input
-                        value={variant.name}
-                        onChange={(e) => {
-                          const variants = [...((editedConfig as SplitConfig).variants || [])];
-                          variants[idx] = { ...variants[idx], name: e.target.value };
-                          setEditedConfig({ ...editedConfig, variants });
-                        }}
-                        placeholder={`变体 ${String.fromCharCode(65 + idx)}`}
-                      />
+                  <div key={variant.id} className="space-y-3 p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <Input
+                          value={variant.name}
+                          onChange={(e) => {
+                            const variants = [...((editedConfig as SplitConfig).variants || [])];
+                            variants[idx] = { ...variants[idx], name: e.target.value };
+                            setEditedConfig({ ...editedConfig, variants });
+                          }}
+                          placeholder={`变体 ${String.fromCharCode(65 + idx)}`}
+                        />
+                      </div>
+                      <div className="w-24">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={variant.percentage}
+                          onChange={(e) => {
+                            const variants = [...((editedConfig as SplitConfig).variants || [])];
+                            variants[idx] = { ...variants[idx], percentage: parseInt(e.target.value) || 0 };
+                            setEditedConfig({ ...editedConfig, variants });
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-muted-foreground">%</span>
                     </div>
-                    <div className="w-24">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={variant.percentage}
-                        onChange={(e) => {
-                          const variants = [...((editedConfig as SplitConfig).variants || [])];
-                          variants[idx] = { ...variants[idx], percentage: parseInt(e.target.value) || 0 };
-                          setEditedConfig({ ...editedConfig, variants });
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm text-muted-foreground">%</span>
+
+                    {/* Variant steps editor */}
+                    <BranchStepEditor
+                      steps={variant.steps || []}
+                      onUpdate={(newSteps) => {
+                        const variants = [...((editedConfig as SplitConfig).variants || [])];
+                        variants[idx] = { ...variants[idx], steps: newSteps };
+                        setEditedConfig({ ...editedConfig, variants });
+                      }}
+                      branchLabel={`${variant.name} 步骤`}
+                      branchColor="purple"
+                      templates={templates}
+                      parentSteps={allSteps.slice(0, index)}
+                    />
                   </div>
                 ))}
 
-                <p className="text-xs text-muted-foreground">
-                  百分比总和应为 100%。每个变体的步骤需在保存后通过 API 配置。
-                </p>
+                {/* Percentage validation */}
+                {(() => {
+                  const total = ((editedConfig as SplitConfig).variants || [])
+                    .reduce((sum, v) => sum + (v.percentage || 0), 0);
+                  return total !== 100 ? (
+                    <p className="text-sm text-amber-600 p-2 bg-amber-500/10 rounded">
+                      百分比总和为 {total}%，应为 100%
+                    </p>
+                  ) : (
+                    <p className="text-xs text-green-600">
+                      百分比总和正确 (100%)
+                    </p>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -707,6 +792,118 @@ export default function AutomationEditor({
               />
             </div>
           )}
+
+          {triggerType === 'page_visit' && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-2">
+                <Label>页面 URL 匹配模式</Label>
+                <Input
+                  value={triggerConfig.urlPattern || ''}
+                  onChange={(e) => setTriggerConfig({ ...triggerConfig, urlPattern: e.target.value })}
+                  placeholder="例如: /pricing 或 /blog/*"
+                />
+                <p className="text-xs text-muted-foreground">
+                  支持通配符 * 匹配任意字符
+                </p>
+              </div>
+            </div>
+          )}
+
+          {triggerType === 'scheduled' && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-2">
+                <Label>触发频率</Label>
+                <Select
+                  value={triggerConfig.scheduleType || 'daily'}
+                  onValueChange={(value) => setTriggerConfig({ ...triggerConfig, scheduleType: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择频率" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">每天</SelectItem>
+                    <SelectItem value="weekly">每周</SelectItem>
+                    <SelectItem value="monthly">每月</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>触发时间</Label>
+                <Input
+                  type="time"
+                  value={triggerConfig.time || '09:00'}
+                  onChange={(e) => setTriggerConfig({ ...triggerConfig, time: e.target.value })}
+                />
+              </div>
+
+              {triggerConfig.scheduleType === 'weekly' && (
+                <div className="space-y-2">
+                  <Label>星期几</Label>
+                  <Select
+                    value={String(triggerConfig.dayOfWeek || 1)}
+                    onValueChange={(value) => setTriggerConfig({ ...triggerConfig, dayOfWeek: parseInt(value) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">周一</SelectItem>
+                      <SelectItem value="2">周二</SelectItem>
+                      <SelectItem value="3">周三</SelectItem>
+                      <SelectItem value="4">周四</SelectItem>
+                      <SelectItem value="5">周五</SelectItem>
+                      <SelectItem value="6">周六</SelectItem>
+                      <SelectItem value="0">周日</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {triggerConfig.scheduleType === 'monthly' && (
+                <div className="space-y-2">
+                  <Label>每月第几天</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="28"
+                    value={triggerConfig.dayOfMonth || 1}
+                    onChange={(e) => setTriggerConfig({ ...triggerConfig, dayOfMonth: parseInt(e.target.value) || 1 })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    建议选择1-28，避免月末日期问题
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>目标受众</Label>
+                <Select
+                  value={triggerConfig.audience || 'all'}
+                  onValueChange={(value) => setTriggerConfig({ ...triggerConfig, audience: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">所有联系人</SelectItem>
+                    <SelectItem value="tagged">特定标签</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {triggerConfig.audience === 'tagged' && (
+                <div className="space-y-2">
+                  <Label>目标标签</Label>
+                  <Input
+                    value={triggerConfig.audienceTag || ''}
+                    onChange={(e) => setTriggerConfig({ ...triggerConfig, audienceTag: e.target.value })}
+                    placeholder="输入标签名称"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -741,6 +938,7 @@ export default function AutomationEditor({
                   onUpdate={(s) => handleUpdateStep(index, s)}
                   onDelete={() => handleDeleteStep(index)}
                   templates={templates}
+                  allSteps={steps}
                 />
                 {index < steps.length - 1 && (
                   <div className="flex justify-center py-1">
