@@ -7,6 +7,8 @@ import { registerNodes } from '../core/registry';
 import { emailNodes } from './email';
 import { formNodes } from './form';
 import { flowNodes } from './flow';
+import { aiNodes } from './ai';
+import { mediaNodes } from './media';
 
 // 注册所有模块节点
 export function registerAllModules() {
@@ -14,10 +16,11 @@ export function registerAllModules() {
     ...emailNodes,
     ...formNodes,
     ...flowNodes,
+    ...aiNodes,
+    ...mediaNodes,
     // 未来添加更多模块:
-    // ...aiNodes,
-    // ...mediaNodes,
     // ...webhookNodes,
+    // ...integrationNodes,
   ]);
 }
 
@@ -25,3 +28,5 @@ export function registerAllModules() {
 export * from './email';
 export * from './form';
 export * from './flow';
+export * from './ai';
+export * from './media';
