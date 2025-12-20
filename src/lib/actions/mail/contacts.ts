@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { searchContacts as adapterSearchContacts } from '@/lib/mail/data-adapter';
 import { deductMailCredits } from './credits';
 import { revalidatePath } from 'next/cache';
+import { inngest } from '@/inngest';
 
 // Contact type matching DB schema
 export interface Contact {
@@ -124,6 +125,19 @@ export async function createContact(contact: Partial<Contact>): Promise<{ succes
         return { success: false, error: error.message };
     }
 
+    // 触发自动化: 联系人创建
+    if (data?.id) {
+        await inngest.send({
+            name: 'contact/created',
+            data: {
+                contactId: data.id,
+                email: contact.email,
+                source: contact.source || 'manual',
+                userId: user.id,
+            },
+        });
+    }
+
     revalidatePath('/mail/contacts');
     return { success: true, id: data?.id };
 }
@@ -136,6 +150,17 @@ export async function updateContact(id: string, updates: Partial<Contact>): Prom
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) return { success: false, error: 'Unauthorized' };
+
+    // 获取当前联系人信息 (用于对比标签变化)
+    let existingTags: string[] = [];
+    if (updates.tags) {
+        const { data: contact } = await supabase
+            .from('contacts')
+            .select('tags')
+            .eq('id', id)
+            .single();
+        existingTags = contact?.tags || [];
+    }
 
     const { error } = await supabase
         .from('contacts')
@@ -151,6 +176,21 @@ export async function updateContact(id: string, updates: Partial<Contact>): Prom
         .eq('id', id);
 
     if (error) return { success: false, error: error.message };
+
+    // 触发自动化: 标签添加 (只为新添加的标签触发)
+    if (updates.tags) {
+        const newTags = updates.tags.filter(tag => !existingTags.includes(tag));
+        for (const tag of newTags) {
+            await inngest.send({
+                name: 'contact/tag.added',
+                data: {
+                    contactId: id,
+                    tag,
+                    userId: user.id,
+                },
+            });
+        }
+    }
 
     revalidatePath('/mail/contacts');
     return { success: true };
@@ -216,6 +256,7 @@ export async function bulkAddTags(ids: string[], tags: string[]): Promise<{ succ
     // Update each contact with merged tags
     const updates = (contacts || []).map(contact => ({
         id: contact.id,
+        existingTags: contact.tags || [],
         tags: [...new Set([...(contact.tags || []), ...tags])],
         updated_at: new Date().toISOString(),
     }));
@@ -225,6 +266,19 @@ export async function bulkAddTags(ids: string[], tags: string[]): Promise<{ succ
             .from('contacts')
             .update({ tags: update.tags, updated_at: update.updated_at })
             .eq('id', update.id);
+
+        // 触发自动化: 标签添加 (只为新添加的标签触发)
+        const newTags = tags.filter(tag => !update.existingTags.includes(tag));
+        for (const tag of newTags) {
+            await inngest.send({
+                name: 'contact/tag.added',
+                data: {
+                    contactId: update.id,
+                    tag,
+                    userId: user.id,
+                },
+            });
+        }
     }
 
     revalidatePath('/mail/contacts');

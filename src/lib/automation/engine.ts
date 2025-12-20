@@ -1,5 +1,18 @@
 'use server';
 
+/**
+ * @deprecated This module is deprecated.
+ *
+ * Automation execution is now handled by Inngest.
+ * See: /src/inngest/functions/automation.ts
+ *
+ * This file is kept for reference only and should be removed
+ * once migration is fully verified.
+ *
+ * Migration date: 2025-12-20
+ * TODO: Remove this file after end-to-end testing is complete
+ */
+
 import { createClient } from '@/lib/supabase/server';
 import { sendEmail } from '@/lib/mail/sender';
 

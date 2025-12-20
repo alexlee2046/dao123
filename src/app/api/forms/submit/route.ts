@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
-import { handleFormSubmissionTrigger } from '@/lib/automation/engine';
+import { inngest } from '@/inngest';
 
 // Lazy initialization for Supabase admin client
 let supabaseAdmin: SupabaseClient | null = null;
@@ -139,13 +139,26 @@ export async function POST(request: NextRequest) {
         .eq('id', submission.id);
     }
 
-    // Trigger automation if contact was created/synced
+    // Trigger automation via Inngest
     if (contactId) {
       try {
-        await handleFormSubmissionTrigger(formId, contactId, data);
+        await inngest.send({
+          name: 'form/submitted',
+          data: {
+            formId,
+            submissionId: submission.id,
+            contactId,
+            fields: data,
+            metadata: {
+              ip,
+              userAgent: headersList.get('user-agent') || '',
+              referrer: metadata?.referrer || headersList.get('referer') || '',
+            },
+          },
+        });
       } catch (automationError) {
         // Log but don't fail the submission
-        console.error('Automation trigger error:', automationError);
+        console.error('Inngest trigger error:', automationError);
       }
     }
 

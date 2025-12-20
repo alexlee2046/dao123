@@ -2,7 +2,17 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import type { AutomationStep, TriggerType } from '@/lib/automation/engine';
+
+// Automation types (backwards compatible with engine.ts)
+export type TriggerType = 'form_submission' | 'contact_created' | 'tag_added' | 'manual';
+
+export interface AutomationStep {
+  id: string;
+  type: 'send_email' | 'wait' | 'add_tag' | 'remove_tag' | 'condition' | 'split';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  config: Record<string, any>;
+  order: number;
+}
 
 // Types
 export interface Automation {
