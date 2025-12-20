@@ -1,7 +1,7 @@
 # 工作流引擎升级计划
 
 **创建日期**: 2025-12-20
-**状态**: Phase 3 已完成 ✓
+**状态**: Phase 4 已完成 ✓ (全部完成)
 **目标**: 将 dao123 打造成一站式 AI 营销平台，支持复杂多媒体工作流
 
 ---
@@ -128,9 +128,28 @@ commit `f2b8206` - 12 files, +2116
 
 ---
 
-## Phase 4: AI 编排层 [可选]
+## Phase 4: AI 编排层 [已完成 ✓]
 
-用户说需求，AI 自动生成工作流
+**目标**: 用户说需求，AI 自动生成工作流
+
+### 已实现
+
+**API 端点**:
+- `POST /api/workflow/generate` - AI 工作流生成
+- `GET/POST/PUT/DELETE /api/workflow` - 工作流 CRUD
+- `POST /api/workflow/[id]/run` - 触发工作流执行
+
+**AI 生成**:
+- 节点目录 (NODE_CATALOG) 提供可用节点信息
+- 使用 `generateObject` 结构化输出
+- 支持中英文生成
+
+**组件**:
+- `AIWorkflowChat` - 浮动聊天面板
+- 应用生成的工作流到编辑器
+- 工作流预览和确认
+
+commit `3dc70a7` - 7 files, +846
 
 ---
 
@@ -142,3 +161,4 @@ commit `f2b8206` - 12 files, +2116
 | 2025-12-20 | Phase 1 | `40aedda` - AI + Media 节点 (5 files, +1154) |
 | 2025-12-20 | Phase 2 | `4493f91` - DAG 执行引擎 (6 files, +1022) |
 | 2025-12-20 | Phase 3 | `f2b8206` - 可视化工作流编辑器 (12 files, +2116) |
+| 2025-12-20 | Phase 4 | `3dc70a7` - AI 编排层 (7 files, +846) |
