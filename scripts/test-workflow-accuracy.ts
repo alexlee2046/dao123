@@ -4,23 +4,90 @@
  * Run: npx tsx scripts/test-workflow-accuracy.ts
  */
 
-// Full test set
+// Advanced test set - higher complexity
 const TEST_PROMPTS = [
-  // Simple (1-2 nodes)
-  { prompt: '生成一张产品图片', expectedNodes: ['ai.generateImage'], difficulty: 'simple' },
-  { prompt: '发送一封营销邮件', expectedNodes: ['email.send'], difficulty: 'simple' },
+  // Complex (4 nodes)
+  {
+    prompt: '生成产品宣传视频，上传到云存储，等待5分钟后发送通知邮件',
+    expectedNodes: ['ai.generateVideo', 'media.upload', 'flow.delay', 'email.send'],
+    difficulty: 'complex'
+  },
+  {
+    prompt: '下载外部图片，调整尺寸为1080p，上传到我们的存储',
+    expectedNodes: ['media.download', 'media.resize', 'media.upload'],
+    difficulty: 'complex'
+  },
+  {
+    prompt: '生成8张不同风格的产品图，随机选3张，合并成一个展示画廊',
+    expectedNodes: ['ai.generateImage', 'media.filter', 'media.merge'],
+    difficulty: 'complex'
+  },
 
-  // Medium (2-3 nodes)
-  { prompt: '生成4张图片，选最好的一张', expectedNodes: ['ai.generateImage', 'media.filter'], difficulty: 'medium' },
-  { prompt: '生成文案后发邮件', expectedNodes: ['ai.generateText', 'email.send'], difficulty: 'medium' },
-  { prompt: '生成视频并上传', expectedNodes: ['ai.generateVideo', 'media.upload'], difficulty: 'medium' },
-  { prompt: '等待1小时后发送提醒邮件', expectedNodes: ['flow.delay', 'email.send'], difficulty: 'medium' },
-  { prompt: '下载图片并调整尺寸', expectedNodes: ['media.download', 'media.resize'], difficulty: 'medium' },
+  // Very Complex (4-5 nodes with approval/delay)
+  {
+    prompt: '生成营销邮件内容，人工审批通过后，等待1天，然后发送给客户',
+    expectedNodes: ['ai.generateEmail', 'flow.approval', 'flow.delay', 'email.send'],
+    difficulty: 'very_complex'
+  },
+  {
+    prompt: '生成产品介绍文案和配图，人工审批后发送邮件',
+    expectedNodes: ['ai.generateText', 'ai.generateImage', 'flow.approval', 'email.send'],
+    difficulty: 'very_complex'
+  },
+  {
+    prompt: '批量生成10张图片，筛选前3张最好的，调整尺寸后合并成画廊，发邮件预览',
+    expectedNodes: ['ai.generateImage', 'media.filter', 'media.resize', 'media.merge', 'email.send'],
+    difficulty: 'very_complex'
+  },
 
-  // Complex (3+ nodes)
-  { prompt: '生成4张产品图，筛选最好的，发送邮件给客户', expectedNodes: ['ai.generateImage', 'media.filter', 'email.send'], difficulty: 'complex' },
-  { prompt: '生成营销文案，人工审批后发送', expectedNodes: ['ai.generateText', 'flow.approval', 'email.send'], difficulty: 'complex' },
-  { prompt: '生成多张图片，合并成画廊，发送预览邮件', expectedNodes: ['ai.generateImage', 'media.merge', 'email.send'], difficulty: 'complex' },
+  // Edge cases - ambiguous or unusual
+  {
+    prompt: '每天定时生成一条问候语发给团队',
+    expectedNodes: ['ai.generateText', 'email.send'],
+    difficulty: 'edge_case'
+  },
+  {
+    prompt: '把用户上传的视频下载下来处理后重新上传',
+    expectedNodes: ['media.download', 'media.upload'],
+    difficulty: 'edge_case'
+  },
+  {
+    prompt: '生成一个产品发布会的完整素材包：宣传图、介绍视频、新闻稿，审批后发布',
+    expectedNodes: ['ai.generateImage', 'ai.generateVideo', 'ai.generateText', 'flow.approval'],
+    difficulty: 'very_complex'
+  },
+  {
+    prompt: '循环处理客户列表，为每个客户生成个性化邮件内容并发送',
+    expectedNodes: ['flow.forEach', 'ai.generateEmail', 'email.send'],
+    difficulty: 'very_complex'
+  },
+
+  // Ultra Complex (6+ nodes)
+  {
+    prompt: '生成10张产品图，筛选最好的3张，分别调整尺寸，合并成画廊，人工审批后发送邮件给客户',
+    expectedNodes: ['ai.generateImage', 'media.filter', 'media.resize', 'media.merge', 'flow.approval', 'email.send'],
+    difficulty: 'ultra_complex'
+  },
+  {
+    prompt: '下载客户提供的图片，生成配套的宣传文案和视频，全部上传到云存储，等待24小时后发送汇总邮件',
+    expectedNodes: ['media.download', 'ai.generateText', 'ai.generateVideo', 'media.upload', 'flow.delay', 'email.send'],
+    difficulty: 'ultra_complex'
+  },
+  {
+    prompt: '为每个VIP客户生成专属的产品图和介绍邮件，人工审批后批量发送',
+    expectedNodes: ['flow.forEach', 'ai.generateImage', 'ai.generateEmail', 'flow.approval', 'email.send'],
+    difficulty: 'ultra_complex'
+  },
+  {
+    prompt: '生成产品宣传视频，同时生成多张不同尺寸的封面图，全部上传后发送下载链接邮件',
+    expectedNodes: ['ai.generateVideo', 'ai.generateImage', 'media.resize', 'media.upload', 'email.send'],
+    difficulty: 'ultra_complex'
+  },
+  {
+    prompt: '批量处理100张图片：下载、调整尺寸、上传，完成后等待审批，审批通过发送通知',
+    expectedNodes: ['flow.forEach', 'media.download', 'media.resize', 'media.upload', 'flow.approval', 'email.send'],
+    difficulty: 'ultra_complex'
+  },
 ];
 
 interface TestResult {
@@ -186,8 +253,9 @@ async function testWorkflowGeneration(): Promise<void> {
 
   // By difficulty
   console.log('\nBy Difficulty:');
-  for (const diff of ['simple', 'medium', 'complex']) {
+  for (const diff of ['simple', 'medium', 'complex', 'very_complex', 'ultra_complex', 'edge_case']) {
     const subset = results.filter(r => r.difficulty === diff);
+    if (subset.length === 0) continue;
     const subPassed = subset.filter(r => r.success).length;
     console.log(`  ${diff}: ${subPassed}/${subset.length} (${(subPassed/subset.length*100).toFixed(1)}%)`);
   }
