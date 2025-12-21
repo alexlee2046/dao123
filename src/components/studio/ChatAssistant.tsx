@@ -69,6 +69,7 @@ export function ChatAssistant() {
 
     // Track if we've already processed the pending prompt
     const pendingPromptProcessedRef = useRef(false);
+    const lastParsedMessageIdRef = useRef<string | null>(null);
 
     const { messages, sendMessage, stop, status } = useChat({
         transport: new DefaultChatTransport({
@@ -176,10 +177,55 @@ export function ChatAssistant() {
         // Final fallback
         if (extractedHtml) {
             setHtmlContent(extractedHtml);
-            setAiGeneratedCache(extractedHtml); 
+            setAiGeneratedCache(extractedHtml);
             toast.success(t('chatPanel.previewUpdated'));
         }
     }, [setPages, setHtmlContent, setAiGeneratedCache, t]);
+
+    /**
+     * Real-time monitoring of chat status to trigger final parsing.
+     * This replaces the old onFinish callback to ensure content is parsed and updated
+     * when the assistant finishes its stream in standard chat mode.
+     */
+    const wasLoadingRef = useRef(false);
+    useEffect(() => {
+        const currentlyLoading = status === 'streaming' || status === 'submitted';
+
+        // When it transitions from loading to idle (finished)
+        if (wasLoadingRef.current && !currentlyLoading && mode === 'chat' && messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage.role === 'assistant' && lastMessage.id !== lastParsedMessageIdRef.current) {
+                // Robust content extraction (casting to any to avoid strict UIMessage type issues)
+                const msgAny = lastMessage as any;
+                let content = '';
+                if (typeof msgAny.content === 'string' && msgAny.content) {
+                    content = msgAny.content;
+                } else if (msgAny.parts && Array.isArray(msgAny.parts)) {
+                    content = msgAny.parts
+                        .filter((part: any) => part.type === 'text')
+                        .map((part: any) => part.text)
+                        .join('');
+                }
+
+                if (!content) return;
+
+                // Heuristic check if the assistant response likely contains HTML or page markers
+                const hasStructure =
+                    content.includes('<!DOCTYPE html>') ||
+                    content.includes('<html>') ||
+                    content.includes('```html') ||
+                    content.includes('<!-- page:') ||
+                    (content.includes('<body') && content.includes('</body>'));
+
+                if (hasStructure) {
+                    console.log('[ChatAssistant] Auto-triggering final parsing for message:', lastMessage.id);
+                    lastParsedMessageIdRef.current = lastMessage.id;
+                    handleFinalParsing(content);
+                }
+            }
+        }
+        wasLoadingRef.current = currentlyLoading;
+    }, [mode, status, messages, handleFinalParsing]);
 
     const handleSend = useCallback(async (contentOverride?: string) => {
         const contentToSend = typeof contentOverride === 'string' ? contentOverride : localInput;
