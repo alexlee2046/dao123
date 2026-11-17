@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import type { NodeContext, NodeResult } from '../../core/types';
+import type { NodeContext } from '../../core/types';
 
 // ============================================
 // Test Fixtures
@@ -37,7 +37,7 @@ vi.mock('@/lib/supabase/server', () => ({
 // ============================================
 
 describe('flow.wait node', () => {
-  let waitNode: { execute: (input: unknown, context: NodeContext) => Promise<NodeResult> };
+  let waitNode: typeof import('./nodes').waitNode;
 
   beforeEach(async () => {
     const flowNodes = await import('./nodes');
@@ -46,7 +46,7 @@ describe('flow.wait node', () => {
 
   test('should return success with wait configuration', async () => {
     const context = createMockContext();
-    const input = { duration: 1, unit: 'hours' };
+    const input = { duration: 1, unit: 'hours' as const };
 
     const result = await waitNode.execute(input, context);
 
@@ -58,18 +58,17 @@ describe('flow.wait node', () => {
 
   test('should calculate correct wait time for days', async () => {
     const context = createMockContext();
-    const input = { duration: 3, unit: 'days' };
+    const input = { duration: 3, unit: 'days' as const };
 
     const result = await waitNode.execute(input, context);
 
     expect(result.success).toBe(true);
-    expect(result.data?.duration).toBe(3);
-    expect(result.data?.waitUntil).toBeInstanceOf(Date);
+    expect(result.data).toMatchObject({ duration: 3, waitUntil: expect.any(Date) });
   });
 
   test('should handle different time units', async () => {
     const context = createMockContext();
-    const units = ['seconds', 'minutes', 'hours', 'days'];
+    const units = ['seconds', 'minutes', 'hours', 'days'] as const;
 
     for (const unit of units) {
       const input = { duration: 5, unit };
@@ -85,7 +84,7 @@ describe('flow.wait node', () => {
 // ============================================
 
 describe('flow.split node', () => {
-  let splitNode: { execute: (input: unknown, context: NodeContext) => Promise<NodeResult> };
+  let splitNode: typeof import('./nodes').splitNode;
 
   beforeEach(async () => {
     const flowNodes = await import('./nodes');
@@ -151,8 +150,7 @@ describe('flow.split node', () => {
 
     const result = await splitNode.execute(input, context);
 
-    expect(result.data?.selectedVariantId).toBe('test-variant');
-    expect(result.data?.selectedVariantName).toBe('Test Variant');
+    expect(result.data).toMatchObject({ selectedVariantId: 'test-variant', selectedVariantName: 'Test Variant' });
   });
 });
 
@@ -161,7 +159,7 @@ describe('flow.split node', () => {
 // ============================================
 
 describe('flow.condition node', () => {
-  let conditionNode: { execute: (input: unknown, context: NodeContext) => Promise<NodeResult> };
+  let conditionNode: typeof import('./nodes').conditionNode;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -172,7 +170,7 @@ describe('flow.condition node', () => {
   test('should return false branch when condition not met (no data)', async () => {
     const context = createMockContext();
     const input = {
-      conditionType: 'email_opened',
+      conditionType: 'email_opened' as const,
       params: { emailStepId: 'step_1' },
     };
 
@@ -186,7 +184,7 @@ describe('flow.condition node', () => {
   test('should return false when contactId is missing', async () => {
     const context = createMockContext({ contactId: undefined });
     const input = {
-      conditionType: 'email_opened',
+      conditionType: 'email_opened' as const,
       params: { emailStepId: 'step_1' },
     };
 
@@ -198,7 +196,7 @@ describe('flow.condition node', () => {
   test('should return false for tag_exists when tag param missing', async () => {
     const context = createMockContext();
     const input = {
-      conditionType: 'tag_exists',
+      conditionType: 'tag_exists' as const,
       params: {},
     };
 
@@ -210,7 +208,7 @@ describe('flow.condition node', () => {
   test('should return false for field_equals when field param missing', async () => {
     const context = createMockContext();
     const input = {
-      conditionType: 'field_equals',
+      conditionType: 'field_equals' as const,
       params: {},
     };
 
@@ -222,15 +220,14 @@ describe('flow.condition node', () => {
   test('should return correct data structure', async () => {
     const context = createMockContext();
     const input = {
-      conditionType: 'email_clicked',
+      conditionType: 'email_clicked' as const,
       params: { emailStepId: 'step_2' },
     };
 
     const result = await conditionNode.execute(input, context);
 
     expect(result.success).toBe(true);
-    expect(result.data?.conditionType).toBe('email_clicked');
-    expect(typeof result.data?.result).toBe('boolean');
+    expect(result.data).toMatchObject({ conditionType: 'email_clicked', result: expect.any(Boolean) });
   });
 
   test('should handle expression condition type', async () => {
@@ -240,7 +237,7 @@ describe('flow.condition node', () => {
       },
     });
     const input = {
-      conditionType: 'expression',
+      conditionType: 'expression' as const,
       params: { expression: '{{step1.output.success}} === true' },
     };
 
