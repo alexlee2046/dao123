@@ -11,6 +11,18 @@ const intlMiddleware = createMiddleware({
 })
 
 export default async function proxy(request: NextRequest) {
+    const response = await routeRequest(request)
+    if (process.env.SHADOW_NOINDEX === '1') {
+        response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+    }
+    return response
+}
+
+async function routeRequest(request: NextRequest) {
+    // Liveness must not depend on authentication, locale, host, or external services.
+    if (['/health', '/api/health', '/robots.txt'].includes(request.nextUrl.pathname)) {
+        return NextResponse.next()
+    }
     // Handle API routes - still need to refresh session for authenticated API calls
     if (request.nextUrl.pathname.startsWith('/api/')) {
         let response = NextResponse.next({

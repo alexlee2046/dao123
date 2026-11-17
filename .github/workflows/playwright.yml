@@ -7,29 +7,35 @@ on:
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: lts/*
+        node-version: '22'
 
     - name: Check CVE-2025-55182 versions
-      run: node scripts/check-cve-2025-55182.mjs
+      run: |
+        node scripts/check-cve-2025-55182.mjs
+        node --test scripts/check-cve-2025-55182.test.mjs
 
     - name: Install dependencies
       run: npm ci
       
     - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+      run: npx playwright install --with-deps chromium
       
     - name: Build application
       run: npm run build
       
-    - name: Run Playwright tests
-      run: npx playwright test
+    - name: Unit tests
+      run: npm test -- --run
+
+    # Full authenticated flows require a separately provisioned staging account.
+    - name: Run standalone smoke tests
+      run: npx playwright test --config=playwright.smoke.config.ts
       env:
         CI: true
         
@@ -39,3 +45,23 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+
+  container:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build standalone image
+      run: docker build -t dao123:ci .
+    - name: Verify image health and shadow headers
+      run: |
+        docker run -d --name dao123-smoke dao123:ci
+        trap 'docker logs dao123-smoke; docker rm -f dao123-smoke' EXIT
+        for attempt in $(seq 1 30); do
+          status=$(docker inspect --format '{{.State.Health.Status}}' dao123-smoke)
+          if [ "$status" = healthy ]; then break; fi
+          if [ "$status" = unhealthy ]; then exit 1; fi
+          sleep 5
+        done
+        test "$status" = healthy
+        docker exec dao123-smoke wget -Y off -S -O /dev/null http://127.0.0.1:3000/health 2>&1 | grep -i 'x-robots-tag: noindex'
