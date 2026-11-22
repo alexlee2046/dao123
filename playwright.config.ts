@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
     testDir: './e2e',
+    testIgnore: '**/standalone.smoke.spec.ts',
     fullyParallel: false, // 禁用并行运行，因为测试间有依赖
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
